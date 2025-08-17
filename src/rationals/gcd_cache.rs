@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use super::numerical_error::NumericalError;
 
@@ -23,11 +22,13 @@ fn gcd_eucleidian(mut a: i128, mut b: i128) -> Result<i128, Box<NumericalError>>
 }
 
 fn lcm_eucleidian(a: i128, b: i128, gcd_cache: &mut GcdCache) -> Result<i128, Box<NumericalError>> {
-    if (a == b && b == 0) {
+    if (a == 0 || b == 0) {
         return Result::Err(Box::new(NumericalError::new("Both arguments of LCM are zero.", format!("lcm({},{})", a,b))));
+    } else if (a < 0 || b < 0) {
+        return Result::Err(Box::new(NumericalError::new("Either of the arguments of LCM are negative.", format!("lcm({},{})", a,b))));
     }
     let gcd = gcd_cache.gcd(a,b)?;
-    return Result::Ok(((a*b) /gcd));
+    return Result::Ok((a*b) /gcd);
 }
 
 impl GcdCache {
@@ -77,7 +78,67 @@ mod tests {
         assert_eq!(result, 10);
     }
 
+    #[test]
+    fn gcd_works_correctly_for_one_zero_parameter() {
+        let mut cache: GcdCache = GcdCache::init();
+        let a = 0;
+        let b = 10;
+        let res = cache.gcd(a,b);
+        assert!(res.is_err() == false);
 
+        let Ok(result) = res else {
+            panic!("Result is err");
+        };
 
+        assert_eq!(result, b);
+    }
+
+    #[test]
+    fn gcd_works_correctly_for_both_zero_parameters() {
+        let mut cache: GcdCache = GcdCache::init();
+        let a = 0;
+        let b = 0;
+        let res = cache.gcd(a,b);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn gcd_works_correctly_for_negative_parameters() {
+        let mut cache: GcdCache = GcdCache::init();
+        let a = -1;
+        let b = 1;
+        let res1 = cache.gcd(a,b);
+        let res2 = cache.gcd(b,a);
+        let res3 = cache.gcd(a,a);
+        assert!(res1.is_err());
+        assert!(res2.is_err());
+        assert!(res3.is_err());
+    }
+
+    #[test]
+    fn lcm_works_correctly_for_non_zero_parameters() {
+        let mut cache: GcdCache = GcdCache::init();
+        let a = 550;
+        let b = 10;
+        let res = cache.lcm(a,b);
+        assert!(res.is_err() == false);
+
+        let Ok(result) = res else {
+            panic!("Result is err");
+        };
+
+        assert_eq!(result, 550);
+    }
+
+    #[test]
+    fn lcm_works_correctly_zero_parameters() {
+        let mut cache: GcdCache = GcdCache::init();
+        let a = 0;
+        let b = 10;
+        let res1 = cache.lcm(a,b);
+        let res2 = cache.lcm(b,a);
+        assert!(res1.is_err());
+        assert!(res2.is_err());
+    }
 
 }
