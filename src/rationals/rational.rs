@@ -36,9 +36,9 @@ impl Rational {
 
     fn to_latex_string(&self) -> String {
         if self.denominator != 1 { 
-            return format!("\\frac`{{`{}`}}``{{`{}`}}`", self.numerator, self.denominator);
+            return format!("\\frac{{{}}}{{{}}}", self.numerator, self.denominator);
         } else {
-            return format!("{}", self.numerator);
+            return self.numerator.to_string();
         }
     }
 
@@ -46,7 +46,7 @@ impl Rational {
         if self.denominator != 1 {
             return format!("{}/{}", self.numerator, self.denominator);
         } else {
-            return format!("{}", self.numerator);
+            return self.numerator.to_string();
         }
     }
 
@@ -95,6 +95,39 @@ mod tests {
         assert!(test_str_multiple_slashes_res.is_err());
         assert!(test_str_not_a_number_res.is_err());
         assert!(test_empty_string_res.is_err());
+    }
 
+    #[test]
+    fn print_to_string_suceeds() {
+        let input_numer_denom_str = "28373793/2";
+        let input_only_numer_str = "1";
+
+        let Ok(input_numer_denom_str_result) = super::Rational::from_str(input_numer_denom_str) else {
+            panic!("{input_numer_denom_str} could not be parsed into Rational!");
+        };
+
+        let Ok(input_only_numer_str_result) = super::Rational::from_str(input_only_numer_str) else {
+            panic!("{input_only_numer_str} could not be parsed into Rational!");
+        };
+        
+        assert_eq!(input_numer_denom_str_result.to_string(), input_numer_denom_str);
+        assert_eq!(input_only_numer_str_result.to_string(), input_only_numer_str);
+    }
+
+    #[test]
+    fn print_to_latex_string_suceeds() {
+        let input_numer_denom_str = "87373/4";
+        let input_only_numer_str = "1";
+
+        let Ok(input_numer_denom_str_result) = super::Rational::from_str(input_numer_denom_str) else {
+            panic!("{input_numer_denom_str} could not be parsed into Rational!");
+        };
+
+        let Ok(input_only_numer_str_result) = super::Rational::from_str(input_only_numer_str) else {
+            panic!("{input_only_numer_str} could not be parsed into Rational!");
+        };
+        
+        assert_eq!(input_numer_denom_str_result.to_latex_string(), "\\frac{87373}{4}");
+        assert_eq!(input_only_numer_str_result.to_latex_string(), "1");
     }
 }
