@@ -1,9 +1,11 @@
+use std::fmt::{Display, Formatter};
 use crate::parsers::ParserError;
 
-#[derive(Debug, PartialEq)]
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Rational {
     numerator: i128,
-    denominator: i128,   
+    denominator: i128,
 }
 
 impl Rational {
@@ -20,14 +22,14 @@ impl Rational {
                 return Result::Err(Box::new(ParserError::new("Rational has invalid denominator", input)));
             };
 
-            return Result::Ok(Rational{numerator: numerator, denominator: denominator});
+            return Result::Ok(Rational{numerator, denominator});
         }
         else if split.len() == 1 {
             let Ok(numerator) = split[0].parse() else {
                 return Result::Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
             };
 
-            return Result::Ok(Rational{numerator: numerator, denominator: 1});
+            return Result::Ok(Rational{numerator, denominator: 1});
         }
         else {
             return Result::Err(Box::new(ParserError::new("Invalid string passed as Rational number.", input)));
@@ -35,22 +37,24 @@ impl Rational {
     }
 
     fn to_latex_string(&self) -> String {
-        if self.denominator != 1 { 
+        if self.denominator != 1 {
             return format!("\\frac{{{}}}{{{}}}", self.numerator, self.denominator);
         } else {
             return self.numerator.to_string();
         }
     }
+}
 
-    fn to_string(&self) -> String {
+impl Display for Rational {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.denominator != 1 {
-            return format!("{}/{}", self.numerator, self.denominator);
+            write!(f, "{}/{}", self.numerator, self.denominator)
         } else {
-            return self.numerator.to_string();
+            write!(f, "{}", self.numerator)
         }
     }
-
 }
+
 
 #[cfg(test)]
 mod tests {
