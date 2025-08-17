@@ -17,3 +17,11 @@ impl Display for ParserError {
 impl Error for ParserError {
 
 }
+
+impl ParserError {
+
+    pub fn new(message: &str, structure: &str) -> Self {
+        return ParserError { message: String::from(message), structure: String::from(structure) }
+    }
+
+}
