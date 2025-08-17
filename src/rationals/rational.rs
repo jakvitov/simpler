@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 use crate::parsers::ParserError;
-
+use crate::rationals::gcd_cache::GcdCache;
+use crate::rationals::numerical_error::NumericalError;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Rational {
@@ -9,6 +10,10 @@ pub struct Rational {
 }
 
 impl Rational {
+
+    fn new(numerator: i128, denominator: i128) -> Self {
+        Rational {numerator, denominator}
+    }
 
     fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
         let split: Vec<&str> = input.split("/").collect();
@@ -43,6 +48,29 @@ impl Rational {
             return self.numerator.to_string();
         }
     }
+
+    ///Reduce given rational
+    /// 2/4 -> 1/2
+    fn reduce(&mut self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+        let gcd = gcd_cache.gcd(self.numerator, self.denominator)?;
+        if gcd == 1 {
+            Ok(())
+        } else {
+            self.numerator /= gcd;
+            self.denominator /= gcd;
+            Ok(())
+        }
+    }
+
+    ///self + other = new_rational
+    ///Uses provided gcd_cache for gcd and lcm operations
+    fn add(&self, other: &Rational, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+        let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
+        let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
+        let mut res = Rational::new(numerator, den_lcm);
+        (&mut res).reduce(gcd_cache)?;
+        Ok(res)
+    }
 }
 
 impl Display for Rational {
@@ -58,6 +86,8 @@ impl Display for Rational {
 
 #[cfg(test)]
 mod tests {
+    use crate::rationals::gcd_cache::GcdCache;
+    use crate::rationals::Rational;
 
     #[test]
     fn from_str_valid_numer_denom_suceeds() {
@@ -133,5 +163,31 @@ mod tests {
         
         assert_eq!(input_numer_denom_str_result.to_latex_string(), "\\frac{87373}{4}");
         assert_eq!(input_only_numer_str_result.to_latex_string(), "1");
+    }
+
+    #[test]
+    fn addition_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(1, 7);
+
+        let Ok(res) = a.add(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!")
+        };
+
+        assert_eq!(res, Rational{numerator: 9, denominator: 14});
+    }
+
+    #[test]
+    fn addition_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(3, 2);
+
+        let Ok(res) = a.add(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!")
+        };
+
+        assert_eq!(res, Rational{numerator: 2, denominator: 1});
     }
 }
