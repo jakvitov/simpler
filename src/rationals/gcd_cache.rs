@@ -2,10 +2,15 @@ use std::collections::HashMap;
 
 use super::numerical_error::NumericalError;
 
+/// Dynamic cache
+/// Used to obtains gcds and lcms of integers
+///
 pub struct GcdCache {
     data: HashMap<(i128, i128), i128>
 }
 
+/// Eucleidian gcd algorithm
+/// Defined for positive (non both zero) integers
 //Gcd implemented using the Eucleidian algorithm
 fn gcd_eucleidian(mut a: i128, mut b: i128) -> Result<i128, Box<NumericalError>> {
     if a == b && b == 0 {
@@ -21,6 +26,8 @@ fn gcd_eucleidian(mut a: i128, mut b: i128) -> Result<i128, Box<NumericalError>>
     Ok(a)
 }
 
+/// Get lcm using the eucleidian algorithm (for gcd)
+/// Defined for both positive non zero integers
 fn lcm_eucleidian(a: i128, b: i128, gcd_cache: &mut GcdCache) -> Result<i128, Box<NumericalError>> {
     if a == 0 || b == 0 {
         return Result::Err(Box::new(NumericalError::new("Both arguments of LCM are zero.", format!("lcm({},{})", a,b))));
@@ -42,7 +49,7 @@ impl GcdCache {
         let (bigger, smaller) = if a > b {(a, b)} else {(b, a)};
 
         match self.data.get(&(bigger, smaller)) {
-            Some(res) => Result::Ok(*res),
+            Some(res) => Ok(*res),
             None => {
                 let gcd = gcd_eucleidian(bigger, smaller)?;
                 self.data.insert((bigger, smaller), gcd );

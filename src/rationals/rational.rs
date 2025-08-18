@@ -3,6 +3,7 @@ use crate::parsers::ParserError;
 use crate::rationals::gcd_cache::GcdCache;
 use crate::rationals::numerical_error::NumericalError;
 
+/// Rational number
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Rational {
     numerator: i128,
@@ -55,6 +56,7 @@ impl Rational {
 
     ///Reduce given rational
     /// 2/4 -> 1/2
+    /// -2/4 -> -1/4
     fn reduce(&mut self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         let gcd = gcd_cache.gcd(self.numerator.abs(), self.denominator.abs())?;
         if gcd == 1 {
