@@ -11,7 +11,11 @@ pub struct Rational {
 
 impl Rational {
 
-    fn new(numerator: i128, denominator: i128) -> Self {
+    fn new(mut numerator: i128, mut denominator: i128) -> Self {
+        if denominator < 0 {
+            numerator = -numerator;
+            denominator = - denominator;
+        }
         Rational {numerator, denominator}
     }
 
@@ -20,24 +24,24 @@ impl Rational {
         
         if split.len() == 2 {
             let Ok(numerator) = split[0].parse() else {
-                return Result::Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
+                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
             };
             
             let Ok(denominator) = split[1].parse() else {
-                return Result::Err(Box::new(ParserError::new("Rational has invalid denominator", input)));
+                return Err(Box::new(ParserError::new("Rational has invalid denominator", input)));
             };
 
-            return Result::Ok(Rational{numerator, denominator});
+            return Ok(Rational::new(numerator, denominator));
         }
         else if split.len() == 1 {
             let Ok(numerator) = split[0].parse() else {
-                return Result::Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
+                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
             };
 
-            return Result::Ok(Rational{numerator, denominator: 1});
+            return Ok(Rational{numerator, denominator: 1});
         }
         else {
-            return Result::Err(Box::new(ParserError::new("Invalid string passed as Rational number.", input)));
+            return Err(Box::new(ParserError::new("Invalid string passed as Rational number.", input)));
         }
     }
 
@@ -52,7 +56,7 @@ impl Rational {
     ///Reduce given rational
     /// 2/4 -> 1/2
     fn reduce(&mut self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
-        let gcd = gcd_cache.gcd(self.numerator, self.denominator)?;
+        let gcd = gcd_cache.gcd(self.numerator.abs(), self.denominator.abs())?;
         if gcd == 1 {
             Ok(())
         } else {
@@ -98,6 +102,21 @@ impl Display for Rational {
 mod tests {
     use crate::rationals::gcd_cache::GcdCache;
     use crate::rationals::Rational;
+
+    #[test]
+    fn negative_numerator_and_denominator_conversion_succeeds() {
+        let res1 = Rational::new(-2, -3);
+        let result2 = Rational::from_str("-2/-3");
+
+        assert!(!result2.is_err());
+
+        let Ok(res2) = result2 else {
+            panic!("Conversion from string to rational failed");
+        };
+
+        assert_eq!(res1, Rational::new(2, 3));
+        assert_eq!(res2, Rational::new(2, 3));
+    }
 
     #[test]
     fn from_str_valid_numer_denom_suceeds() {
@@ -225,5 +244,18 @@ mod tests {
         };
 
         assert_eq!(res, Rational{numerator: 1, denominator: 1});
+    }
+
+    #[test]
+    fn subtraction_with_overlow_below_zero_switches_signs() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(5, 6);
+
+        let Ok(res) = a.subtract(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: -1, denominator: 3});
     }
 }
