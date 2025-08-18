@@ -88,12 +88,22 @@ impl Rational {
 
     ///self * other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
-    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Rational {
         let numerator = self.numerator * other.numerator;
         let denominator = self.denominator * other.denominator;
         let mut res = Rational::new(numerator, denominator);
         res.reduce(gcd_cache);
-        Ok(res)
+        res
+    }
+
+    /// self / other = new_rational
+    /// Usees provided gcd_cache for gcd and lcm operations
+    fn divide(&self, other: &Self, gcd_cache: &mut GcdCache) -> Rational {
+        let numerator = self.numerator * other.denominator;
+        let denominator = self.denominator * other.numerator;
+        let mut res = Rational::new(numerator, denominator);
+        res.reduce(gcd_cache);
+        res
     }
 }
 
@@ -275,9 +285,7 @@ mod tests {
         let a = Rational::new(1, 7);
         let b = Rational::new(1, 1);
 
-        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
-            panic!("Error during calculation!");
-        };
+        let res = a.multiply(&b, &mut gcd_cache);
 
         assert_eq!(res, Rational{numerator: 1, denominator: 7});
     }
@@ -288,9 +296,7 @@ mod tests {
         let a = Rational::new(6, 7);
         let b = Rational::new(33, 28);
 
-        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
-            panic!("Error during calculation!");
-        };
+        let res = a.multiply(&b, &mut gcd_cache);
 
         assert_eq!(res, Rational{numerator: 99, denominator: 98});
     }
@@ -301,10 +307,42 @@ mod tests {
         let a = Rational::new(-6, -7);
         let b = Rational::new(-33, 28);
 
-        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
-            panic!("Error during calculation!");
-        };
+        let res = a.multiply(&b, &mut gcd_cache);
 
         assert_eq!(res, Rational{numerator: -99, denominator: 98});
     }
+
+    #[test]
+    fn division_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(2, 5);
+
+        let res = a.divide(&b, &mut gcd_cache);
+
+        assert_eq!(res, Rational{numerator: 5, denominator: 4});
+    }
+
+    #[test]
+    fn division_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(2, 5);
+        let b = Rational::new(2, 10);
+
+        let res = a.divide(&b, &mut gcd_cache);
+
+        assert_eq!(res, Rational{numerator: 2, denominator: 1});
+    }
+
+    #[test]
+    fn division_with_negative_values_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(-1, -10);
+        let b = Rational::new(2, -5);
+
+        let res = a.divide(&b, &mut gcd_cache);
+
+        assert_eq!(res, Rational{numerator: -1, denominator: 4});
+    }
+
 }
