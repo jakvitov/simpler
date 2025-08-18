@@ -71,6 +71,16 @@ impl Rational {
         (&mut res).reduce(gcd_cache)?;
         Ok(res)
     }
+
+    ///self - other = new_rational
+    /// Uses provided gcd_cache for gcd and lcm operations
+    fn subtract(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+        let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
+        let numerator = ((den_lcm/self.denominator)*self.numerator) - ((den_lcm/other.denominator)*other.numerator);
+        let mut res = Rational::new(numerator, den_lcm);
+        (&mut res).reduce(gcd_cache)?;
+        Ok(res)
+    }
 }
 
 impl Display for Rational {
@@ -189,5 +199,31 @@ mod tests {
         };
 
         assert_eq!(res, Rational{numerator: 2, denominator: 1});
+    }
+
+    #[test]
+    fn subtraction_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(2, 6);
+
+        let Ok(res) = a.subtract(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: 1, denominator: 6});
+    }
+
+    #[test]
+    fn subtraction_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(3, 2);
+        let b = Rational::new(2, 4);
+
+        let Ok(res) = a.subtract(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: 1, denominator: 1});
     }
 }
