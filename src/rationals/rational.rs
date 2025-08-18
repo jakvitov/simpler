@@ -85,6 +85,16 @@ impl Rational {
         (&mut res).reduce(gcd_cache)?;
         Ok(res)
     }
+
+    ///self * other = new_rational
+    /// Uses provided gcd_cache for gcd and lcm operations
+    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+        let numerator = self.numerator * other.numerator;
+        let denominator = self.denominator * other.denominator;
+        let mut res = Rational::new(numerator, denominator);
+        res.reduce(gcd_cache);
+        Ok(res)
+    }
 }
 
 impl Display for Rational {
@@ -257,5 +267,44 @@ mod tests {
         };
 
         assert_eq!(res, Rational{numerator: -1, denominator: 3});
+    }
+
+    #[test]
+    fn multiplication_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 7);
+        let b = Rational::new(1, 1);
+
+        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: 1, denominator: 7});
+    }
+
+    #[test]
+    fn multiplication_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(6, 7);
+        let b = Rational::new(33, 28);
+
+        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: 99, denominator: 98});
+    }
+
+    #[test]
+    fn multiplication_with_negatives_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(-6, -7);
+        let b = Rational::new(-33, 28);
+
+        let Ok(res) = a.multiply(&b, &mut gcd_cache) else {
+            panic!("Error during calculation!");
+        };
+
+        assert_eq!(res, Rational{numerator: -99, denominator: 98});
     }
 }
