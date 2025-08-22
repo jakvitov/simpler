@@ -1,5 +1,6 @@
 /// Sections in which is the MPS format devided
-enum Sections {
+#[derive(PartialEq, Debug, Clone)]
+pub enum Sections {
     NAME,
     ROWS,
     COLUMNS,
@@ -21,9 +22,21 @@ enum Constraints {
     E  // ==
 }
 
-struct Row {
+pub struct Row {
     constraint: Constraints,
     name: String
+}
+
+pub struct Column {
+
+}
+
+pub struct Bound {
+
+}
+
+pub struct Rhs {
+
 }
 
 pub struct MpsModel {
