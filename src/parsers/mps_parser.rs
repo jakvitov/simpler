@@ -1,4 +1,4 @@
-use crate::parsers::mps::{Bound, Column, MpsModel, Row, Sections, Rhs};
+use crate::parsers::mps::{Bound, Column, Constraints, MpsModel, Rhs, Row, Sections};
 use crate::parsers::ParserError;
 use chrono::Utc;
 use log::info;
@@ -21,27 +21,37 @@ impl MpsInParsing {
     }
 }
 
-fn parse_name(lowercase_input: &str) -> Result<String, Box<ParserError>> {
-    let Some(first_line) = lowercase_input.lines().next() else {
-        return Err(Box::new(ParserError::from_string_structure("No section NAME found in input", lowercase_input.to_string())));
-    };
-    if first_line.len() < 5 {
-        return Err(Box::new(ParserError::from_string_structure("Incorrect NAME section in MPS", lowercase_input.to_string())));
+fn parse_name(name_line: &str) -> Result<String, Box<ParserError>> {
+    if name_line.len() < 5 {
+        return Err(Box::new(ParserError::from_string_structure("Incorrect NAME section in MPS", name_line.to_string())));
     }
 
-    if first_line[0..4].to_string() != "name" {
-        return Err(Box::new(ParserError::from_string_structure("MPS model does not start with NAME section", lowercase_input.to_string())));
+    if name_line[0..4].to_string() != "name" {
+        return Err(Box::new(ParserError::from_string_structure("MPS model does not start with NAME section", name_line.to_string())));
     }
 
-    let res = first_line[4..].trim().to_string();
+    let res = name_line[4..].trim().to_string();
     if res.is_empty() {
-        return Err(Box::new(ParserError::from_string_structure("MPS model name cannot contain only whitespaces", lowercase_input.to_string())));
+        return Err(Box::new(ParserError::from_string_structure("MPS model name cannot contain only whitespaces", name_line.to_string())));
     }
     Ok(res)
 }
 
 fn parse_rows(input: &Vec<&str>)  -> Result<Vec<Row>, Box<ParserError>> {
-    Ok(Vec::new())
+    let mut rows: Vec<Row> = Vec::new();
+    debug_assert!(input[0].to_lowercase() == "rows");
+    //Skip first item in buffer (string Rows)
+    for line in &input[1..] {
+        let split_row = line.split_whitespace().collect::<Vec<&str>>();
+        if split_row.len() != 2 {
+            return Err(Box::new(ParserError::new("Incorrect format of line in section ROWS.", line)));
+        }
+        let Ok(constraint) = split_row[0].parse::<Constraints>() else {
+            return Err(Box::new(ParserError::new("Incorrect format of constraint in line", line)));
+        };
+        rows.push(Row::new(constraint, String::from(split_row[1])));
+    }
+    Ok(rows)
 }
 
 fn parse_columns(input: &Vec<&str>)  -> Result<Vec<Column>, Box<ParserError>> {
@@ -58,12 +68,12 @@ fn parse_rhs(input: &Vec<&str>)  -> Result<Vec<Rhs>, Box<ParserError>> {
 
 
 
-fn parse_mps(input: String, logger: &SimpleLogger) -> Result<(), Box<ParserError>> {
+fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserError>> {
     info!("Started parsing MPS input.");
     let start_timestamp = Utc::now();
 
     if input.is_empty() {
-        return Err(Box::new(ParserError::from_string_structure("Input MPS is empty!", input)));
+        return Err(Box::new(ParserError::from_string_structure("Input MPS is empty!", input.clone())));
     }
 
     let lowercase_input = input.to_ascii_lowercase().to_string();
@@ -136,7 +146,8 @@ fn parse_mps(input: String, logger: &SimpleLogger) -> Result<(), Box<ParserError
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps_parser::parse_name;
+    use crate::parsers::mps::{Constraints, Row};
+    use crate::parsers::mps_parser::{parse_name, parse_rows};
 
     #[test]
     fn parse_name_succeeds() {
@@ -175,5 +186,20 @@ mod tests {
         let input = "namjdjd";
         let parse_res = parse_name(&input.to_string());
         assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_rows_succeeds() {
+        let input = "ROWS\n N CONST\n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_ok());
+
+        let rows = parse_res.unwrap();
+        assert_eq!(rows.len(), 4);
+
+        assert!(rows[0] == Row::new(Constraints::N, String::from("CONST")));
+        assert!(rows[1] == Row::new(Constraints::L, String::from("LIM1")));
+        assert!(rows[2] == Row::new(Constraints::G, String::from("LIM2")));
+        assert!(rows[3] == Row::new(Constraints::E, String::from("MYEQN")));
     }
 }
