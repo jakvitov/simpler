@@ -197,9 +197,32 @@ mod tests {
         let rows = parse_res.unwrap();
         assert_eq!(rows.len(), 4);
 
-        assert!(rows[0] == Row::new(Constraints::N, String::from("CONST")));
-        assert!(rows[1] == Row::new(Constraints::L, String::from("LIM1")));
-        assert!(rows[2] == Row::new(Constraints::G, String::from("LIM2")));
-        assert!(rows[3] == Row::new(Constraints::E, String::from("MYEQN")));
+        assert_eq!(rows[0], Row::new(Constraints::N, String::from("CONST")));
+        assert_eq!(rows[1], Row::new(Constraints::L, String::from("LIM1")));
+        assert_eq!(rows[2], Row::new(Constraints::G, String::from("LIM2")));
+        assert_eq!(rows[3], Row::new(Constraints::E, String::from("MYEQN")));
     }
+
+    #[test]
+    fn parse_rows_with_invalid_constraint_fails() {
+        let input = "ROWS\n I CONST\n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_rows_with_three_row_arguments_fails() {
+        let input = "ROWS\n L CONST LIM1\n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_rows_without_row_name_fails() {
+        let input = "ROWS\n N \n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_err());
+    }
+
+
 }
