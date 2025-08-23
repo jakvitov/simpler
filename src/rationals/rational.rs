@@ -13,7 +13,7 @@ pub struct Rational {
 
 impl Rational {
 
-    fn new(mut numerator: i128, mut denominator: i128) -> Self {
+    pub fn new(mut numerator: i128, mut denominator: i128) -> Self {
         if denominator < 0 {
             numerator = -numerator;
             denominator = - denominator;

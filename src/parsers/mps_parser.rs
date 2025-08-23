@@ -1,12 +1,12 @@
 use crate::parsers::mps::{Bound, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
 use crate::parsers::ParserError;
+use crate::rationals::Rational;
 use chrono::Utc;
 use log::info;
 use log::LevelFilter;
 use regex::Regex;
 use simple_logger::SimpleLogger;
 use std::error::Error;
-use crate::rationals::Rational;
 
 struct MpsInParsing {
     name: Option<String>,
@@ -79,7 +79,8 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
         let var_name = parts[0];
 
         //Safe step by, because the number of parts is checked before to be even
-        for i in (2..parts.len()).step_by(2) {
+        //We start by one, because in the split line, the first string is the variable name
+        for i in (1..parts.len()).step_by(2) {
             let variable_values = res.variables.get_mut(var_name);
             match variable_values {
                 Some(values) => {
@@ -185,8 +186,9 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps::{Constraints};
-    use crate::parsers::mps_parser::{parse_name, parse_rows};
+    use crate::parsers::mps::Constraints;
+    use crate::parsers::mps_parser::{parse_columns, parse_name, parse_rows};
+    use crate::rationals::Rational;
 
     #[test]
     fn parse_name_succeeds() {
@@ -268,6 +270,33 @@ mod tests {
         let input: Vec <&str> = Vec::new();
         let parse_res = parse_rows(&input);
         assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_columns_succeeds() {
+        let input = "COLUMNS     \n\t    XONE      COST                 1/2   LIM1                 -5/9\n\tXONE      LIM2                 2/5\n\tYTWO      COST                 4   LIM1                 1\n\tYTWO      MYEQN               -1\n\tZTHREE    COST                 9   LIM2                 1\n\tZTHREE    MYEQN                1"
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_ok());
+        let columns = parse_res.unwrap();
+        assert_eq!(columns.variables.len(), 3);
+
+        let xone_variable = columns.variables.get("XONE").unwrap();
+        assert!(xone_variable.len() == 3);
+        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
+        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
+        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
+
+        let ytwo_variable = columns.variables.get("YTWO").unwrap();
+        assert!(ytwo_variable.len() == 3);
+        assert_eq!(ytwo_variable[0], (String::from("COST"), Rational::new(4,1)));
+        assert_eq!(ytwo_variable[1], (String::from("LIM1"), Rational::new(1,1)));
+        assert_eq!(ytwo_variable[2], (String::from("MYEQN"), Rational::new(-1,1)));
+
+        let zthree_variable = columns.variables.get("ZTHREE").unwrap();
+        assert_eq!(zthree_variable[0], (String::from("COST"), Rational::new(9,1)));
+        assert_eq!(zthree_variable[1], (String::from("LIM2"), Rational::new(1,1)));
+        assert_eq!(zthree_variable[2], (String::from("MYEQN"), Rational::new(1,1)));
     }
 
 
