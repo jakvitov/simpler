@@ -1,4 +1,4 @@
-use crate::parsers::mps::{Bound, Column, Constraints, MpsModel, Rhs, Row, Sections};
+use crate::parsers::mps::{Bound, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
 use crate::parsers::ParserError;
 use chrono::Utc;
 use log::info;
@@ -6,11 +6,12 @@ use log::LevelFilter;
 use regex::Regex;
 use simple_logger::SimpleLogger;
 use std::error::Error;
+use crate::rationals::Rational;
 
 struct MpsInParsing {
     name: Option<String>,
-    rows: Option<Vec<Row>>,
-    columns: Option<Vec<Column>>,
+    rows: Option<Rows>,
+    columns: Option<Columns>,
     rhs: Option<Vec<Rhs>>,
     bounds: Option<Vec<Bound>>
 }
@@ -37,9 +38,12 @@ fn parse_name(name_line: &str) -> Result<String, Box<ParserError>> {
     Ok(res)
 }
 
-fn parse_rows(input: &Vec<&str>)  -> Result<Vec<Row>, Box<ParserError>> {
-    let mut rows: Vec<Row> = Vec::new();
-    debug_assert!(input[0].to_lowercase() == "rows");
+fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
+    let mut rows: Rows = Rows::empty();
+    if input.len() < 2 {
+        return Err(Box::new(ParserError::from_string_structure("Missing section ROWS in the MPS model.", input.join("\n"))));
+    }
+    debug_assert!(input[0].to_lowercase().trim() == "rows");
     //Skip first item in buffer (string Rows)
     for line in &input[1..] {
         let split_row = line.split_whitespace().collect::<Vec<&str>>();
@@ -49,13 +53,48 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Vec<Row>, Box<ParserError>> {
         let Ok(constraint) = split_row[0].parse::<Constraints>() else {
             return Err(Box::new(ParserError::new("Incorrect format of constraint in line", line)));
         };
-        rows.push(Row::new(constraint, String::from(split_row[1])));
+        if rows.rows.contains_key(split_row[1]) {
+            return Err(Box::new(ParserError::new("Row with the given name already exists.", line)));
+        }
+        rows.rows.insert(split_row[1].to_string(), constraint);
     }
     Ok(rows)
 }
 
-fn parse_columns(input: &Vec<&str>)  -> Result<Vec<Column>, Box<ParserError>> {
-    Ok(Vec::new())
+fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
+    let mut res = Columns::empty();
+
+    if input.len() < 2 {
+        return Err(Box::new(ParserError::from_string_structure("Column section is incorrect", input.join("\n"))))
+    }
+    debug_assert!(input[0].to_lowercase().trim() == "columns");
+
+    //The first line contains "COLUMNS" string
+    for line in input[1..].iter() {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        //Number of arguments must be odd because we get variable_name and var value pairs
+        if parts.len() % 2 != 1 {
+            return Err(Box::new(ParserError::new("Line in COLUMNS section is incorrect.\n Invalid number of arguments.", line)));
+        }
+        let var_name = parts[0];
+
+        //Safe step by, because the number of parts is checked before to be even
+        for i in (2..parts.len()).step_by(2) {
+            let variable_values = res.variables.get_mut(var_name);
+            match variable_values {
+                Some(values) => {
+                    let variable_amount = Rational::from_str(parts[i+1])?;
+                    values.push((parts[i].to_string(), variable_amount));
+                },
+                None => {
+                    let variable_amount = Rational::from_str(parts[i+1])?;
+                    let variable_values = vec![(parts[i].to_string(), variable_amount)];
+                    res.variables.insert(var_name.to_string(), variable_values);
+                }
+            }
+        }
+    }
+    Ok(res)
 }
 
 fn parse_bounds(input: &Vec<&str>)  -> Result<Vec<Bound>, Box<ParserError>> {
@@ -146,7 +185,7 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps::{Constraints, Row};
+    use crate::parsers::mps::{Constraints};
     use crate::parsers::mps_parser::{parse_name, parse_rows};
 
     #[test]
@@ -195,12 +234,12 @@ mod tests {
         assert!(parse_res.is_ok());
 
         let rows = parse_res.unwrap();
-        assert_eq!(rows.len(), 4);
+        assert_eq!(rows.rows.len(), 4);
 
-        assert_eq!(rows[0], Row::new(Constraints::N, String::from("CONST")));
-        assert_eq!(rows[1], Row::new(Constraints::L, String::from("LIM1")));
-        assert_eq!(rows[2], Row::new(Constraints::G, String::from("LIM2")));
-        assert_eq!(rows[3], Row::new(Constraints::E, String::from("MYEQN")));
+        assert_eq!(*rows.rows.get("CONST").unwrap(), Constraints::N);
+        assert_eq!(*rows.rows.get("LIM1").unwrap(), Constraints::L);
+        assert_eq!(*rows.rows.get("LIM2").unwrap(), Constraints::G);
+        assert_eq!(*rows.rows.get("MYEQN").unwrap(), Constraints::E);
     }
 
     #[test]
@@ -220,6 +259,13 @@ mod tests {
     #[test]
     fn parse_rows_without_row_name_fails() {
         let input = "ROWS\n N \n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_rows_with_empty_input_fails() {
+        let input: Vec <&str> = Vec::new();
         let parse_res = parse_rows(&input);
         assert!(parse_res.is_err());
     }

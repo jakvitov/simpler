@@ -20,7 +20,7 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
-    fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
+    pub fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
         let split: Vec<&str> = input.split("/").collect();
         
         if split.len() == 2 {

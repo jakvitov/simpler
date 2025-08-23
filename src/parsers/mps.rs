@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::str::FromStr;
+use crate::rationals::Rational;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]
@@ -40,19 +42,26 @@ impl FromStr for Constraints {
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct Row {
-    constraint: Constraints,
-    name: String
+
+pub struct Rows {
+    pub rows: HashMap<String, Constraints>,
 }
 
-impl Row {
-    pub fn new(constraint: Constraints, name: String) -> Self {
-        return Row{constraint: constraint, name: name};
+impl Rows {
+    pub fn empty() -> Self {
+        Rows {rows: HashMap::new()}
     }
 }
 
-pub struct Column {
 
+pub struct Columns {
+    pub variables: HashMap<String, Vec<(String, Rational)>>,
+}
+
+impl Columns {
+    pub fn empty() -> Self {
+        Columns{variables: HashMap::new()}
+    }
 }
 
 pub struct Bound {
@@ -65,7 +74,6 @@ pub struct Rhs {
 
 pub struct MpsModel {
     name: String,
-    rows: Vec<Row>
 }
 
 
