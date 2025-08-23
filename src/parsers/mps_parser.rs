@@ -1,19 +1,16 @@
-use crate::parsers::mps::{Bound, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
+use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
 use crate::parsers::ParserError;
 use crate::rationals::Rational;
 use chrono::Utc;
 use log::info;
-use log::LevelFilter;
-use regex::Regex;
 use simple_logger::SimpleLogger;
-use std::error::Error;
 
 struct MpsInParsing {
     name: Option<String>,
     rows: Option<Rows>,
     columns: Option<Columns>,
     rhs: Option<Vec<Rhs>>,
-    bounds: Option<Vec<Bound>>
+    bounds: Option<Bounds>
 }
 
 impl MpsInParsing {
@@ -39,11 +36,13 @@ fn parse_name(name_line: &str) -> Result<String, Box<ParserError>> {
 }
 
 fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
-    let mut rows: Rows = Rows::empty();
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Missing section ROWS in the MPS model.", input.join("\n"))));
     }
     debug_assert!(input[0].to_lowercase().trim() == "rows");
+
+    let mut rows: Rows = Rows::empty();
+
     //Skip first item in buffer (string Rows)
     for line in &input[1..] {
         let split_row = line.split_whitespace().collect::<Vec<&str>>();
@@ -62,12 +61,13 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
 }
 
 fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
-    let mut res = Columns::empty();
 
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Column section is incorrect", input.join("\n"))))
     }
     debug_assert!(input[0].to_lowercase().trim() == "columns");
+
+    let mut res = Columns::empty();
 
     //The first line contains "COLUMNS" string
     for line in input[1..].iter() {
@@ -98,8 +98,35 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
     Ok(res)
 }
 
-fn parse_bounds(input: &Vec<&str>)  -> Result<Vec<Bound>, Box<ParserError>> {
-    Ok(Vec::new())
+fn parse_bounds(input: &Vec<&str>)  -> Result<Bounds, Box<ParserError>> {
+    if input.len() < 2 {
+        return Err(Box::new(ParserError::from_string_structure("Bounds section is incorrect", input.join("\n"))))
+    }
+    debug_assert!(input[0].to_lowercase().trim() == "bounds");
+    let mut res = Bounds::empty();
+
+    //We iterate from 1, because line 0 is "bounds"
+    for line in input[1..].iter() {
+        let line_split = line.split_whitespace().collect::<Vec<&str>>();
+        if line_split.len() != 4 {
+            return Err(Box::new(ParserError::new("Bound in input has incorrect length.\nRequired are 3 elements.", line)));
+        }
+        let Ok(bound_type) = line_split[0].parse::<BoundType>() else {
+            return Err(Box::new(ParserError::new("Incorrect bound type.", line)));
+        };
+        let value = Rational::from_str(line_split[3])?;
+        let bound_name = line_split[1];
+        match res.bounds.get_mut(bound_name) {
+            Some(bound_list) => {
+                bound_list.push((String::from(line_split[2]), value, bound_type));
+            },
+            None => {
+                let bound_list = vec![(String::from(line_split[2]), value, bound_type)];
+                res.bounds.insert(bound_name.to_string(), bound_list);
+            }
+        }
+    }
+    Ok(res)
 }
 
 fn parse_rhs(input: &Vec<&str>)  -> Result<Vec<Rhs>, Box<ParserError>> {
@@ -121,7 +148,7 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
     let mut state = Sections::NAME;
     let mut buffer = Vec::<&str>::new();
     let mut mps_in_parsing = MpsInParsing::empty();
-    while let Some(line) = lines.clone().next() {
+    while let Some(line) = lines.clone().next().filter(|s| !s.trim().is_empty()) {
         match state {
             Sections::NAME => {
                 mps_in_parsing.name = Some(parse_name(line)?);
@@ -186,8 +213,8 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps::Constraints;
-    use crate::parsers::mps_parser::{parse_columns, parse_name, parse_rows};
+    use crate::parsers::mps::{BoundType, Constraints};
+    use crate::parsers::mps_parser::{parse_bounds, parse_columns, parse_name, parse_rows};
     use crate::rationals::Rational;
 
     #[test]
@@ -345,6 +372,73 @@ mod tests {
         assert!(parse_res.is_err());
     }
 
+    #[test]
+    fn parse_bounds_with_one_bound_name_succeeds() {
+        let input = "BOUNDS     \n\tUP BND1      XONE                 4/3\n\tLO BND1      YTWO                -1/2\n\tUP BND1      YTWO                 1"
+            .split("\n").collect();
+        let bounds_parse_res = parse_bounds(&input);
+        assert!(bounds_parse_res.is_ok());
+        let bounds = bounds_parse_res.unwrap();
+
+        assert_eq!(bounds.bounds.keys().len(), 1);
+        let bnd1 = bounds.bounds.get("BND1").unwrap();
+
+        assert_eq!(bnd1[0], (String::from("XONE"), Rational::new(4,3), BoundType::UP));
+        assert_eq!(bnd1[1], (String::from("YTWO"), Rational::new(-1,2), BoundType::LO));
+        assert_eq!(bnd1[2], (String::from("YTWO"), Rational::new(1,1), BoundType::UP));
+    }
+
+    #[test]
+    fn parse_bounds_with_two_bound_names_succeeds() {
+        let input = "BOUNDS     \n\tUP BND1      XONE                 4/3\n\tLO BND1      YTWO                -1/2\n\tUP BND1      YTWO                 1\n\tUP BND2    YTWO                 1"
+            .split("\n").collect();
+        let bounds_parse_res = parse_bounds(&input);
+        assert!(bounds_parse_res.is_ok());
+        let bounds = bounds_parse_res.unwrap();
+
+        assert_eq!(bounds.bounds.keys().len(), 2);
+        let bnd1 = bounds.bounds.get("BND1").unwrap();
+
+        assert_eq!(bnd1[0], (String::from("XONE"), Rational::new(4,3), BoundType::UP));
+        assert_eq!(bnd1[1], (String::from("YTWO"), Rational::new(-1,2), BoundType::LO));
+        assert_eq!(bnd1[2], (String::from("YTWO"), Rational::new(1,1), BoundType::UP));
+
+        let bnd2 = bounds.bounds.get("BND2").unwrap();
+        assert_eq!(bnd2[0], (String::from("YTWO"), Rational::new(1,1), BoundType::UP));
+
+
+    }
+
+    #[test]
+    fn parse_bounds_without_bound_intendation_succeeds() {
+        let input = "BOUNDS     \nUP BND1      XONE                 1"
+            .split("\n").collect();
+        let bounds_parse_res = parse_bounds(&input);
+        assert!(bounds_parse_res.is_ok());
+        let bounds = bounds_parse_res.unwrap();
+
+        assert_eq!(bounds.bounds.keys().len(), 1);
+        let bnd1 = bounds.bounds.get("BND1").unwrap();
+
+        assert_eq!(bnd1[0], (String::from("XONE"), Rational::new(1,1), BoundType::UP));
+
+    }
+
+    #[test]
+    fn parse_bounds_with_empty_bound_fails() {
+        let input = "BOUNDS     \n\tUP BND1      XONE                 1\n\tLO BND1      YTWO                1\n\tUP"
+            .split("\n").collect();
+        let bounds_parse_res = parse_bounds(&input);
+        assert!(bounds_parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_bounds_with_invalid_rational_value_fails() {
+        let input = "BOUNDS     \n\tUP BND1      XONE                 wrong_value\n\tLO BND1      YTWO                1\n\tUP BND1      YTWO                 1"
+            .split("\n").collect();
+        let bounds_parse_res = parse_bounds(&input);
+        assert!(bounds_parse_res.is_err());
+    }
 
 
 

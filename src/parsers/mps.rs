@@ -13,6 +13,25 @@ pub enum Sections {
     ENDATA
 }
 
+/// Bound type that can be applied to ROW
+/// UP - variable < upperbound
+/// LO - variable > lowerbound
+#[derive(PartialEq, Debug, Clone)]
+pub enum BoundType {
+    UP,
+    LO
+}
+
+impl FromStr for BoundType {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "UP" => Ok(Self::UP),
+            "LO" => Ok(Self::LO),
+            _ => Err(())
+        }
+    }
+}
 
 /// Constrains used in the MPS format
 /// N - objective
@@ -22,9 +41,9 @@ pub enum Sections {
 #[derive(PartialEq, Debug, Clone)]
 pub enum Constraints {
     N,
-    L, // <
-    G, // >
-    E  // ==
+    L,
+    G,
+    E,
 }
 
 impl FromStr for Constraints {
@@ -55,6 +74,7 @@ impl Rows {
 
 
 pub struct Columns {
+    //HashMap (variable_name, Vec<(row_name, value))
     pub variables: HashMap<String, Vec<(String, Rational)>>,
 }
 
@@ -64,8 +84,15 @@ impl Columns {
     }
 }
 
-pub struct Bound {
+pub struct Bounds {
+    // HashMap (bound_name, Vec(variable_name, value, bound_type)
+    pub bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
+}
 
+impl Bounds {
+    pub fn empty() -> Self {
+        Bounds{bounds: HashMap::new()}
+    }
 }
 
 pub struct Rhs {
