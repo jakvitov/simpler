@@ -3,7 +3,9 @@ use std::ops::{Div, Rem};
 /// Function accepting two integer types and returning
 /// Some(a) if the two integers can be divided without remainder
 /// None otherwise
-fn divide_exact<T>(a: T, b: T) -> Option<T>
+/// divide_exact(9,3) = 9/3 = Some(3)
+/// divide_exact(10,3) ~ 10/3 -> None
+pub fn divide_exact<T>(a: T, b: T) -> Option<T>
 where
     T: Div<Output = T> + Rem<Output = T> + PartialEq + Copy + From<u8>,
 {
