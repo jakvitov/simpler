@@ -299,5 +299,53 @@ mod tests {
         assert_eq!(zthree_variable[2], (String::from("MYEQN"), Rational::new(1,1)));
     }
 
+    #[test]
+    fn parse_columns_with_empty_variable_row_succeeds() {
+        let input = "COLUMNS     \n\t    XONE      COST                 1/2   LIM1                 -5/9\n\tXONE      LIM2                 2/5\n\tXONE    "
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_ok());
+        let columns = parse_res.unwrap();
+        assert_eq!(columns.variables.len(), 1);
+        let xone_variable = columns.variables.get("XONE").unwrap();
+        assert!(xone_variable.len() == 3);
+        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
+        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
+        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
+    }
+
+    #[test]
+    fn parse_columns_without_variable_intendation_succeeds() {
+        let input = "COLUMNS     \nXONE      COST                 1/2   LIM1                 -5/9\n\tXONE      LIM2                 2/5"
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_ok());
+        let columns = parse_res.unwrap();
+        let xone_variable = columns.variables.get("XONE").unwrap();
+        assert!(xone_variable.len() == 3);
+        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
+        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
+        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
+
+    }
+
+    #[test]
+    fn parse_columns_without_variable_name_fails() {
+        let input = "COLUMNS     \n\t    XONE      COST                 1/2   LIM1                 -5/9\n\t      LIM2                 2/5\n\tXONE    "
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_columns_without_variable_value_fails() {
+        let input = "COLUMNS     \nXONE      COST               LIM1                 -5/9\n\tXONE      LIM2                 2/5"
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_err());
+    }
+
+
+
 
 }
