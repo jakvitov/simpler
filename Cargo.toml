@@ -2,6 +2,10 @@
 name = "simpler"
 version = "0.0.1-SNAPSHOT"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jakvitov/simpler"
+keywords = ["simplex", "linear-programming", "solver"]
+categories = ["mathematics"]
 
 [dependencies]
 simple_logger = "5.0.0"
