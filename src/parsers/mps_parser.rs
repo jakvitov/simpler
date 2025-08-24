@@ -6,12 +6,12 @@ use chrono::Utc;
 use log::info;
 use simple_logger::SimpleLogger;
 
-struct MpsInParsing {
-    name: Option<String>,
-    rows: Option<Rows>,
-    columns: Option<Columns>,
-    rhs: Option<Rhs>,
-    bounds: Option<Bounds>
+pub(super) struct MpsInParsing {
+    pub(super) name: Option<String>,
+    pub(super) rows: Option<Rows>,
+    pub(super) columns: Option<Columns>,
+    pub(super) rhs: Option<Rhs>,
+    pub(super) bounds: Option<Bounds>
 }
 
 impl MpsInParsing {
@@ -19,11 +19,21 @@ impl MpsInParsing {
         MpsInParsing { name: None, rows: None, columns: None, rhs: None, bounds: None }
     }
 
-    fn is_filled(&self) -> bool {
-        if self.name.is_some() && self.rows.is_some() && self.columns.is_some() && self.rhs.is_some() && self.bounds.is_some() {
-            return true;
+    /// Return () if mps in parsing is fully filled
+    /// Return parser error with message about which section has not been filled otherwise
+    pub(super) fn is_filled(&self) -> Result<(), Box<ParserError>> {
+        if self.name.is_none() {
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field NAME", "")))
+        } else if self.rows.is_none() {
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field ROWS", "")))
+        } else if self.columns.is_none() {
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field COLUMNS", "")))
+        } else if self.rhs.is_none() {
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field RHS", "")))
+        } else if self.bounds.is_none() {
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field BOUNDS", "")))
         }
-        false
+        Ok(())
     }
 }
 
@@ -184,7 +194,7 @@ fn parse_rhs(input: &Vec<&str>)  -> Result<Rhs, Box<ParserError>> {
 
 
 
-fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserError>> {
+fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<MpsModel, Box<ParserError>> {
     info!("Started parsing MPS input.");
     let start_timestamp = Utc::now();
 
@@ -256,8 +266,8 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 
     let end_timestamp = Utc::now();
     info!("Finished parsing MPS input in {} milliseconds.", (end_timestamp - start_timestamp).num_milliseconds());
-
-    Ok(())
+    let res = mps_in_parsing.try_into()?;
+    Ok(res)
 }
 
 #[cfg(test)]
@@ -583,17 +593,57 @@ mod tests {
         mps_in_parsing.name = Some(String::from("test_name"));
         mps_in_parsing.rhs = Some(Rhs::empty());
         mps_in_parsing.bounds = Some(Bounds::empty());
-        assert_eq!(mps_in_parsing.is_filled(), true);
+        assert!(mps_in_parsing.is_filled().is_ok())
     }
 
     #[test]
-    fn mps_in_parsing_is_full_works_successfully_for_not_full_struct() {
+    fn mps_in_parsing_is_returns_err_when_name_is_missing() {
         let mut mps_in_parsing = MpsInParsing::empty();
         mps_in_parsing.rows = Some(Rows::empty());
         mps_in_parsing.name = Some(String::from("test_name"));
         mps_in_parsing.rhs = Some(Rhs::empty());
         mps_in_parsing.bounds = Some(Bounds::empty());
-        assert_eq!(mps_in_parsing.is_filled(), false);
+        assert!(mps_in_parsing.is_filled().is_err());
+    }
+
+    #[test]
+    fn mps_in_parsing_is_returns_err_when_rows_is_missing() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.columns = Some(Columns::empty());
+        mps_in_parsing.rhs = Some(Rhs::empty());
+        mps_in_parsing.bounds = Some(Bounds::empty());
+        assert!(mps_in_parsing.is_filled().is_err());
+    }
+
+    #[test]
+    fn mps_in_parsing_is_returns_err_when_column_is_missing() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.rows = Some(Rows::empty());
+        mps_in_parsing.rhs = Some(Rhs::empty());
+        mps_in_parsing.bounds = Some(Bounds::empty());
+        assert!(mps_in_parsing.is_filled().is_err());
+    }
+
+    #[test]
+    fn mps_in_parsing_is_returns_err_when_rhs_is_missing() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.columns = Some(Columns::empty());
+        mps_in_parsing.rows = Some(Rows::empty());
+        mps_in_parsing.bounds = Some(Bounds::empty());
+        assert!(mps_in_parsing.is_filled().is_err());
+    }
+
+    #[test]
+    fn mps_in_parsing_is_returns_err_when_bounds_is_missing() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.columns = Some(Columns::empty());
+        mps_in_parsing.rows = Some(Rows::empty());
+        mps_in_parsing.rhs = Some(Rhs::empty());
+        assert!(mps_in_parsing.is_filled().is_err());
     }
 
 }

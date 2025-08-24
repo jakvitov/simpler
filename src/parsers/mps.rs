@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::str::FromStr;
+use crate::parsers::mps_parser::MpsInParsing;
+use crate::parsers::ParserError;
 use crate::rationals::Rational;
 
 /// Sections in which is the MPS format devided
@@ -64,7 +66,7 @@ impl FromStr for Constraints {
 #[derive(PartialEq, Debug, Clone)]
 
 pub struct Rows {
-    pub rows: HashMap<String, Constraints>,
+    pub(super) rows: HashMap<String, Constraints>,
 }
 
 impl Rows {
@@ -76,39 +78,59 @@ impl Rows {
 
 pub struct Columns {
     //HashMap variable_name ->( column_name -> value)
-    pub variables: HashMap<String, HashMap<String, Rational>>,
+    pub(super) variables: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Columns {
-    pub fn empty() -> Self {
+    pub(super) fn empty() -> Self {
         Columns{variables: HashMap::new()}
     }
 }
 
 pub struct Bounds {
     // HashMap (bound_name, Vec(variable_name, value, bound_type)
-    pub bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
+    pub(super) bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
 }
 
 impl Bounds {
-    pub fn empty() -> Self {
+    pub(super) fn empty() -> Self {
         Bounds{bounds: HashMap::new()}
     }
 }
 
 pub struct Rhs {
     //HashMap rhs_name -> (row_name -> value)
-    pub rhs: HashMap<String, HashMap<String, Rational>>,
+    pub(super) rhs: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Rhs {
-    pub fn empty() -> Self {
+    pub(super) fn empty() -> Self {
         Rhs{rhs: HashMap::new()}
     }
 }
 
 pub struct MpsModel {
     name: String,
+    rows: Rows,
+    columns: Columns,
+    rhs: Rhs,
+    bounds: Bounds
+}
+
+impl TryFrom<MpsInParsing> for MpsModel {
+    type Error = Box<ParserError>;
+
+    fn try_from(value: MpsInParsing) -> Result<Self, Self::Error> {
+        value.is_filled()?;
+        //Unwrap is safe, because we checked filled above
+        Ok(MpsModel {
+            name: value.name.unwrap(),
+            rows: value.rows.unwrap(),
+            columns: value.columns.unwrap(),
+            bounds: value.bounds.unwrap(),
+            rhs: value.rhs.unwrap(),
+        })
+    }
 }
 
 
