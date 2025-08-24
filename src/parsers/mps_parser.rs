@@ -203,55 +203,52 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
     }
 
     let lowercase_input = input.to_ascii_lowercase().to_string();
-    let lines = lowercase_input.lines();
+    let mut lines = lowercase_input.lines().filter(|l| !l.trim().is_empty());
     let mut state = Sections::NAME;
     let mut buffer = Vec::<&str>::new();
     let mut mps_in_parsing = MpsInParsing::empty();
-    while let Some(line) = lines.clone().next().filter(|s| !s.trim().is_empty()) {
+    while let Some(line) = lines.next() {
         match state {
             Sections::NAME => {
                 mps_in_parsing.name = Some(parse_name(line)?);
                 state = Sections::ROWS;
             },
             Sections::ROWS => {
-                let line_string = line.to_string();
-                if (line_string == "COLUMNS") {
+                if (line == "columns") {
                     state = Sections::COLUMNS;
                     let parsed_rows = parse_rows(&buffer)?;
                     mps_in_parsing.rows = Some(parsed_rows);
-                    buffer = Vec::new()
+                    buffer = vec![line]
                 } else {
                     buffer.push(line);
                 }
             },
             Sections::COLUMNS => {
-                let line_string = line.to_string();
-                if (line_string == "RHS") {
+                if (line == "rhs") {
                     state = Sections::RHS;
                     let parsed_columns = parse_columns(&buffer)?;
                     mps_in_parsing.columns = Some(parsed_columns);
-                    buffer = Vec::new()
+                    buffer = vec![line]
                 } else {
                     buffer.push(line);
                 }
             },
             Sections::RHS => {
-                if (line == "BOUNDS") {
+                if (line == "bounds") {
                     state = Sections::BOUNDS;
                     let parsed_rhs = parse_rhs(&buffer)?;
                     mps_in_parsing.rhs = Some(parsed_rhs);
-                    buffer = Vec::new()
+                    buffer = vec![line]
                 } else {
                     buffer.push(line);
                 }
             },
             Sections::BOUNDS => {
-                let line_string = line.to_string();
-                if (line_string == "ENDATA") {
+                if (line == "endata") {
                     state = Sections::ENDATA;
                     let parsed_bounds = parse_bounds(&buffer)?;
                     mps_in_parsing.bounds = Some(parsed_bounds);
-                    buffer = Vec::new()
+                    buffer = vec![line]
                 } else {
                     buffer.push(line);
                 }

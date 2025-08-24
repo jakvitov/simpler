@@ -28,8 +28,8 @@ impl FromStr for BoundType {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "UP" => Ok(Self::UP),
-            "LO" => Ok(Self::LO),
+            "up" => Ok(Self::UP),
+            "lo" => Ok(Self::LO),
             _ => Err(())
         }
     }
@@ -53,10 +53,10 @@ impl FromStr for Constraints {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "N" => Ok(Constraints::N),
-            "L" => Ok(Constraints::L),
-            "G" => Ok(Constraints::G),
-            "E" => Ok(Constraints::E),
+            "n" => Ok(Constraints::N),
+            "l" => Ok(Constraints::L),
+            "g" => Ok(Constraints::G),
+            "e" => Ok(Constraints::E),
             _ => Err(())
         }
     }
