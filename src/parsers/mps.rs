@@ -72,6 +72,9 @@ impl Rows {
     pub fn empty() -> Self {
         Rows {rows: HashMap::new()}
     }
+    pub fn get_constraint_by_row_name(&self, key: &str) -> Option<&Constraints> {
+        self.rows.get(key)
+    }
 }
 
 
@@ -84,6 +87,10 @@ impl Columns {
     pub(super) fn empty() -> Self {
         Columns{variables: HashMap::new()}
     }
+
+    pub fn get_variables_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
+        self.variables.clone()
+    }
 }
 
 pub struct Bounds {
@@ -94,6 +101,9 @@ pub struct Bounds {
 impl Bounds {
     pub(super) fn empty() -> Self {
         Bounds{bounds: HashMap::new()}
+    }
+    pub fn get_bounds_clone(&self) -> HashMap<String, Vec<(String, Rational, BoundType)>> {
+        self.bounds.clone()
     }
 }
 
@@ -106,14 +116,17 @@ impl Rhs {
     pub(super) fn empty() -> Self {
         Rhs{rhs: HashMap::new()}
     }
+    pub fn get_rhs_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
+        self.rhs.clone()
+    }
 }
 
 pub struct MpsModel {
-    name: String,
-    rows: Rows,
-    columns: Columns,
-    rhs: Rhs,
-    bounds: Bounds
+    pub name: String,
+    pub rows: Rows,
+    pub columns: Columns,
+    pub rhs: Rhs,
+    pub bounds: Bounds
 }
 
 impl TryFrom<MpsInParsing> for MpsModel {
