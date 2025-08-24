@@ -27,7 +27,7 @@ pub enum BoundType {
 impl FromStr for BoundType {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_lowercase().as_str() {
             "up" => Ok(Self::UP),
             "lo" => Ok(Self::LO),
             _ => Err(())
@@ -52,7 +52,7 @@ impl FromStr for Constraints {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_lowercase().as_str() {
             "n" => Ok(Constraints::N),
             "l" => Ok(Constraints::L),
             "g" => Ok(Constraints::G),
