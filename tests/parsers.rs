@@ -6,15 +6,17 @@ use simpler::parsers::parse_mps;
 use simpler::rationals::Rational;
 use simpler::parsers::mps::{ BoundType, Constraints};
 
-#[test]
-fn parsing_simple_correct_mps_succeeds() {
-    let file_name = "simple_correct_mps";
-    SimpleLogger::new().init().unwrap();
+fn setup_path(file_name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("tests/data/mps");
     path.push(file_name);
+    path
+}
 
-    let mps_file = fs::read_to_string(&path).unwrap();
+#[test]
+fn parsing_simple_correct_mps_succeeds() {
+    SimpleLogger::new().init().unwrap();
+    let mps_file = fs::read_to_string(&setup_path("simple_correct_mps")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -56,13 +58,9 @@ fn parsing_simple_correct_mps_succeeds() {
 
 #[test]
 fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
-    let file_name = "simple_correct_mps_with_blank_lines";
     SimpleLogger::new().init().unwrap();
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("tests/data/mps");
-    path.push(file_name);
 
-    let mps_file = fs::read_to_string(&path).unwrap();
+    let mps_file = fs::read_to_string(&setup_path("simple_correct_mps_with_blank_lines")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -100,4 +98,13 @@ fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
     assert_eq!(bnd1[0], (String::from("xone"), Rational::new(4, 1), BoundType::UP));
     assert_eq!(bnd1[1], (String::from("ytwo"), Rational::new(-1, 1), BoundType::LO));
     assert_eq!(bnd1[2], (String::from("ytwo"), Rational::new(1, 1), BoundType::UP));
+}
+
+#[test]
+fn parsing_simple_mps_without_columns_fails() {
+    SimpleLogger::new().init().unwrap();
+
+    let mps_file = fs::read_to_string(&setup_path("simple_incorrect_mps_without_columns")).unwrap();
+    let parsed_mps = parse_mps(&mps_file);
+    assert!(parsed_mps.is_err());
 }
