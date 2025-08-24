@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-use std::hash::Hash;
-use std::str::FromStr;
-use crate::parsers::mps_parser::MpsInParsing;
-use crate::parsers::ParserError;
+use super::mps_parser::MpsInParsing;
+use super::ParserError;
 use crate::rationals::Rational;
+use std::collections::HashMap;
+use std::str::FromStr;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]

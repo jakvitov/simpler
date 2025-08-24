@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
-use crate::parsers::ParserError;
+use super::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
+use super::ParserError;
 use crate::rationals::Rational;
 use chrono::Utc;
 use log::info;
 use simple_logger::SimpleLogger;
+use std::collections::HashMap;
 
 pub(super) struct MpsInParsing {
     pub(super) name: Option<String>,
@@ -194,7 +194,7 @@ fn parse_rhs(input: &Vec<&str>)  -> Result<Rhs, Box<ParserError>> {
 
 
 
-fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<MpsModel, Box<ParserError>> {
+pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
     info!("Started parsing MPS input.");
     let start_timestamp = Utc::now();
 
@@ -261,8 +261,6 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<MpsModel, Box<Pars
             }
         }
     }
-
-
 
     let end_timestamp = Utc::now();
     info!("Finished parsing MPS input in {} milliseconds.", (end_timestamp - start_timestamp).num_milliseconds());
