@@ -492,6 +492,69 @@ mod tests {
         assert_eq!(*rhs1.get("MYEQN").unwrap(), Rational::new(-7,1));
     }
 
+    #[test]
+    fn parse_rhs_with_two_rhs_names_succeeds() {
+        let input = "RHS   \n\tRHS1      LIM1                 -5/2   LIM2                10\n\tRHS1      MYEQN                -7\n\tRHS2      LIM1                 -5/2   LIM2                10\n\tRHS2      MYEQN                -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_ok());
+        let rhs = parsed_rhs.unwrap();
+
+        assert_eq!(rhs.rhs.len(), 2);
+        let rhs1 = rhs.rhs.get("RHS1").unwrap();
+        assert_eq!(rhs1.len(), 3);
+        assert_eq!(*rhs1.get("LIM1").unwrap(), Rational::new(-5,2));
+        assert_eq!(*rhs1.get("LIM2").unwrap(), Rational::new(10,1));
+        assert_eq!(*rhs1.get("MYEQN").unwrap(), Rational::new(-7,1));
+
+        let rhs2 = rhs.rhs.get("RHS2").unwrap();
+        assert_eq!(rhs2.len(), 3);
+        assert_eq!(*rhs2.get("LIM1").unwrap(), Rational::new(-5,2));
+        assert_eq!(*rhs2.get("LIM2").unwrap(), Rational::new(10,1));
+        assert_eq!(*rhs2.get("MYEQN").unwrap(), Rational::new(-7,1));
+    }
+
+    ///RHS
+    ///for example MY_RHS ROW1 1 ROW1 1 -> Fails
+    #[test]
+    fn parse_rhs_with_two_same_variables_under_same_rhs_name_fails() {
+        let input = "RHS   \n\tRHS1      LIM1                 -5/2   LIM2                10\n\tRHS1      LIM2                -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_err());
+    }
+
+    #[test]
+    fn parse_rhs_without_data_fails() {
+        let input = "RHS   \n".split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_err());
+    }
+
+    #[test]
+    fn parse_rhs_row_without_value_fails() {
+        let input = "RHS   \n\tRHS1      LIM1                    LIM2                10\n\tRHS1      MYEQN                -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_err());
+    }
+
+    #[test]
+    fn parse_rhs_without_row_name_fails() {
+        let input = "RHS   \n\tRHS1      LIM1                 -5/2   LIM2                10\n\tRHS1                     -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_err());
+    }
+
+    #[test]
+    fn parse_rhs_with_invalid_rational_fails() {
+        let input = "RHS   \n\tRHS1      LIM1                 wrong_rational   LIM2                10\n\tRHS1      MYEQN                -7\n\tRHS2      LIM1                 -5/2   LIM2                10\n\tRHS2      MYEQN                -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_err());
+    }
+
 
 
 }
