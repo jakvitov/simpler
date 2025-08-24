@@ -2,9 +2,10 @@ use std::fmt::{Display, Formatter};
 use crate::parsers::ParserError;
 use crate::rationals::gcd_cache::GcdCache;
 use crate::rationals::numerical_error::NumericalError;
+use crate::utils::math::divide_exact;
 
 /// Rational number
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Rational {
     numerator: i128,
     denominator: i128,
@@ -12,7 +13,7 @@ pub struct Rational {
 
 impl Rational {
 
-    fn new(mut numerator: i128, mut denominator: i128) -> Self {
+    pub fn new(mut numerator: i128, mut denominator: i128) -> Self {
         if denominator < 0 {
             numerator = -numerator;
             denominator = - denominator;
@@ -20,7 +21,7 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
-    fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
+    pub fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
         let split: Vec<&str> = input.split("/").collect();
         
         if split.len() == 2 {
@@ -115,6 +116,28 @@ impl Display for Rational {
             write!(f, "{}/{}", self.numerator, self.denominator)
         } else {
             write!(f, "{}", self.numerator)
+        }
+    }
+}
+
+impl PartialEq for Rational {
+    fn eq(&self, other: &Self) -> bool {
+        if self.numerator.abs() > other.numerator.abs() {
+            let Some(ratio) = divide_exact(self.numerator, other.numerator) else {
+                return false;
+            };
+            if other.denominator * ratio == self.denominator {
+                return true;
+            }
+            false
+        } else  {
+            let Some(ratio) = divide_exact(other.numerator, self.numerator) else {
+                return false;
+            };
+            if self.denominator * ratio == other.denominator {
+                return true;
+            }
+            false
         }
     }
 }
@@ -347,4 +370,31 @@ mod tests {
         assert_eq!(res, Rational{numerator: -1, denominator: 4});
     }
 
+    #[test]
+    fn equality_between_positive_rationals_succeeds() {
+        let first = Rational::new(2, 3);
+        let second = Rational::new(6, 9);
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn equality_between_negative_rationals_succeeds() {
+        let first = Rational::new(-2, 3);
+        let second = Rational::new(6, -9);
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn equality_between_unequal_positive_rationals_fails() {
+        let first = Rational::new(2, 3);
+        let second = Rational::new(7, 9);
+        assert_ne!(first, second);
+    }
+
+    #[test]
+    fn equality_between_unequal_negative_rationals_fails() {
+        let first = Rational::new(2, -3);
+        let second = Rational::new(-7, 9);
+        assert_ne!(first, second);
+    }
 }
