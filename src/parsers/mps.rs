@@ -98,7 +98,7 @@ impl Bounds {
 
 pub struct Rhs {
     //HashMap rhs_name -> (row_name -> value)
-    rhs: HashMap<String, HashMap<String, Rational>>,
+    pub rhs: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Rhs {

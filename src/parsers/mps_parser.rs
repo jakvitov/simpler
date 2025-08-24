@@ -10,7 +10,7 @@ struct MpsInParsing {
     name: Option<String>,
     rows: Option<Rows>,
     columns: Option<Columns>,
-    rhs: Option<Vec<Rhs>>,
+    rhs: Option<Rhs>,
     bounds: Option<Bounds>
 }
 
@@ -85,6 +85,8 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
             let variable_values = res.variables.get_mut(var_name);
             match variable_values {
                 Some(values) => {
+                    //todo what if given variable already contains row_name with a value?
+                    // + add test for this
                     let variable_amount = Rational::from_str(parts[i+1])?;
                     values.insert(parts[i].to_string(), variable_amount);
                 },
@@ -131,8 +133,41 @@ fn parse_bounds(input: &Vec<&str>)  -> Result<Bounds, Box<ParserError>> {
     Ok(res)
 }
 
-fn parse_rhs(input: &Vec<&str>)  -> Result<Vec<Rhs>, Box<ParserError>> {
-    Ok(Vec::new())
+fn parse_rhs(input: &Vec<&str>)  -> Result<Rhs, Box<ParserError>> {
+    if input.len() < 2 {
+        return Err(Box::new(ParserError::from_string_structure("RHS section empty.", input.join("\n").to_string())));
+    }
+
+    debug_assert!(input[0].to_lowercase().trim() == "rhs");
+    let mut res = Rhs::empty();
+    //We skip first line, because it contains "rhs" string
+    for line in input[1..].iter() {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() % 2 != 1 {
+            return Err(Box::new(ParserError::new("Incorrect number of arguments for RHS line.", line)));
+        }
+
+        let rhs_name = parts[0];
+        //We iterate over pairs of row_name(i) + value(i+1)
+        for i in (1..parts.len()).step_by(2) {
+            let row_name = parts[i];
+            let value = Rational::from_str(parts[i+1])?;
+            match res.rhs.get_mut(rhs_name) {
+                Some(rhs) => {
+                    if rhs.contains_key(row_name)  {
+                        return Err(Box::new(ParserError::new("RHS with given name already contains this row with a value.", line)));
+                    }
+                    rhs.insert(row_name.to_string(), value);
+                },
+                None => {
+                    let mut row_value = HashMap::new();
+                    row_value.insert(row_name.to_string(), value);
+                    res.rhs.insert(rhs_name.to_string(), row_value);
+                }
+            }
+        }
+    }
+    Ok(res)
 }
 
 
@@ -216,7 +251,7 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 #[cfg(test)]
 mod tests {
     use crate::parsers::mps::{BoundType, Constraints};
-    use crate::parsers::mps_parser::{parse_bounds, parse_columns, parse_name, parse_rows};
+    use crate::parsers::mps_parser::{parse_bounds, parse_columns, parse_name, parse_rhs, parse_rows};
     use crate::rationals::Rational;
 
     #[test]
@@ -439,6 +474,22 @@ mod tests {
             .split("\n").collect();
         let bounds_parse_res = parse_bounds(&input);
         assert!(bounds_parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_rhs_with_one_rhs_name_suceeds() {
+        let input = "RHS   \n\tRHS1      LIM1                 -5/2   LIM2                10\n\tRHS1      MYEQN                -7"
+            .split("\n").collect();
+        let parsed_rhs = parse_rhs(&input);
+        assert!(parsed_rhs.is_ok());
+        let rhs = parsed_rhs.unwrap();
+
+        assert_eq!(rhs.rhs.len(), 1);
+        let rhs1 = rhs.rhs.get("RHS1").unwrap();
+        assert_eq!(rhs1.len(), 3);
+        assert_eq!(*rhs1.get("LIM1").unwrap(), Rational::new(-5,2));
+        assert_eq!(*rhs1.get("LIM2").unwrap(), Rational::new(10,1));
+        assert_eq!(*rhs1.get("MYEQN").unwrap(), Rational::new(-7,1));
     }
 
 
