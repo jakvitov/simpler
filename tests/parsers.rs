@@ -15,8 +15,7 @@ fn setup_path(file_name: &str) -> PathBuf {
 
 #[test]
 fn parsing_simple_correct_mps_succeeds() {
-    SimpleLogger::new().init().unwrap();
-    let mps_file = fs::read_to_string(&setup_path("simple_correct_mps")).unwrap();
+    let mps_file = fs::read_to_string(setup_path("simple_correct_mps")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -58,9 +57,7 @@ fn parsing_simple_correct_mps_succeeds() {
 
 #[test]
 fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
-    SimpleLogger::new().init().unwrap();
-
-    let mps_file = fs::read_to_string(&setup_path("simple_correct_mps_with_blank_lines")).unwrap();
+    let mps_file = fs::read_to_string(setup_path("simple_correct_mps_with_blank_lines")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -102,9 +99,7 @@ fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
 
 #[test]
 fn parsing_simple_mps_without_columns_fails() {
-    SimpleLogger::new().init().unwrap();
-
-    let mps_file = fs::read_to_string(&setup_path("simple_incorrect_mps_without_columns")).unwrap();
+    let mps_file = fs::read_to_string(setup_path("simple_incorrect_mps_without_columns")).unwrap();
     let parsed_mps = parse_mps(&mps_file);
     assert!(parsed_mps.is_err());
 }
