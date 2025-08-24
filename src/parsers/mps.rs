@@ -74,8 +74,8 @@ impl Rows {
 
 
 pub struct Columns {
-    //HashMap (variable_name, Vec<(row_name, value))
-    pub variables: HashMap<String, Vec<(String, Rational)>>,
+    //HashMap variable_name ->( column_name -> value)
+    pub variables: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Columns {

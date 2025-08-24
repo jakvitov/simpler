@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows, Sections};
 use crate::parsers::ParserError;
 use crate::rationals::Rational;
@@ -85,11 +86,12 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
             match variable_values {
                 Some(values) => {
                     let variable_amount = Rational::from_str(parts[i+1])?;
-                    values.push((parts[i].to_string(), variable_amount));
+                    values.insert(parts[i].to_string(), variable_amount);
                 },
                 None => {
                     let variable_amount = Rational::from_str(parts[i+1])?;
-                    let variable_values = vec![(parts[i].to_string(), variable_amount)];
+                    let mut variable_values = HashMap::new();
+                    variable_values.insert(parts[i].to_string(), variable_amount);
                     res.variables.insert(var_name.to_string(), variable_values);
                 }
             }
@@ -310,20 +312,20 @@ mod tests {
 
         let xone_variable = columns.variables.get("XONE").unwrap();
         assert!(xone_variable.len() == 3);
-        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
-        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
-        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
+        assert_eq!(*xone_variable.get("COST").unwrap(), Rational::new(1,2));
+        assert_eq!(*xone_variable.get("LIM1").unwrap(), Rational::new(-5,9));
+        assert_eq!(*xone_variable.get("LIM2").unwrap(), Rational::new(2,5));
 
         let ytwo_variable = columns.variables.get("YTWO").unwrap();
         assert!(ytwo_variable.len() == 3);
-        assert_eq!(ytwo_variable[0], (String::from("COST"), Rational::new(4,1)));
-        assert_eq!(ytwo_variable[1], (String::from("LIM1"), Rational::new(1,1)));
-        assert_eq!(ytwo_variable[2], (String::from("MYEQN"), Rational::new(-1,1)));
+        assert_eq!(*ytwo_variable.get("COST").unwrap(), Rational::new(4,1));
+        assert_eq!(*ytwo_variable.get("LIM1").unwrap(), Rational::new(1,1));
+        assert_eq!(*ytwo_variable.get("MYEQN").unwrap(), Rational::new(-1,1));
 
         let zthree_variable = columns.variables.get("ZTHREE").unwrap();
-        assert_eq!(zthree_variable[0], (String::from("COST"), Rational::new(9,1)));
-        assert_eq!(zthree_variable[1], (String::from("LIM2"), Rational::new(1,1)));
-        assert_eq!(zthree_variable[2], (String::from("MYEQN"), Rational::new(1,1)));
+        assert_eq!(*zthree_variable.get("COST").unwrap(), Rational::new(9,1));
+        assert_eq!(*zthree_variable.get("LIM2").unwrap(), Rational::new(1,1));
+        assert_eq!(*zthree_variable.get("MYEQN").unwrap(), Rational::new(1,1));
     }
 
     #[test]
@@ -336,9 +338,9 @@ mod tests {
         assert_eq!(columns.variables.len(), 1);
         let xone_variable = columns.variables.get("XONE").unwrap();
         assert!(xone_variable.len() == 3);
-        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
-        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
-        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
+        assert_eq!(*xone_variable.get("COST").unwrap(), Rational::new(1,2));
+        assert_eq!(*xone_variable.get("LIM1").unwrap(), Rational::new(-5,9));
+        assert_eq!(*xone_variable.get("LIM2").unwrap(), Rational::new(2,5));
     }
 
     #[test]
@@ -350,10 +352,9 @@ mod tests {
         let columns = parse_res.unwrap();
         let xone_variable = columns.variables.get("XONE").unwrap();
         assert!(xone_variable.len() == 3);
-        assert_eq!(xone_variable[0], (String::from("COST"), Rational::new(1,2)));
-        assert_eq!(xone_variable[1], (String::from("LIM1"), Rational::new(-5,9)));
-        assert_eq!(xone_variable[2], (String::from("LIM2"), Rational::new(2,5)));
-
+        assert_eq!(*xone_variable.get("COST").unwrap(), Rational::new(1,2));
+        assert_eq!(*xone_variable.get("LIM1").unwrap(), Rational::new(-5,9));
+        assert_eq!(*xone_variable.get("LIM2").unwrap(), Rational::new(2,5));
     }
 
     #[test]
