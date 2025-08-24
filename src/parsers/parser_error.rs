@@ -27,4 +27,8 @@ impl ParserError {
     pub fn from_string_structure(message: &str, structure: String) -> Self {
         ParserError { message: String::from(message), structure: structure}
     }
+
+    pub fn from_string_message(message: String, structure: &str) -> Self {
+        ParserError { message: message, structure: String::from(structure)}
+    }
 }

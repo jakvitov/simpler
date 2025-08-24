@@ -53,10 +53,11 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
         let Ok(constraint) = split_row[0].parse::<Constraints>() else {
             return Err(Box::new(ParserError::new("Incorrect format of constraint in line", line)));
         };
-        if rows.rows.contains_key(split_row[1]) {
+        let row_name = split_row[1].to_string();
+        if rows.rows.contains_key(&row_name) {
             return Err(Box::new(ParserError::new("Row with the given name already exists.", line)));
         }
-        rows.rows.insert(split_row[1].to_string(), constraint);
+        rows.rows.insert(row_name, constraint);
     }
     Ok(rows)
 }
@@ -85,6 +86,10 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
             let variable_values = res.variables.get_mut(var_name);
             match variable_values {
                 Some(values) => {
+                    let row_name = parts[i].to_string();
+                    if values.contains_key(&row_name) {
+                        return Err(Box::new(ParserError::from_string_message(format!("Section COLUMNS: Row {row_name} has already assigned value for variable {var_name}."), line)));
+                    }
                     //todo what if given variable already contains row_name with a value?
                     // + add test for this
                     let variable_amount = Rational::from_str(parts[i+1])?;
@@ -403,6 +408,14 @@ mod tests {
     #[test]
     fn parse_columns_without_variable_value_fails() {
         let input = "COLUMNS     \nXONE      COST               LIM1                 -5/9\n\tXONE      LIM2                 2/5"
+            .split("\n").collect();
+        let parse_res = parse_columns(&input);
+        assert!(parse_res.is_err());
+    }
+
+    #[test]
+    fn parse_columns_variable_having_two_values_for_the_same_column_fails() {
+        let input = "COLUMNS     \n\t    XONE      COST                 1/2   LIM1                 -5/9\n\tXONE      LIM2                 2/5    COST 2/5\n\tYTWO      COST                 4   LIM1                 1\n\tYTWO      MYEQN               -1\n\tZTHREE    COST                 9   LIM2                 1\n\tZTHREE    MYEQN                1"
             .split("\n").collect();
         let parse_res = parse_columns(&input);
         assert!(parse_res.is_err());
