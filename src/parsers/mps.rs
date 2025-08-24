@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::str::FromStr;
 use crate::rationals::Rational;
 
@@ -96,7 +97,14 @@ impl Bounds {
 }
 
 pub struct Rhs {
+    //HashMap rhs_name -> (row_name -> value)
+    rhs: HashMap<String, HashMap<String, Rational>>,
+}
 
+impl Rhs {
+    pub fn empty() -> Self {
+        Rhs{rhs: HashMap::new()}
+    }
 }
 
 pub struct MpsModel {
