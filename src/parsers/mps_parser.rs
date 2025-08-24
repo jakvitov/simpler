@@ -18,6 +18,13 @@ impl MpsInParsing {
     fn empty() -> Self {
         MpsInParsing { name: None, rows: None, columns: None, rhs: None, bounds: None }
     }
+
+    fn is_filled(&self) -> bool {
+        if self.name.is_some() && self.rows.is_some() && self.columns.is_some() && self.rhs.is_some() && self.bounds.is_some() {
+            return true;
+        }
+        false
+    }
 }
 
 fn parse_name(name_line: &str) -> Result<String, Box<ParserError>> {
@@ -255,8 +262,8 @@ fn parse_mps(input: &String, logger: &SimpleLogger) -> Result<(), Box<ParserErro
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps::{BoundType, Constraints};
-    use crate::parsers::mps_parser::{parse_bounds, parse_columns, parse_name, parse_rhs, parse_rows};
+    use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, Rhs, Rows};
+    use crate::parsers::mps_parser::{parse_bounds, parse_columns, parse_name, parse_rhs, parse_rows, MpsInParsing};
     use crate::rationals::Rational;
 
     #[test]
@@ -568,6 +575,25 @@ mod tests {
         assert!(parsed_rhs.is_err());
     }
 
+    #[test]
+    fn mps_in_parsing_is_full_works_successfully_for_full_struct() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.rows = Some(Rows::empty());
+        mps_in_parsing.columns = Some(Columns::empty());
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.rhs = Some(Rhs::empty());
+        mps_in_parsing.bounds = Some(Bounds::empty());
+        assert_eq!(mps_in_parsing.is_filled(), true);
+    }
 
+    #[test]
+    fn mps_in_parsing_is_full_works_successfully_for_not_full_struct() {
+        let mut mps_in_parsing = MpsInParsing::empty();
+        mps_in_parsing.rows = Some(Rows::empty());
+        mps_in_parsing.name = Some(String::from("test_name"));
+        mps_in_parsing.rhs = Some(Rhs::empty());
+        mps_in_parsing.bounds = Some(Bounds::empty());
+        assert_eq!(mps_in_parsing.is_filled(), false);
+    }
 
 }
