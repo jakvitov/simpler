@@ -13,7 +13,7 @@ use typst_kit::fonts::{FontSearcher, FontSlot};
 ///!! Source: https://github.com/tfachmann/typst-as-library/tree/main !!
 /// 
 /// Main interface that determines the environment for Typst.
-pub struct TypstWrapperWorld {
+pub(super) struct TypstWrapperWorld {
     /// Root path to which files will be resolved.
     root: PathBuf,
 
@@ -43,7 +43,7 @@ pub struct TypstWrapperWorld {
 }
 
 impl TypstWrapperWorld {
-    pub fn new(root: String, source: String) -> Self {
+    pub(super) fn new(root: String, source: String) -> Self {
         let root = PathBuf::from(root);
         let fonts = FontSearcher::new().include_system_fonts(true).search();
 

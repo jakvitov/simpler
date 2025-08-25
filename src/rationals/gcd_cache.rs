@@ -40,6 +40,7 @@ fn lcm_eucleidian(a: i128, b: i128, gcd_cache: &mut GcdCache) -> Result<i128, Bo
 
 impl GcdCache {
 
+    #[allow(dead_code)]
     pub fn init() -> GcdCache {
         GcdCache {data: HashMap::new()}
     }
