@@ -2,8 +2,9 @@ use simpler::document::typst_builder::TypstDocument;
 use std::fs;
 use std::io::Write;
 
-//Integration tests for Document building module
+// !Integration tests for Document building module!
 
+//Turn on to generate result pdfs for visual testing
 const WRITE_OUTPUTS_TO_PDF: bool = false;
 
 #[test]
