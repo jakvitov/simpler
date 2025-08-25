@@ -3,8 +3,8 @@ use super::ParserError;
 use crate::rationals::Rational;
 use chrono::Utc;
 use log::info;
-use simple_logger::SimpleLogger;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 pub(super) struct MpsInParsing {
     pub(super) name: Option<String>,
@@ -15,6 +15,8 @@ pub(super) struct MpsInParsing {
 }
 
 impl MpsInParsing {
+
+    #[allow(dead_code)]
     fn empty() -> Self {
         MpsInParsing { name: None, rows: None, columns: None, rhs: None, bounds: None }
     }
@@ -123,7 +125,6 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
     }
     Ok(res)
 }
-
 fn parse_bounds(input: &Vec<&str>)  -> Result<Bounds, Box<ParserError>> {
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Bounds section is incorrect", input.join("\n"))))
@@ -193,7 +194,7 @@ fn parse_rhs(input: &Vec<&str>)  -> Result<Rhs, Box<ParserError>> {
 }
 
 
-
+#[allow(dead_code)]
 pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
     info!("Started parsing MPS input.");
     let start_timestamp = Utc::now();
@@ -214,7 +215,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 state = Sections::ROWS;
             },
             Sections::ROWS => {
-                if (line == "columns") {
+                if line == "columns" {
                     state = Sections::COLUMNS;
                     let parsed_rows = parse_rows(&buffer)?;
                     mps_in_parsing.rows = Some(parsed_rows);
@@ -224,7 +225,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::COLUMNS => {
-                if (line == "rhs") {
+                if line == "rhs" {
                     state = Sections::RHS;
                     let parsed_columns = parse_columns(&buffer)?;
                     mps_in_parsing.columns = Some(parsed_columns);
@@ -234,7 +235,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::RHS => {
-                if (line == "bounds") {
+                if line == "bounds" {
                     state = Sections::BOUNDS;
                     let parsed_rhs = parse_rhs(&buffer)?;
                     mps_in_parsing.rhs = Some(parsed_rhs);
@@ -244,7 +245,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::BOUNDS => {
-                if (line == "endata") {
+                if line == "endata" {
                     state = Sections::ENDATA;
                     let parsed_bounds = parse_bounds(&buffer)?;
                     mps_in_parsing.bounds = Some(parsed_bounds);

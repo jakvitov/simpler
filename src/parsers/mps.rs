@@ -72,6 +72,9 @@ impl Rows {
     pub fn empty() -> Self {
         Rows {rows: HashMap::new()}
     }
+
+    //For integration testing
+    #[allow(dead_code)]
     pub fn get_constraint_by_row_name(&self, key: &str) -> Option<&Constraints> {
         self.rows.get(key)
     }
@@ -88,6 +91,8 @@ impl Columns {
         Columns{variables: HashMap::new()}
     }
 
+    //For integration testing
+    #[allow(dead_code)]
     pub fn get_variables_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
         self.variables.clone()
     }
@@ -102,6 +107,9 @@ impl Bounds {
     pub(super) fn empty() -> Self {
         Bounds{bounds: HashMap::new()}
     }
+
+    //For integration testing
+    #[allow(dead_code)]
     pub fn get_bounds_clone(&self) -> HashMap<String, Vec<(String, Rational, BoundType)>> {
         self.bounds.clone()
     }
@@ -116,6 +124,9 @@ impl Rhs {
     pub(super) fn empty() -> Self {
         Rhs{rhs: HashMap::new()}
     }
+
+    //For integration testing
+    #[allow(dead_code)]
     pub fn get_rhs_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
         self.rhs.clone()
     }

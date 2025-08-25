@@ -24,6 +24,7 @@ impl ParserError {
         ParserError { message: String::from(message), structure: String::from(structure)}
     }
 
+    #[allow(dead_code)]
     pub fn from_string_structure(message: &str, structure: String) -> Self {
         ParserError { message: String::from(message), structure: structure}
     }

@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use crate::parsers::ParserError;
 use crate::rationals::gcd_cache::GcdCache;
 use crate::rationals::numerical_error::NumericalError;
@@ -21,43 +22,11 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
-    pub fn from_str(input: &str) -> Result<Rational, Box<ParserError>> {
-        let split: Vec<&str> = input.split("/").collect();
-        
-        if split.len() == 2 {
-            let Ok(numerator) = split[0].parse() else {
-                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
-            };
-            
-            let Ok(denominator) = split[1].parse() else {
-                return Err(Box::new(ParserError::new("Rational has invalid denominator", input)));
-            };
-
-            return Ok(Rational::new(numerator, denominator));
-        }
-        else if split.len() == 1 {
-            let Ok(numerator) = split[0].parse() else {
-                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
-            };
-
-            return Ok(Rational{numerator, denominator: 1});
-        }
-        else {
-            return Err(Box::new(ParserError::new("Invalid string passed as Rational number.", input)));
-        }
-    }
-
-    fn to_latex_string(&self) -> String {
-        if self.denominator != 1 {
-            return format!("\\frac{{{}}}{{{}}}", self.numerator, self.denominator);
-        } else {
-            return self.numerator.to_string();
-        }
-    }
 
     ///Reduce given rational
     /// 2/4 -> 1/2
     /// -2/4 -> -1/4
+    #[allow(dead_code)]
     fn reduce(&mut self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         let gcd = gcd_cache.gcd(self.numerator.abs(), self.denominator.abs())?;
         if gcd == 1 {
@@ -71,6 +40,7 @@ impl Rational {
 
     ///self + other = new_rational
     ///Uses provided gcd_cache for gcd and lcm operations
+    #[allow(dead_code)]
     fn add(&self, other: &Rational, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
@@ -81,6 +51,7 @@ impl Rational {
 
     ///self - other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
+    #[allow(dead_code)]
     fn subtract(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) - ((den_lcm/other.denominator)*other.numerator);
@@ -91,22 +62,53 @@ impl Rational {
 
     ///self * other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
-    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Rational {
+    #[allow(dead_code)]
+    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let numerator = self.numerator * other.numerator;
         let denominator = self.denominator * other.denominator;
         let mut res = Rational::new(numerator, denominator);
-        res.reduce(gcd_cache);
-        res
+        res.reduce(gcd_cache)?;
+        Ok(res)
     }
 
     /// self / other = new_rational
     /// Usees provided gcd_cache for gcd and lcm operations
-    fn divide(&self, other: &Self, gcd_cache: &mut GcdCache) -> Rational {
+    #[allow(dead_code)]
+    fn divide(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let numerator = self.numerator * other.denominator;
         let denominator = self.denominator * other.numerator;
         let mut res = Rational::new(numerator, denominator);
-        res.reduce(gcd_cache);
-        res
+        res.reduce(gcd_cache)?;
+        Ok(res)
+    }
+}
+
+impl FromStr for Rational {
+    type Err = Box<ParserError>;
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let split: Vec<&str> = input.split("/").collect();
+
+        if split.len() == 2 {
+            let Ok(numerator) = split[0].parse() else {
+                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
+            };
+
+            let Ok(denominator) = split[1].parse() else {
+                return Err(Box::new(ParserError::new("Rational has invalid denominator", input)));
+            };
+
+            Ok(Rational::new(numerator, denominator))
+        }
+        else if split.len() == 1 {
+            let Ok(numerator) = split[0].parse() else {
+                return Err(Box::new(ParserError::new("Rational has invalid numerator", input)));
+            };
+
+            Ok(Rational{numerator, denominator: 1})
+        }
+        else {
+            Err(Box::new(ParserError::new("Invalid string passed as Rational number.", input)))
+        }
     }
 }
 
@@ -145,6 +147,7 @@ impl PartialEq for Rational {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
     use crate::rationals::gcd_cache::GcdCache;
     use crate::rationals::Rational;
 
@@ -223,23 +226,6 @@ mod tests {
     }
 
     #[test]
-    fn print_to_latex_string_suceeds() {
-        let input_numer_denom_str = "87373/4";
-        let input_only_numer_str = "1";
-
-        let Ok(input_numer_denom_str_result) = super::Rational::from_str(input_numer_denom_str) else {
-            panic!("{input_numer_denom_str} could not be parsed into Rational!");
-        };
-
-        let Ok(input_only_numer_str_result) = super::Rational::from_str(input_only_numer_str) else {
-            panic!("{input_only_numer_str} could not be parsed into Rational!");
-        };
-        
-        assert_eq!(input_numer_denom_str_result.to_latex_string(), "\\frac{87373}{4}");
-        assert_eq!(input_only_numer_str_result.to_latex_string(), "1");
-    }
-
-    #[test]
     fn addition_without_reduction_is_correct() {
         let mut gcd_cache = GcdCache::init();
         let a = Rational::new(1, 2);
@@ -310,7 +296,7 @@ mod tests {
         let a = Rational::new(1, 7);
         let b = Rational::new(1, 1);
 
-        let res = a.multiply(&b, &mut gcd_cache);
+        let res = a.multiply(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: 1, denominator: 7});
     }
@@ -321,7 +307,7 @@ mod tests {
         let a = Rational::new(6, 7);
         let b = Rational::new(33, 28);
 
-        let res = a.multiply(&b, &mut gcd_cache);
+        let res = a.multiply(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: 99, denominator: 98});
     }
@@ -332,7 +318,7 @@ mod tests {
         let a = Rational::new(-6, -7);
         let b = Rational::new(-33, 28);
 
-        let res = a.multiply(&b, &mut gcd_cache);
+        let res = a.multiply(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: -99, denominator: 98});
     }
@@ -343,7 +329,7 @@ mod tests {
         let a = Rational::new(1, 2);
         let b = Rational::new(2, 5);
 
-        let res = a.divide(&b, &mut gcd_cache);
+        let res = a.divide(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: 5, denominator: 4});
     }
@@ -354,7 +340,7 @@ mod tests {
         let a = Rational::new(2, 5);
         let b = Rational::new(2, 10);
 
-        let res = a.divide(&b, &mut gcd_cache);
+        let res = a.divide(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: 2, denominator: 1});
     }
@@ -365,7 +351,7 @@ mod tests {
         let a = Rational::new(-1, -10);
         let b = Rational::new(2, -5);
 
-        let res = a.divide(&b, &mut gcd_cache);
+        let res = a.divide(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: -1, denominator: 4});
     }
