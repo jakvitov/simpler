@@ -22,6 +22,17 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
+    pub fn zero() -> Self {
+        Rational {numerator: 0, denominator: 1}
+    }
+
+    pub fn is_positive(&self) -> bool {
+        !self.is_negative()
+    }
+
+    pub fn is_negative(&self) -> bool {
+        (self.numerator < 0) ^ (self.denominator < 0)
+    }
 
     ///Reduce given rational
     /// 2/4 -> 1/2
@@ -382,5 +393,21 @@ mod tests {
         let first = Rational::new(2, -3);
         let second = Rational::new(-7, 9);
         assert_ne!(first, second);
+    }
+
+    #[test]
+    fn is_positive_succeeds() {
+        let first = Rational::new(2, 3);
+        let second = Rational::new(-7, -9);
+        assert!(first.is_positive());
+        assert!(second.is_positive());
+    }
+
+    #[test]
+    fn is_negative_succeeds() {
+        let first = Rational::new(-2, 3);
+        let second = Rational::new(7, -9);
+        assert!(first.is_negative());
+        assert!(second.is_negative());
     }
 }

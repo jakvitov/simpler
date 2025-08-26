@@ -1,10 +1,9 @@
+use simpler::parsers::mps::{BoundType, Constraints};
+use simpler::parsers::parse_mps;
+use simpler::rationals::Rational;
 // Integration tests for the parsers module
 use std::fs;
 use std::path::PathBuf;
-use simple_logger::SimpleLogger;
-use simpler::parsers::parse_mps;
-use simpler::rationals::Rational;
-use simpler::parsers::mps::{ BoundType, Constraints};
 
 fn setup_path(file_name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
