@@ -52,8 +52,18 @@ fn generate_pdf_from_simple_correct_mps_with_two_rhs_succeeds() {
 }
 
 #[test]
-fn generate_pdf_from_simple_incorrect_mps_missing_row_in_rhs() {
+fn generate_pdf_from_simple_incorrect_mps_missing_row_in_rhs_fails() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_incorrect_mps_missing_row_in_rhs")).unwrap();
+    let parsed_mps = parse_mps(&mps_file).unwrap();
+    let mut document = TypstDocument::init();
+    let res = document.add_parsed_mps_format(&parsed_mps);
+    assert!(res.is_err());
+}
+
+
+#[test]
+fn generate_pdf_from_simple_incorrect_mps_with_undefined_variable_in_bounds_fails() {
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_incorrect_mps_with_undefined_variable_in_bounds")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut document = TypstDocument::init();
     let res = document.add_parsed_mps_format(&parsed_mps);
