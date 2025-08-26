@@ -160,6 +160,26 @@ impl TypstDocument {
                 }
             }
         }
+        self.add_sub_sub_header("Bounds:");
+        let variables = &mps_model.columns.variables;
+        for (bound_name, bound_values) in &mps_model.bounds.bounds {
+            for (variable_name, value, bound_type) in bound_values {
+                if !variables.contains_key(variable_name) {
+                    return Err(Box::new(ParserError::from_string_message(format!("Variable {}, found in bound {} does not exist in the column section!", variable_name, bound_name), "Invalid BOUNDS structure for processing.")));
+                }
+                
+                self.add_bold_text(bound_name.as_str());
+                self.add_text(": ");
+                self.start_equation();
+                self.add_variable_name_to_equation(variable_name.as_str());
+                self.add_char(bound_type.to_sign());
+                self.add_rational(value);
+                self.end_equation();
+                self.new_line();
+            }
+
+
+        }
         Ok(())
     }
 

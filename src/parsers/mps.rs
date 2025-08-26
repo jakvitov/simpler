@@ -24,6 +24,15 @@ pub enum BoundType {
     LO
 }
 
+impl BoundType {
+    pub(crate) fn to_sign(&self) -> char {
+        match self {
+            BoundType::UP => '<',
+            BoundType::LO => '>'
+        }
+    }
+}
+
 impl FromStr for BoundType {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -111,7 +120,7 @@ impl Columns {
 
 pub struct Bounds {
     // HashMap (bound_name, Vec(variable_name, value, bound_type)
-    pub(super) bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
+    pub bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
 }
 
 impl Bounds {
