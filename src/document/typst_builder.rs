@@ -171,7 +171,7 @@ mod tests {
     #[test]
     fn typst_document_builder_add_monospaced_succeeds() {
         let doc = TypstDocument::empty().add_monospaced("my_var").export_to_typst_source();
-        assert_eq!(doc, "\n```my_var```");
+        assert_eq!(doc, "\n```\nmy_var```");
     }
 
     #[test]
