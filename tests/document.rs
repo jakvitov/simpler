@@ -22,14 +22,40 @@ fn generate_simple_pdf_succeeds() {
 }
 
 #[test]
-fn generate_pdf_from_mps_succeeds() {
+fn generate_pdf_from_simple_correct_mps_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
-    let document = TypstDocument::init().add_parsed_mps_format(&parsed_mps).export_to_pdf();
-    assert!(document.is_ok());
+    let mut document = TypstDocument::init();
+    let res = document.add_parsed_mps_format(&parsed_mps);
+    assert!(res.is_ok());
+    let export = document.export_to_pdf();
+    assert!(export.is_ok());
     if WRITE_OUTPUTS_TO_PDF {
-        let pdf = document.unwrap();
+        let pdf = export.unwrap();
         fs::write("generate_pdf_from_mps_succeeds.pdf", pdf).expect("Writing to pdf failed");
     }
+}
 
+#[test]
+fn generate_pdf_from_simple_correct_mps_with_two_rhs_succeeds() {
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps_with_two_rhs")).unwrap();
+    let parsed_mps = parse_mps(&mps_file).unwrap();
+    let mut document = TypstDocument::init();
+    let res = document.add_parsed_mps_format(&parsed_mps);
+    assert!(res.is_ok());
+    let export = document.export_to_pdf();
+    assert!(export.is_ok());
+    if WRITE_OUTPUTS_TO_PDF {
+        let pdf = export.unwrap();
+        fs::write("generate_pdf_from_simple_correct_mps_with_two_rhs_succeeds.pdf", pdf).expect("Writing to pdf failed");
+    }
+}
+
+#[test]
+fn generate_pdf_from_simple_incorrect_mps_missing_row_in_rhs() {
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_incorrect_mps_missing_row_in_rhs")).unwrap();
+    let parsed_mps = parse_mps(&mps_file).unwrap();
+    let mut document = TypstDocument::init();
+    let res = document.add_parsed_mps_format(&parsed_mps);
+    assert!(res.is_err());
 }

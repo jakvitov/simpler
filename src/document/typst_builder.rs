@@ -91,8 +91,15 @@ impl TypstDocument {
         self.data.push_str("```");
     }
 
+    pub fn add_hline(&mut self) {
+        self.data.push('\n');
+        self.data.push_str("#line(length: 100%)");
+        self.data.push('\n');
+    }
+
     pub fn add_variable_amount_to_equation(&mut self, name: &str, amount: &Rational) {
         self.add_rational(amount);
+        self.data.push_str("dot.op");
         self.add_variable_name_to_equation(name)
     }
 
@@ -111,11 +118,14 @@ impl TypstDocument {
         self.data
     }
 
-    pub fn add_parsed_mps_format(mut self, mps_model: &MpsModel) -> Self {
+    /// Result () parsed mps format was added
+    /// Result Err - there was error converting MPS format into Typst format
+    pub fn add_parsed_mps_format(&mut self, mps_model: &MpsModel) -> Result<(), Box<ParserError>> {
         self.add_header("Parsed MPS:");
         self.add_text("Model name: ");
         self.add_bold_text(mps_model.name.as_str());
-        'outer: for (rhs_name, rhs) in &mps_model.rhs.rhs {
+        for (rhs_name, rhs) in &mps_model.rhs.rhs {
+            self.add_hline();
             self.add_sub_sub_header(format!("Model for RHS: {}", rhs_name).as_str());
 
             for (row_name, constraint) in &mps_model.rows.rows {
@@ -142,17 +152,15 @@ impl TypstDocument {
                         }
                         None => {
                             self.end_equation();
-                            self.add_parser_error(Box::new(ParserError::from_string_message(format!("RHS: {rhs_name} is missing value for non target row {row_name}"), "Each RHS must contain values for all non-target rows.")));
-                            break 'outer;
+                            return Err(Box::new(ParserError::from_string_message(format!("RHS: {rhs_name} is missing value for non target row {row_name}"), "Each RHS must contain values for all non-target rows.")));
                         }
                     }
                 } else {
                     self.end_equation();
                 }
             }
-
         }
-        self
+        Ok(())
     }
 
     /// Generate Pdf from given document
