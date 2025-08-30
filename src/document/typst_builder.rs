@@ -30,60 +30,60 @@ impl TypstDocument {
         "#,VERSION, Utc::now().to_string())};
     }
 
-    pub fn add_header(&mut self, header: &str) {
+    fn add_header(&mut self, header: &str) {
         self.data.push_str("\n= ");
         self.data.push_str(header);
         self.data.push('\n');
     }
 
-    pub fn add_sub_sub_header(&mut self, header: &str) {
+    fn add_sub_sub_header(&mut self, header: &str) {
         self.data.push_str("\n=== ");
         self.data.push_str(header);
         self.data.push('\n');
     }
 
-    pub fn new_line(&mut self) {
+    fn new_line(&mut self) {
         self.data.push_str("\\\n");
     }
 
-    pub fn start_equation(&mut self) {
+    fn start_equation(&mut self) {
         self.data.push_str("\n$");
     }
 
-    pub fn end_equation(&mut self) {
+    fn end_equation(&mut self) {
         self.data.push_str("$");
     }
 
-    pub fn add_rational(&mut self, rational: &Rational) {
+    fn add_rational(&mut self, rational: &Rational) {
         self.data.push_str(&rational.to_string());
     }
 
-    pub fn add_text(&mut self, text: &str) {
+    fn add_text(&mut self, text: &str) {
         self.data.push_str(text);
     }
 
-    pub fn add_bold_text(&mut self, text: &str) {
+    fn add_bold_text(&mut self, text: &str) {
         self.data.push('*');
         self.data.push_str(text);
         self.data.push('*');
     }
 
-    pub fn add_variable_name_to_equation(&mut self, name: &str) {
+    fn add_variable_name_to_equation(&mut self, name: &str) {
         self.data.push('"');
         self.data.push_str(name);
         self.data.push('"');
     }
 
-    pub fn add_char(&mut self, c: char) {
+    fn add_char(&mut self, c: char) {
         self.data.push(c);
     }
 
-    pub fn add_parser_error(&mut self, err: Box<ParserError>) {
+    fn add_parser_error(&mut self, err: Box<ParserError>) {
         self.add_header("Errors:");
             self.add_monospaced(err.to_string().as_str())
     }
 
-    pub fn add_monospaced(&mut self, text: &str) {
+    fn add_monospaced(&mut self, text: &str) {
         self.data.push('\n');
         self.data.push_str("```");
         self.data.push('\n');
@@ -91,20 +91,20 @@ impl TypstDocument {
         self.data.push_str("```");
     }
 
-    pub fn add_hline(&mut self) {
+    fn add_hline(&mut self) {
         self.data.push('\n');
         self.data.push_str("#line(length: 100%)");
         self.data.push('\n');
     }
 
-    pub fn add_variable_amount_to_equation(&mut self, name: &str, amount: &Rational) {
+    fn add_variable_amount_to_equation(&mut self, name: &str, amount: &Rational) {
         self.add_rational(amount);
         self.data.push_str("dot.op");
         self.add_variable_name_to_equation(name)
     }
 
     /// Adds +3/2x2 to the equation (with the sign)
-    pub fn add_plus_variable_amount_to_equation(&mut self, name: &str, amount: &Rational) {
+    fn add_plus_variable_amount_to_equation(&mut self, name: &str, amount: &Rational) {
         if amount.is_positive() {
             self.add_char('+');
             self.add_variable_amount_to_equation(name, amount);
@@ -120,7 +120,7 @@ impl TypstDocument {
 
     /// Result () parsed mps format was added
     /// Result Err - there was error converting MPS format into Typst format
-    pub fn add_parsed_mps_format(&mut self, mps_model: &MpsModel) -> Result<(), Box<ParserError>> {
+    pub fn add_parsed_mps_format(mut self, mps_model: &MpsModel) -> Result<Self, Box<ParserError>> {
         self.add_header("Parsed MPS:");
         self.add_text("Model name: ");
         self.add_bold_text(mps_model.name.as_str());
@@ -180,7 +180,7 @@ impl TypstDocument {
 
 
         }
-        Ok(())
+        Ok(self)
     }
 
     /// Generate Pdf from given document
@@ -255,7 +255,7 @@ mod tests {
         doc.add_variable_amount_to_equation("my_var", &Rational::new(1, 2));
         doc.end_equation();
         let res = doc.export_to_typst_source();
-        assert_eq!(res, "\n$1/2\"my_var\"$");
+        assert_eq!(res, "\n$1/2dot.op\"my_var\"$");
     }
 
     #[test]

@@ -12,7 +12,6 @@ fn generate_simple_pdf_succeeds() {
 
 
     let mut document = TypstDocument::init();
-    document.add_header("ahoj");
     let pdf = document.export_to_pdf();
     assert!(pdf.is_ok());
     if WRITE_OUTPUTS_TO_PDF {
@@ -26,8 +25,7 @@ fn generate_pdf_from_simple_correct_mps_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut document = TypstDocument::init();
-    let res = document.add_parsed_mps_format(&parsed_mps);
-    assert!(res.is_ok());
+    document = document.add_parsed_mps_format(&parsed_mps).unwrap();
     let export = document.export_to_pdf();
     assert!(export.is_ok());
     if WRITE_OUTPUTS_TO_PDF {
@@ -41,8 +39,7 @@ fn generate_pdf_from_simple_correct_mps_with_two_rhs_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps_with_two_rhs")).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut document = TypstDocument::init();
-    let res = document.add_parsed_mps_format(&parsed_mps);
-    assert!(res.is_ok());
+    document = document.add_parsed_mps_format(&parsed_mps).unwrap();
     let export = document.export_to_pdf();
     assert!(export.is_ok());
     if WRITE_OUTPUTS_TO_PDF {

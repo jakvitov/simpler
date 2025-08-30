@@ -6,5 +6,4 @@ mod utils;
 mod document;
 
 fn main() {
-    println!("Hello, world!");
 }
