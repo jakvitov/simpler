@@ -24,6 +24,15 @@ pub enum BoundType {
     LO
 }
 
+impl BoundType {
+    pub(crate) fn to_sign(&self) -> char {
+        match self {
+            BoundType::UP => '<',
+            BoundType::LO => '>'
+        }
+    }
+}
+
 impl FromStr for BoundType {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -48,6 +57,17 @@ pub enum Constraints {
     E,
 }
 
+impl Constraints {
+    pub(crate) fn to_sign(&self) -> char {
+        match self {
+            Self::N => '\u{27FC}',
+            Self::L => '<',
+            Self::G => '>',
+            Self::E => '=',
+        }
+    }
+}
+
 impl FromStr for Constraints {
     type Err = ();
 
@@ -65,7 +85,7 @@ impl FromStr for Constraints {
 #[derive(PartialEq, Debug, Clone)]
 
 pub struct Rows {
-    pub(super) rows: HashMap<String, Constraints>,
+    pub(crate) rows: HashMap<String, Constraints>,
 }
 
 impl Rows {
@@ -83,7 +103,7 @@ impl Rows {
 
 pub struct Columns {
     //HashMap variable_name ->( column_name -> value)
-    pub(super) variables: HashMap<String, HashMap<String, Rational>>,
+    pub(crate) variables: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Columns {
@@ -100,7 +120,7 @@ impl Columns {
 
 pub struct Bounds {
     // HashMap (bound_name, Vec(variable_name, value, bound_type)
-    pub(super) bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
+    pub bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
 }
 
 impl Bounds {
@@ -117,7 +137,7 @@ impl Bounds {
 
 pub struct Rhs {
     //HashMap rhs_name -> (row_name -> value)
-    pub(super) rhs: HashMap<String, HashMap<String, Rational>>,
+    pub(crate) rhs: HashMap<String, HashMap<String, Rational>>,
 }
 
 impl Rhs {
