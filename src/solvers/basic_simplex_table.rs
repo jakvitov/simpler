@@ -29,7 +29,16 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
         let mut simplex_table = BasicSimplexTable::empty();
 
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model);
-        let row_names_ordered = create_row_names_with_objective_at_the_end(mps_model);
+        let (mut slack_surplus_index, mut artifical_index) = (0usize, 0usize);
+        let row_names_ordered = create_row_names_with_objective_at_the_end(mps_model)?;
+
+        for row_name in row_names_ordered {
+            let constraint = mps_model.rows.rows.get(row_name) else {
+                return Err(create_generic_simplex_table_construction_error(mps_model));
+            };
+
+
+        }
 
 
 
@@ -83,6 +92,10 @@ fn does_exactly_one_objective_function_exist(model: &MpsModel)  -> bool {
         }
     }
     ob_function_met == true
+}
+
+fn create_generic_simplex_table_construction_error(model: &MpsModel) -> Box<SimplexError> {
+    Box::new(SimplexError::from_string_reason(format!("Internal application error occured while constructing the simplex table for model {}.\nThe fault is not at your side.\n", model.name)))
 }
 
 #[cfg(test)]
