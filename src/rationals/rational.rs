@@ -26,6 +26,10 @@ impl Rational {
         Rational {numerator: 0, denominator: 1}
     }
 
+    pub fn negate(&self) -> Self {
+        Rational {numerator: -self.numerator, denominator: self.denominator}
+    }
+
     pub fn is_positive(&self) -> bool {
         !self.is_negative()
     }
@@ -409,5 +413,19 @@ mod tests {
         let second = Rational::new(7, -9);
         assert!(first.is_negative());
         assert!(second.is_negative());
+    }
+
+    #[test]
+    fn negate_positive_number_succeeds() {
+        let first = Rational::new(2, 3);
+        let negated = first.negate();
+        assert_eq!(negated, Rational::new(-2, 3));
+    }
+
+    #[test]
+    fn negate_negative_number_succeeds() {
+        let first = Rational::new(2, -3);
+        let negated = first.negate();
+        assert_eq!(negated, Rational::new(2, 3));
     }
 }

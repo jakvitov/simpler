@@ -102,7 +102,7 @@ impl Rows {
 
 
 pub struct Columns {
-    //HashMap variable_name ->( column_name -> value)
+    //HashMap variable_name ->( row_name -> value)
     pub(crate) variables: HashMap<String, HashMap<String, Rational>>,
 }
 
