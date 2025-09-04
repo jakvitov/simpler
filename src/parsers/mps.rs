@@ -178,4 +178,52 @@ impl TryFrom<MpsInParsing> for MpsModel {
 }
 
 
+#[cfg(test)]
+pub mod test_utils {
+    use crate::parsers::mps::{Bounds, Columns, Constraints, MpsModel, Rhs, Rows};
+    use crate::rationals::Rational;
+    use std::collections::HashMap;
+
+    /// Create simple MPS for tests
+    pub fn create_simple_mps_model_for_tests() -> MpsModel {
+        let name = "SimpleMPSModel".to_owned();
+        let mut rows = Rows::empty();
+        rows.rows.insert("ROW1".to_owned(), Constraints::L);
+        rows.rows.insert("ROW2".to_owned(), Constraints::E);
+        rows.rows.insert("ROW3".to_owned(), Constraints::G);
+        rows.rows.insert("OBJ".to_owned(), Constraints::N);
+
+        let mut columns = Columns::empty();
+        let mut x1_values = HashMap::new();
+        x1_values.insert("ROW1".to_owned(), Rational::new(2,1));
+        x1_values.insert("ROW2".to_owned(), Rational::new(1,1));
+        x1_values.insert("ROW3".to_owned(), Rational::new(1,1));
+        x1_values.insert("OBJ".to_owned(), Rational::new(-3,1));
+        columns.variables.insert("x1".to_owned(), x1_values);
+        let mut x2_values = HashMap::new();
+        x2_values.insert("ROW1".to_owned(), Rational::new(1,1));
+        x2_values.insert("ROW2".to_owned(), Rational::new(1,1));
+        x2_values.insert("ROW3".to_owned(), Rational::new(-1,1));
+        x2_values.insert("OBJ".to_owned(), Rational::new(-2,1));
+        columns.variables.insert("x2".to_owned(), x2_values);
+
+        let mut rhs = Rhs::empty();
+        let mut rhs_values = HashMap::new();
+        rhs_values.insert("ROW1".to_owned(), Rational::new(6,1));
+        rhs_values.insert("ROW2".to_owned(), Rational::new(4,1));
+        rhs_values.insert("ROW3".to_owned(), Rational::new(1,1));
+        rhs.rhs.insert("RHS1".to_owned(), rhs_values);
+
+        let bounds = Bounds::empty();
+        MpsModel {
+            name,
+            rows,
+            columns,
+            rhs,
+            bounds
+        }
+    }
+
+}
+
 

@@ -119,7 +119,7 @@ fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize
     for i in 0..slack_surplus_count {
         variable_names.push(format!("S{i}"));
     }
-    for i in artificial_variable_count..artificial_variable_count {
+    for i in 0..artificial_variable_count {
         variable_names.push(format!("A{i}"));
     }
     variable_names
@@ -181,6 +181,14 @@ fn create_generic_simplex_table_construction_error(model: &MpsModel) -> Box<Simp
 
 #[cfg(test)]
 mod tests {
+    use crate::parsers::mps;
+    use crate::solvers::basic_simplex_table::{BasicSimplexTable};
+
+    #[test]
+    fn try_from_simple_mps_model_succeeds() {
+        let model = mps::test_utils::create_simple_mps_model_for_tests();
+        let simplex_table = BasicSimplexTable::try_from(&model).unwrap();
+    }
 
 }
 
