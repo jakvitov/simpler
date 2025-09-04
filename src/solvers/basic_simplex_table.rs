@@ -1,7 +1,6 @@
-use crate::parsers::mps::{BoundType, Constraints, MpsModel};
+use crate::parsers::mps::{Constraints, MpsModel};
 use crate::rationals::Rational;
 use crate::solvers::simplex_error::SimplexError;
-use std::collections::HashMap;
 
 ///Simplex table used for non-optimised simplex algorithms
 struct BasicSimplexTable {
@@ -29,15 +28,69 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
         let mut simplex_table = BasicSimplexTable::empty();
 
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model);
-        let (mut slack_surplus_index, mut artifical_index) = (0usize, 0usize);
+        let (mut slack_surplus_index, mut artifical_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_names_ordered = create_row_names_with_objective_at_the_end(mps_model)?;
 
         for row_name in row_names_ordered {
-            let constraint = mps_model.rows.rows.get(row_name) else {
+            let mut row: Vec<Rational> = Vec::new();
+            let Some(constraint) = mps_model.rows.rows.get(row_name) else {
                 return Err(create_generic_simplex_table_construction_error(mps_model));
             };
 
+            //Fill in the variable values for rows
+            for (variable_name, variable_values) in &mps_model.columns.variables {
+                let variable_value_for_row = variable_values.get(row_name).map_or(Rational::zero(), |x| x.to_owned());
+                row.push(variable_value_for_row);
+            }
 
+            //Without this, we update slack_surplus_index and trigger that if on next iteration
+            let mut pushed_slack_surplus = false;
+            //Fill in the slack/surplus variables
+            for i in variable_count..(variable_count + slack_surplus_variable_count) {
+                //If we need to insert value for slack/surplus, we do it here
+                if i == slack_surplus_index && !pushed_slack_surplus {
+                    match constraint {
+                        Constraints::L => {
+                           row.push(Rational::new(1, 1));
+                            pushed_slack_surplus = true;
+                            slack_surplus_index += 1;
+                        },
+                        Constraints::G => {
+                            row.push(Rational::new(-1, 1));
+                            pushed_slack_surplus = true;
+                            slack_surplus_index += 1;
+                        }
+                        _ => {
+                            row.push(Rational::new(0, 0));
+                        }
+                    }
+                } else {
+                    row.push(Rational::new(0, 0));
+                }
+            }
+
+            //Fill in the artificial variables
+            let mut pushed_artificial_variable = false;
+            for i in (variable_count + slack_surplus_variable_count)..(variable_count + slack_surplus_variable_count + artificial_variable_count) {
+                if i == artifical_index && !pushed_artificial_variable {
+                    match constraint {
+                        Constraints::E => {
+                            row.push(Rational::new(1,1));
+                            pushed_artificial_variable = true;
+                            artifical_index += 1;
+                        },
+                        Constraints::G => {
+                            row.push(Rational::new(1,1));
+                            pushed_artificial_variable = true;
+                            artifical_index += 1;
+                        }
+                        _ => {
+                            row.push(Rational::new(0,0));
+                        }
+                    }
+                }
+            }
+            simplex_table.rows.push(row);
         }
 
 
@@ -66,6 +119,8 @@ fn get_simplex_table_column_parts_length(mps_model: &MpsModel) -> (usize, usize,
     (variables, slack_surplus_variables, artificial_variables)
 }
 
+/// Return vector of references to row names with the objective row at the end
+/// Return SimplexError in case objective row does not exist
 fn create_row_names_with_objective_at_the_end(mps_model: &MpsModel) -> Result<Vec<&String>, Box<SimplexError>> {
     let mut res: Vec<&String> = Vec::with_capacity(mps_model.columns.variables.len());
     let mut objective_row_name_optn: Option<&String> = None;
