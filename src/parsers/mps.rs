@@ -1,7 +1,7 @@
 use super::mps_parser::MpsInParsing;
 use super::ParserError;
 use crate::rationals::Rational;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 
 /// Sections in which is the MPS format devided
@@ -102,18 +102,19 @@ impl Rows {
 
 
 pub struct Columns {
-    //HashMap variable_name ->( row_name -> value)
-    pub(crate) variables: HashMap<String, HashMap<String, Rational>>,
+    //BTreeMap variable_name ->( row_name -> value)
+    //We use BTreeMap to keep the variables ordered
+    pub(crate) variables: BTreeMap<String, HashMap<String, Rational>>,
 }
 
 impl Columns {
     pub(super) fn empty() -> Self {
-        Columns{variables: HashMap::new()}
+        Columns{variables: BTreeMap::new()}
     }
 
     //For integration testing
     #[allow(dead_code)]
-    pub fn get_variables_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
+    pub fn get_variables_clone(&self) -> BTreeMap<String, HashMap<String, Rational>> {
         self.variables.clone()
     }
 }

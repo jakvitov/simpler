@@ -31,6 +31,9 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
         let (mut slack_surplus_index, mut artifical_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_names_ordered = create_row_names_with_objective_at_the_end(mps_model)?;
 
+        simplex_table.column_variable_names = create_column_variable_names(mps_model, slack_surplus_variable_count, artificial_variable_count);
+        if mps_model.rhs.rhs.len() != 1 {return Err(Box::new(SimplexError::from_string_reason(format!("MPS model specifies {} different RHSs.\nSimplex table requires exactly one to be created.", mps_model.rhs.rhs.len()))))}
+
         for row_name in row_names_ordered {
             let mut row: Vec<Rational> = Vec::new();
             let Some(constraint) = mps_model.rows.rows.get(row_name) else {
@@ -54,6 +57,7 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
                            row.push(Rational::new(1, 1));
                             pushed_slack_surplus = true;
                             slack_surplus_index += 1;
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
                         },
                         Constraints::G => {
                             row.push(Rational::new(-1, 1));
@@ -61,11 +65,11 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
                             slack_surplus_index += 1;
                         }
                         _ => {
-                            row.push(Rational::new(0, 0));
+                            row.push(Rational::zero());
                         }
                     }
                 } else {
-                    row.push(Rational::new(0, 0));
+                    row.push(Rational::zero());
                 }
             }
 
@@ -78,25 +82,47 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
                             row.push(Rational::new(1,1));
                             pushed_artificial_variable = true;
                             artifical_index += 1;
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
                         },
                         Constraints::G => {
                             row.push(Rational::new(1,1));
                             pushed_artificial_variable = true;
                             artifical_index += 1;
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
                         }
                         _ => {
-                            row.push(Rational::new(0,0));
+                            row.push(Rational::zero());
                         }
                     }
                 }
             }
             simplex_table.rows.push(row);
+            //Add RHS value
+            if *constraint == Constraints::N {
+                simplex_table.rhs.push(Rational::zero());
+            } else {
+                //Unwrap safe, because we checked length above
+                let (rhs_name, rhs_values) = mps_model.rhs.rhs.iter().next().unwrap();
+                let Some(rhs_value_for_row) = rhs_values.get(row_name) else {
+                    return Err(Box::new(SimplexError::from_string_reason(format!("RHS {rhs_name} misses value for ROW {row_name}. Cannot construct simplex table!"))));
+                };
+                simplex_table.rhs.push(rhs_value_for_row.to_owned());
+            }
         }
-
-
-
         Ok(simplex_table)
     }
+}
+
+fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize, artificial_variable_count: usize) -> Vec<String> {
+    let mut variable_names = Vec::with_capacity(mps_model.columns.variables.len() + slack_surplus_count + artificial_variable_count);
+    mps_model.columns.variables.keys().for_each(|variable_name| {variable_names.push(variable_name.to_owned());});
+    for i in 0..slack_surplus_count {
+        variable_names.push(format!("S{i}"));
+    }
+    for i in artificial_variable_count..artificial_variable_count {
+        variable_names.push(format!("A{i}"));
+    }
+    variable_names
 }
 
 ///Return (variable count, slack/surplus variables count, artificial variables count)
