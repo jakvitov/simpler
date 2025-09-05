@@ -28,16 +28,16 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
 
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model);
         let (mut slack_surplus_index, mut artifical_index) = (variable_count, variable_count + slack_surplus_variable_count);
-        let row_names_ordered = create_row_names_with_objective_at_the_end(mps_model)?;
+        check_if_exactly_one_objective_function_exists(mps_model)?;
+        let row_names_ordered = mps_model.rows.rows.keys();
 
         simplex_table.column_variable_names = create_column_variable_names(mps_model, slack_surplus_variable_count, artificial_variable_count);
         if mps_model.rhs.rhs.len() != 1 {return Err(Box::new(SimplexError::from_string_reason(format!("MPS model specifies {} different RHSs.\nSimplex table requires exactly one to be created.", mps_model.rhs.rhs.len()))))}
 
         for row_name in row_names_ordered {
             let mut row: Vec<Rational> = Vec::new();
-            let Some(constraint) = mps_model.rows.rows.get(row_name) else {
-                return Err(create_generic_simplex_table_construction_error(mps_model));
-            };
+            //We iterate over row names (keys) unwrap is safe
+            let constraint = mps_model.rows.rows.get(row_name).unwrap();
 
             //Fill in the variable values for rows
             for (variable_name, variable_values) in &mps_model.columns.variables {
@@ -102,7 +102,7 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
             if *constraint == Constraints::N {
                 simplex_table.rhs.push(Rational::zero());
             } else {
-                //Unwrap safe, because we checked length above
+                //We checked the exact number of rhs to 1 above. Unwrap is safe.
                 let (rhs_name, rhs_values) = mps_model.rhs.rhs.iter().next().unwrap();
                 let Some(rhs_value_for_row) = rhs_values.get(row_name) else {
                     return Err(Box::new(SimplexError::from_string_reason(format!("RHS {rhs_name} misses value for ROW {row_name}. Cannot construct simplex table!"))));
@@ -146,38 +146,46 @@ fn get_simplex_table_column_parts_length(mps_model: &MpsModel) -> (usize, usize,
     (variables, slack_surplus_variables, artificial_variables)
 }
 
+fn check_if_exactly_one_objective_function_exists(mps_model: &MpsModel) -> Result<(), Box<SimplexError>> {
+    let mut objective_row_names = Vec::new();
+    for (row_name, constraint) in &mps_model.rows.rows {
+        if *constraint == Constraints::N {
+            objective_row_names.push(row_name);
+        }
+    }
+    if objective_row_names.len() == 1 {
+        Ok(())
+    } else if objective_row_names.len() == 0 {
+        Err(Box::new(SimplexError::new("No objective row found in mps model.\nSimplex algorithm requires exactly one objective row.")))
+    } else {
+        let mut reason = String::from("Multiple objective rows found in Mps model.\nSimplex algorithm requires exactly one objective row.\nObjective rows: ");
+        objective_row_names.iter().for_each(|row_name| {reason.push_str(&format!("\n{}", row_name));});
+        Err(Box::new(SimplexError::new(reason.as_str())))
+    }
+
+}
+
 /// Return vector of references to row names with the objective row at the end
 /// Return SimplexError in case objective row does not exist
 fn create_row_names_with_objective_at_the_end(mps_model: &MpsModel) -> Result<Vec<&String>, Box<SimplexError>> {
     let mut res: Vec<&String> = Vec::with_capacity(mps_model.columns.variables.len());
     let mut objective_row_name_optn: Option<&String> = None;
+
     for (row_name, constraint) in &mps_model.rows.rows {
-        if constraint == &Constraints::N {objective_row_name_optn = Some(row_name); continue}
+        if *constraint == Constraints::N && objective_row_name_optn.is_some(){
+            return Err(Box::new(SimplexError::new("Model contains more than one objective rows.\n Solver can handle only exactly one objective function at a time.")));
+        } else if *constraint == Constraints::N{
+            objective_row_name_optn = Some(row_name); continue
+        }
         res.push(row_name);
     }
+
     let Some(objective_row_name) = objective_row_name_optn else {
         return Err(Box::new(SimplexError::new("Objective row does not exist.")));
     };
 
     res.push(objective_row_name);
     Ok(res)
-}
-
-fn does_exactly_one_objective_function_exist(model: &MpsModel)  -> bool {
-    let mut ob_function_met = false;
-    for (_, constraint) in &model.rows.rows {
-        if constraint == &Constraints::N {
-            if ob_function_met{
-                return true;
-            }
-            ob_function_met = true;
-        }
-    }
-    ob_function_met
-}
-
-fn create_generic_simplex_table_construction_error(model: &MpsModel) -> Box<SimplexError> {
-    Box::new(SimplexError::from_string_reason(format!("Internal application error occured while constructing the simplex table for model {}.\nThe fault is not at your side.\n", model.name)))
 }
 
 #[cfg(test)]
