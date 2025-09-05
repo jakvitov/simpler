@@ -8,14 +8,13 @@ struct BasicSimplexTable {
     column_variable_names: Vec<String>,
     rows: Vec<Vec<Rational>>,
     rhs: Vec<Rational>,
-    objective_function_row: Vec<Rational>,
 }
 
 impl BasicSimplexTable {
 
     fn empty() -> Self {
         BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: Vec::new(),
-            rows: Vec::new(), rhs: Vec::new(), objective_function_row: Vec::new()}
+            rows: Vec::new(), rhs: Vec::new()}
     }
 
 }
@@ -117,10 +116,10 @@ fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize
     let mut variable_names = Vec::with_capacity(mps_model.columns.variables.len() + slack_surplus_count + artificial_variable_count);
     mps_model.columns.variables.keys().for_each(|variable_name| {variable_names.push(variable_name.to_owned());});
     for i in 0..slack_surplus_count {
-        variable_names.push(format!("S{i}"));
+        variable_names.push(format!("S{}", i+1));
     }
     for i in 0..artificial_variable_count {
-        variable_names.push(format!("A{i}"));
+        variable_names.push(format!("A{}", i+1));
     }
     variable_names
 }
@@ -172,7 +171,7 @@ fn does_exactly_one_objective_function_exist(model: &MpsModel)  -> bool {
             ob_function_met = true;
         }
     }
-    ob_function_met == true
+    ob_function_met
 }
 
 fn create_generic_simplex_table_construction_error(model: &MpsModel) -> Box<SimplexError> {
@@ -188,6 +187,7 @@ mod tests {
     fn try_from_simple_mps_model_succeeds() {
         let model = mps::test_utils::create_simple_mps_model_for_tests();
         let simplex_table = BasicSimplexTable::try_from(&model).unwrap();
+        println!("a")
     }
 
 }

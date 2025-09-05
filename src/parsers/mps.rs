@@ -186,6 +186,9 @@ pub mod test_utils {
     use std::collections::HashMap;
 
     /// Create simple MPS for tests
+    /// 3 rows + 1 obj_function, L, E, G, N
+    /// 2 columns variables x1,x2
+    /// One RHS, no bounds
     pub fn create_simple_mps_model_for_tests() -> MpsModel {
         let name = "SimpleMPSModel".to_owned();
         let mut rows = Rows::empty();
