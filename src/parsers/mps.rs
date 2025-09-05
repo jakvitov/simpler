@@ -3,6 +3,7 @@ use super::ParserError;
 use crate::rationals::Rational;
 use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
+use indexmap::IndexMap;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]
@@ -85,12 +86,12 @@ impl FromStr for Constraints {
 #[derive(PartialEq, Debug, Clone)]
 
 pub struct Rows {
-    pub(crate) rows: HashMap<String, Constraints>,
+    pub(crate) rows: IndexMap<String, Constraints>,
 }
 
 impl Rows {
     pub fn empty() -> Self {
-        Rows {rows: HashMap::new()}
+        Rows {rows: IndexMap::new()}
     }
 
     //For integration testing
@@ -104,51 +105,51 @@ impl Rows {
 pub struct Columns {
     //BTreeMap variable_name ->( row_name -> value)
     //We use BTreeMap to keep the variables ordered
-    pub(crate) variables: BTreeMap<String, HashMap<String, Rational>>,
+    pub(crate) variables: IndexMap<String, HashMap<String, Rational>>,
 }
 
 impl Columns {
     pub(super) fn empty() -> Self {
-        Columns{variables: BTreeMap::new()}
+        Columns{variables: IndexMap::new()}
     }
 
     //For integration testing
     #[allow(dead_code)]
-    pub fn get_variables_clone(&self) -> BTreeMap<String, HashMap<String, Rational>> {
+    pub fn get_variables_clone(&self) -> IndexMap<String, HashMap<String, Rational>> {
         self.variables.clone()
     }
 }
 
 pub struct Bounds {
     // HashMap (bound_name, Vec(variable_name, value, bound_type)
-    pub bounds: HashMap<String, Vec<(String, Rational, BoundType)>>,
+    pub bounds: IndexMap<String, Vec<(String, Rational, BoundType)>>,
 }
 
 impl Bounds {
     pub(super) fn empty() -> Self {
-        Bounds{bounds: HashMap::new()}
+        Bounds{bounds: IndexMap::new()}
     }
 
     //For integration testing
     #[allow(dead_code)]
-    pub fn get_bounds_clone(&self) -> HashMap<String, Vec<(String, Rational, BoundType)>> {
+    pub fn get_bounds_clone(&self) -> IndexMap<String, Vec<(String, Rational, BoundType)>> {
         self.bounds.clone()
     }
 }
 
 pub struct Rhs {
     //HashMap rhs_name -> (row_name -> value)
-    pub(crate) rhs: HashMap<String, HashMap<String, Rational>>,
+    pub(crate) rhs: IndexMap<String, HashMap<String, Rational>>,
 }
 
 impl Rhs {
     pub(super) fn empty() -> Self {
-        Rhs{rhs: HashMap::new()}
+        Rhs{rhs: IndexMap::new()}
     }
 
     //For integration testing
     #[allow(dead_code)]
-    pub fn get_rhs_clone(&self) -> HashMap<String, HashMap<String, Rational>> {
+    pub fn get_rhs_clone(&self) -> IndexMap<String, HashMap<String, Rational>> {
         self.rhs.clone()
     }
 }
