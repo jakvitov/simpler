@@ -186,9 +186,10 @@ pub mod test_utils {
     use std::collections::HashMap;
 
     /// Create simple MPS for tests
-    /// 3 rows + 1 obj_function, L, E, G, N
-    /// 2 columns variables x1,x2
-    /// One RHS, no bounds
+    /// 2x1 + x2 <= 6
+    /// x1 + x2 = 4
+    /// x1 - x2 >= 1
+    /// 3x1 + x2 -> N
     pub fn create_simple_mps_model_for_tests() -> MpsModel {
         let name = "SimpleMPSModel".to_owned();
         let mut rows = Rows::empty();
@@ -226,6 +227,46 @@ pub mod test_utils {
             rhs,
             bounds
         }
+    }
+
+    /// Create mps model for tests
+    /// 2/5x1 - 2/3x2 = 5/2
+    /// 3/2x1 + 1/5x2 = = -10/3
+    /// x1 + x2 -> N
+    pub fn create_mps_model_with_only_equals() -> MpsModel {
+        let name = "OnlyEqualsModel".to_owned();
+        let mut rows = Rows::empty();
+        rows.rows.insert("ROW1".to_owned(), Constraints::E);
+        rows.rows.insert("ROW2".to_owned(), Constraints::E);
+        rows.rows.insert("OBJ".to_owned(), Constraints::N);
+
+        let mut columns = Columns::empty();
+        let mut x1_values = HashMap::new();
+        x1_values.insert("ROW1".to_owned(), Rational::new(2,5));
+        x1_values.insert("ROW2".to_owned(), Rational::new(3,2));
+        x1_values.insert("OBJ".to_owned(), Rational::from_integer(-1));
+        columns.variables.insert("x1".to_owned(), x1_values);
+        let mut x2_values = HashMap::new();
+        x2_values.insert("ROW1".to_owned(), Rational::new(-3,2));
+        x2_values.insert("ROW2".to_owned(), Rational::new(1,5));
+        x2_values.insert("OBJ".to_owned(), Rational::from_integer(-1));
+        columns.variables.insert("x2".to_owned(), x2_values);
+
+        let mut rhs = Rhs::empty();
+        let mut rhs_values = HashMap::new();
+        rhs_values.insert("ROW1".to_owned(), Rational::new(5,2));
+        rhs_values.insert("ROW2".to_owned(), Rational::new(-10,3));
+        rhs.rhs.insert("RHS1".to_owned(), rhs_values);
+
+        let bounds = Bounds::empty();
+        MpsModel {
+            name,
+            rows,
+            columns,
+            rhs,
+            bounds
+        }
+
     }
 
 }
