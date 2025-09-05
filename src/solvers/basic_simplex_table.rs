@@ -110,6 +110,7 @@ impl TryFrom<&MpsModel> for BasicSimplexTable {
                 simplex_table.rhs.push(rhs_value_for_row.to_owned());
             }
         }
+        //todo add bounds
         Ok(simplex_table)
     }
 }
@@ -217,6 +218,25 @@ mod tests {
                                                Rational::from_integer(0),Rational::from_integer(0),
                                                Rational::from_integer(0),Rational::from_integer(0),]);
     }
+
+    #[test]
+    fn try_from_only_equals_mps_model_succeeds() {
+        let model = mps::test_utils::create_mps_model_with_only_equals();
+        let simplex_table = BasicSimplexTable::try_from(&model).unwrap();
+
+        assert_eq!(simplex_table.base_variable_names, vec!("A1", "A2"));
+        assert_eq!(simplex_table.column_variable_names, vec!("x1", "x2", "A1", "A2"));
+        assert_eq!(simplex_table.rhs, vec![Rational::new(5,2), Rational::new(-10,3), Rational::new(0,1)]);
+        assert_eq!(simplex_table.rows.len(), 3);
+        assert_eq!(simplex_table.rows[0], vec![Rational::new(2,5), Rational::new(-3,2), Rational::from_integer(1), Rational::zero()]);
+        assert_eq!(simplex_table.rows[1], vec![Rational::new(3,2), Rational::new(1,5), Rational::zero(), Rational::from_integer(1)]);
+        assert_eq!(simplex_table.rows[2], vec![Rational::from_integer(-1), Rational::from_integer(-1), Rational::zero(), Rational::zero()]);
+    }
+
+    //todo test fail on none objective rows
+    //todo test fail on multiple objective rows
+    //todo test fail on none rhs
+    //todo test fail on multiple rhs
 
 }
 
