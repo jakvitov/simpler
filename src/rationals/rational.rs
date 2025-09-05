@@ -22,6 +22,10 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
+    pub fn from_integer(numerator: i128) -> Self {
+        Self::new(numerator, 1)
+    }
+
     pub fn zero() -> Self {
         Rational {numerator: 0, denominator: 1}
     }
@@ -139,7 +143,10 @@ impl Display for Rational {
 
 impl PartialEq for Rational {
     fn eq(&self, other: &Self) -> bool {
-        if self.numerator.abs() > other.numerator.abs() {
+        if (self.numerator == other.numerator) && (self.denominator == other.denominator) {
+            true
+        }
+        else if self.numerator.abs() > other.numerator.abs() {
             let Some(ratio) = divide_exact(self.numerator, other.numerator) else {
                 return false;
             };
@@ -147,7 +154,12 @@ impl PartialEq for Rational {
                 return true;
             }
             false
-        } else  {
+        }
+        else  {
+            //This way we would get ratio as None since we canot divide by zero and eval as false
+            if self.numerator == 0 && 0 == other.numerator {
+                return true;
+            }
             let Some(ratio) = divide_exact(other.numerator, self.numerator) else {
                 return false;
             };
@@ -386,6 +398,12 @@ mod tests {
     }
 
     #[test]
+    fn equality_between_zeroes_suceeds() {
+        let first = Rational::zero();
+        assert_eq!(first, first);
+    }
+
+    #[test]
     fn equality_between_unequal_positive_rationals_fails() {
         let first = Rational::new(2, 3);
         let second = Rational::new(7, 9);
@@ -427,5 +445,17 @@ mod tests {
         let first = Rational::new(2, -3);
         let negated = first.negate();
         assert_eq!(negated, Rational::new(2, 3));
+    }
+
+    #[test]
+    fn from_integer_suceeds_for_positive() {
+        let num = Rational::from_integer(1);
+        assert_eq!(num, Rational::new(1, 1));
+    }
+
+    #[test]
+    fn from_integer_suceeds_for_positive_negative() {
+        let num = Rational::from_integer(-1);
+        assert_eq!(num, Rational::new(-1, 1));
     }
 }
