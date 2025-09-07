@@ -32,6 +32,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
 
     type Error = Box<SimplexError>;
 
+    //todo account for bounds selection
     /// Construct simplex table from supplied MPS model
     fn try_from(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Self, Self::Error> {
         let mut simplex_table = BasicSimplexTable::empty();
@@ -41,7 +42,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
         let row_constraint_names_ordered = get_row_names_with_selected_objective_function(mps_model_with_selected_variants)?;
         simplex_table.column_variable_names = create_column_variable_names(&mps_model_with_selected_variants.model, slack_surplus_variable_count, artificial_variable_count);
 
-        let mut rhs: &HashMap<String, Rational> = get_selected_rhs_from_the_model(mps_model_with_selected_variants)?.deref();
+        let rhs: &HashMap<String, Rational> = get_selected_rhs_from_the_model(mps_model_with_selected_variants)?.deref();
 
         for (row_name, constraint) in row_constraint_names_ordered {
             let mut row: Vec<Rational> = Vec::new();
