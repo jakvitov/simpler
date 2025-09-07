@@ -174,6 +174,8 @@ fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsM
     (variables, slack_surplus_variables, artificial_variables)
 }
 
+/// Return row names with the selected objective at the end
+/// Return error if it is not possible with explanation why
 fn get_row_names_with_selected_objective_function(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Vec<(&String,&Constraints)>, Box<SimplexError>> {
     let mut objective_row_names = HashSet::new();
     let mut non_objective_row_names: Vec<(&String, &Constraints)> = Vec::new();
@@ -200,29 +202,6 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
         non_objective_row_names.push((obj_function_row_name, &Constraints::N));
         Ok(non_objective_row_names)
     }
-}
-
-/// Return vector of references to row names with the objective row at the end
-/// Return SimplexError in case objective row does not exist
-fn create_row_names_with_objective_at_the_end(mps_model: &MpsModel) -> Result<Vec<&String>, Box<SimplexError>> {
-    let mut res: Vec<&String> = Vec::with_capacity(mps_model.columns.variables.len());
-    let mut objective_row_name_optn: Option<&String> = None;
-
-    for (row_name, constraint) in &mps_model.rows.rows {
-        if *constraint == Constraints::N && objective_row_name_optn.is_some(){
-            return Err(Box::new(SimplexError::new("Model contains more than one objective rows.\n Solver can handle only exactly one objective function at a time.")));
-        } else if *constraint == Constraints::N{
-            objective_row_name_optn = Some(row_name); continue
-        }
-        res.push(row_name);
-    }
-
-    let Some(objective_row_name) = objective_row_name_optn else {
-        return Err(Box::new(SimplexError::new("Objective row does not exist.")));
-    };
-
-    res.push(objective_row_name);
-    Ok(res)
 }
 
 #[cfg(test)]
