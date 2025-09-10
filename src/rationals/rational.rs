@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use crate::parsers::ParserError;
@@ -6,7 +7,7 @@ use crate::rationals::numerical_error::NumericalError;
 use crate::utils::math::divide_exact;
 
 /// Rational number
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq)]
 pub struct Rational {
     numerator: i128,
     denominator: i128,
@@ -99,6 +100,13 @@ impl Rational {
         let mut res = Rational::new(numerator, denominator);
         res.reduce(gcd_cache)?;
         Ok(res)
+    }
+}
+
+impl PartialOrd for Rational {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let common_denominator = self.denominator * other.denominator;
+        return ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator));
     }
 }
 
@@ -457,5 +465,29 @@ mod tests {
     fn from_integer_suceeds_for_positive_negative() {
         let num = Rational::from_integer(-1);
         assert_eq!(num, Rational::new(-1, 1));
+    }
+
+    #[test]
+    fn partial_ord_works_for_positives() {
+        let num1 = Rational::new(2,3);
+        let num2 = Rational::new(1,2);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
+    }
+
+    #[test]
+    fn partial_ord_works_for_one_negative() {
+        let num1 = Rational::new(2,3);
+        let num2 = Rational::new(-1,1);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
+    }
+
+    #[test]
+    fn partial_ord_works_for_two_negatives() {
+        let num1 = Rational::new(-2,3);
+        let num2 = Rational::new(-1,1);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
     }
 }
