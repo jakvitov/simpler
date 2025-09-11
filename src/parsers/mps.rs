@@ -190,7 +190,7 @@ pub mod test_utils {
     /// x1 + x2 = 4
     /// x1 - x2 >= 1
     /// 3x1 + x2 -> N
-    pub fn create_simple_mps_model_for_tests() -> MpsModel {
+    pub fn create_simple_mps_model_for_tests_no_bounds_one_rhs_one_objective() -> MpsModel {
         let name = "SimpleMPSModel".to_owned();
         let mut rows = Rows::empty();
         rows.rows.insert("ROW1".to_owned(), Constraints::L);

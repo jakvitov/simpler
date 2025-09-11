@@ -36,7 +36,6 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
 
     type Error = Box<SimplexError>;
 
-    //todo account for bounds selection
     /// Construct simplex table from supplied MPS model
     fn try_from(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Self, Self::Error> {
         let mut simplex_table = BasicSimplexTable::empty();
@@ -343,8 +342,8 @@ mod tests {
     use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants};
 
     #[test]
-    fn try_from_simple_mps_model_succeeds() {
-        let model = mps::test_utils::create_simple_mps_model_for_tests();
+    fn try_from_simple_mps_model_no_bounds_one_rhs_one_objective_succeeds() {
+        let model = mps::test_utils::create_simple_mps_model_for_tests_no_bounds_one_rhs_one_objective();
         let model_with_selected_variants = MpsModelWithSelectedVariants {
             model,
             selected_rhs: None,
@@ -354,10 +353,10 @@ mod tests {
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
         assert_eq!(simplex_table.base_variable_names, vec!("S1", "A1", "A2"));
-        //assert_eq!(simplex_table.column_variable_names, vec!("x1", "x2", "S1", "S2", "A1", "A2"));
+        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "S1", "S2", "A1", "A2"));
         assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6),Rational::from_integer(4)
-                                           ,Rational::from_integer(1),Rational::zero()]);
-        assert_eq!(simplex_table.rows.len(), 4);
+                                           ,Rational::from_integer(1)]);
+        assert_eq!(simplex_table.rows.len(), 3);
         assert_eq!(simplex_table.rows[0], vec![Rational::from_integer(2),Rational::from_integer(1),
                                                Rational::from_integer(1),Rational::from_integer(0),
                                                Rational::from_integer(0),Rational::from_integer(0),]);
@@ -367,9 +366,10 @@ mod tests {
         assert_eq!(simplex_table.rows[2], vec![Rational::from_integer(1),Rational::from_integer(-1),
                                                Rational::from_integer(0),Rational::from_integer(-1),
                                                Rational::from_integer(0),Rational::from_integer(1),]);
-        assert_eq!(simplex_table.rows[3], vec![Rational::from_integer(-3),Rational::from_integer(-2),
+        assert_eq!(simplex_table.objective_row, vec![Rational::from_integer(-3),Rational::from_integer(-2),
                                                Rational::from_integer(0),Rational::from_integer(0),
                                                Rational::from_integer(0),Rational::from_integer(0),]);
+        assert_eq!(simplex_table.objective_rhs, Rational::zero());
     
     }
 
