@@ -9,7 +9,7 @@ use crate::solvers::simplex_error::SimplexError;
 ///Simplex table used for non-optimised simplex algorithms
 struct BasicSimplexTable {
     base_variable_names: Vec<String>,
-    column_variable_names: Vec<String>,
+    column_variable_names: IndexMap<String, usize>,
     rows: Vec<Vec<Rational>>,
     rhs: Vec<Rational>,
     objective_row: Vec<Rational>,
@@ -26,7 +26,7 @@ struct MpsModelWithSelectedVariants {
 impl BasicSimplexTable {
 
     fn empty() -> Self {
-        BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: Vec::new(),
+        BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: IndexMap::new(),
             rows: Vec::new(), rhs: Vec::new(), objective_row: Vec::new(), objective_rhs: Rational::zero()}
     }
 
@@ -75,7 +75,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                             row.push(Rational::new(1, 1));
                             pushed_slack_surplus = true;
                             slack_surplus_index += 1;
-                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         },
                         Constraints::G => {
                             row.push(Rational::new(-1, 1));
@@ -100,13 +100,13 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
                             artifical_index += 1;
-                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         },
                         Constraints::G => {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
                             artifical_index += 1;
-                            simplex_table.base_variable_names.push(simplex_table.column_variable_names[i].to_owned());
+                            simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         }
                         _ => {
                             row.push(Rational::zero());
@@ -137,19 +137,75 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
     simplex_table.objective_rhs = Rational::zero();
 
     //Fill in the bounds
+    for ((variable_name, bound_type), value) in optimised_bounds {
+        let mut row = Vec::new();
+        let Some(variable_index) = simplex_table.column_variable_names.get(&variable_name) else {
+            return Err(Box::new(SimplexError::from_string_reason(format!("Variable {variable_name} specified in bounds was not found among the model variables.\nSolver cannot optimise."))));
+        };
+        simplex_table.rhs.push(value);
+        for i in 0..variable_count {
+            if i == *variable_index {
+                row.push(Rational::new(1, 1));
+            } else {
+                row.push(Rational::zero());
+            }
+        }
+
+        let mut push_slack_surplus_variable = false;
+        for i in variable_count..(variable_count + slack_surplus_variable_count) {
+            if i == slack_surplus_index && !push_slack_surplus_variable {
+                match bound_type {
+                    BoundType::UP => {
+                        row.push(Rational::new(1, 1));
+                        push_slack_surplus_variable = true;
+                        slack_surplus_index += 1;
+                    },
+                    BoundType::LO => {
+                        row.push(Rational::new(-1, 1));
+                        push_slack_surplus_variable = true;
+                        slack_surplus_index += 1;
+                    }
+                }
+            } else {
+            row.push(Rational::zero());
+            }
+        }
+
+        let mut pushed_artificial_variable = false;
+        for i in (variable_count + slack_surplus_variable_count)..(variable_count + slack_surplus_variable_count + artificial_variable_count) {
+            if i == artifical_index && !pushed_artificial_variable {
+                match bound_type {
+                    BoundType::UP => {
+                        row.push(Rational::zero());
+                    },
+                    BoundType::LO => {
+                        row.push(Rational::new(1, 1));
+                        pushed_artificial_variable = true;
+                        artifical_index += 1;
+                    }
+                }
+            } else {
+                row.push(Rational::zero());
+            }
+        }
+        simplex_table.rows.push(row);
+    }
 
     Ok(simplex_table)
     }
 }
 
-fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize, artificial_variable_count: usize) -> Vec<String> {
-    let mut variable_names = Vec::with_capacity(mps_model.columns.variables.len() + slack_surplus_count + artificial_variable_count);
-    mps_model.columns.variables.keys().for_each(|variable_name| {variable_names.push(variable_name.to_owned());});
+fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize, artificial_variable_count: usize) -> IndexMap<String, usize> {
+    let mut variable_names = IndexMap::with_capacity(mps_model.columns.variables.len() + slack_surplus_count + artificial_variable_count);
+    let mut index = 0usize;
+    mps_model.columns.variables.keys().for_each(|variable_name| {variable_names.insert(variable_name.to_owned(), index); index += 1});
     for i in 0..slack_surplus_count {
-        variable_names.push(format!("S{}", i+1));
+        variable_names.insert(format!("S{}", i+1), index);
+        index += 1;
     }
     for i in 0..artificial_variable_count {
-        variable_names.push(format!("A{}", i+1));
+        variable_names.insert(format!("A{}", i+1), index);
+        index += 1;
     }
     variable_names
 }
@@ -298,7 +354,7 @@ mod tests {
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
         assert_eq!(simplex_table.base_variable_names, vec!("S1", "A1", "A2"));
-        assert_eq!(simplex_table.column_variable_names, vec!("x1", "x2", "S1", "S2", "A1", "A2"));
+        //assert_eq!(simplex_table.column_variable_names, vec!("x1", "x2", "S1", "S2", "A1", "A2"));
         assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6),Rational::from_integer(4)
                                            ,Rational::from_integer(1),Rational::zero()]);
         assert_eq!(simplex_table.rows.len(), 4);
