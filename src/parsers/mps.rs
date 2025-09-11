@@ -19,7 +19,7 @@ pub enum Sections {
 /// Bound type that can be applied to ROW
 /// UP - variable < upperbound
 /// LO - variable > lowerbound
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Hash, Eq)]
 pub enum BoundType {
     UP,
     LO
@@ -138,7 +138,7 @@ impl Bounds {
 }
 
 pub struct Rhs {
-    //HashMap rhs_name -> (row_name -> value)
+    //HashMap rhs_name -> (row_name -> value)x
     pub(crate) rhs: IndexMap<String, HashMap<String, Rational>>,
 }
 

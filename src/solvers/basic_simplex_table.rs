@@ -1,6 +1,8 @@
+use std::cmp::{PartialOrd};
 use std::collections::{HashMap, HashSet};
-use std::ops::Deref;
-use crate::parsers::mps::{Constraints, MpsModel};
+use std::ops::{Deref, DerefMut};
+use indexmap::IndexMap;
+use crate::parsers::mps::{BoundType, Constraints, MpsModel};
 use crate::rationals::Rational;
 use crate::solvers::simplex_error::SimplexError;
 
@@ -10,6 +12,8 @@ struct BasicSimplexTable {
     column_variable_names: Vec<String>,
     rows: Vec<Vec<Rational>>,
     rhs: Vec<Rational>,
+    objective_row: Vec<Rational>,
+    objective_rhs: Rational
 }
 
 struct MpsModelWithSelectedVariants {
@@ -23,7 +27,7 @@ impl BasicSimplexTable {
 
     fn empty() -> Self {
         BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: Vec::new(),
-            rows: Vec::new(), rhs: Vec::new()}
+            rows: Vec::new(), rhs: Vec::new(), objective_row: Vec::new(), objective_rhs: Rational::zero()}
     }
 
 }
@@ -37,14 +41,20 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
     fn try_from(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Self, Self::Error> {
         let mut simplex_table = BasicSimplexTable::empty();
 
-        let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants);
+        let optimised_bounds = get_optimised_bounds_from_model(mps_model_with_selected_variants)?;
+        let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds);
         let (mut slack_surplus_index, mut artifical_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_constraint_names_ordered = get_row_names_with_selected_objective_function(mps_model_with_selected_variants)?;
         simplex_table.column_variable_names = create_column_variable_names(&mps_model_with_selected_variants.model, slack_surplus_variable_count, artificial_variable_count);
 
         let rhs: &HashMap<String, Rational> = get_selected_rhs_from_the_model(mps_model_with_selected_variants)?.deref();
 
-        for (row_name, constraint) in row_constraint_names_ordered {
+        //Fill in rows except the objective one
+        for &(row_name, constraint) in &row_constraint_names_ordered {
+            //Skip the objective row, we'll add that separately
+            if *constraint == Constraints::N {
+                continue;
+            }
             let mut row: Vec<Rational> = Vec::new();
             //We iterate over row names (keys) unwrap is safe
 
@@ -109,17 +119,26 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
             simplex_table.rows.push(row);
 
             //Handle selected RHS, objective function is added at the end once
-            if *constraint != Constraints::N {
-                let Some(rhs_value) = rhs.get(row_name) else {
-                    return Err(Box::new(SimplexError::from_string_reason(format!("Row {row_name} is not specified in the supplied RHS.\nSolver cannot optimise."))));
-                };
-                simplex_table.rhs.push(rhs_value.to_owned());
-            }
+            let Some(rhs_value) = rhs.get(row_name) else {
+                return Err(Box::new(SimplexError::from_string_reason(format!("Row {row_name} is not specified in the supplied RHS.\nSolver cannot optimise."))));
+            };
+            simplex_table.rhs.push(rhs_value.to_owned());
     }
-    //Fill in the RHS for objective function
-    simplex_table.rhs.push(Rational::zero());
-    //todo add bounds
-        Ok(simplex_table)
+
+    //Fill in the objective row
+    let objective_row_name = row_constraint_names_ordered.iter().next_back().unwrap().0;
+    for (_, variable_values) in &mps_model_with_selected_variants.model.columns.variables {
+            let variable_value_for_row = variable_values.get(objective_row_name).map_or(Rational::zero(), |x| x.to_owned());
+            simplex_table.objective_row.push(variable_value_for_row);
+    }
+    for i in 0..(artificial_variable_count + slack_surplus_variable_count) {
+        simplex_table.objective_row.push(Rational::zero());
+    }
+    simplex_table.objective_rhs = Rational::zero();
+
+    //Fill in the bounds
+
+    Ok(simplex_table)
     }
 }
 
@@ -135,7 +154,54 @@ fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize
     variable_names
 }
 
-/// Set selected RHS to target_rhs or Return error explaining, why that failed
+/// Obtain and optimise bounds obtained from the model. Return empty vec if none are selected
+/// Return Error explaining why, if that is not possible
+fn get_optimised_bounds_from_model(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<IndexMap<(String, BoundType), Rational>, Box<SimplexError>> {
+    let Some(selected_bounds) = get_selected_bounds_from_the_model(mps_model_with_selected_variants)? else {
+        return Ok(IndexMap::new());
+    };
+    //Variable_name, bound_type, Rational
+    let mut variable_bounds: IndexMap<(String, BoundType), Rational> = IndexMap::new();
+    for (variable_name, value, bound_type) in selected_bounds {
+        //todo optimise these heap copies
+        let found_val = variable_bounds.get(&(variable_name.to_owned(), bound_type.to_owned()));
+        if let Some(current_bound_value) = found_val {
+            let current_bound_value = found_val.unwrap();
+            match bound_type {
+                BoundType::UP => {
+                    if value < current_bound_value {
+                        variable_bounds.insert((variable_name.to_owned(), BoundType::UP), value.to_owned());
+                    }
+                },
+                BoundType::LO => {
+                    if value > current_bound_value {
+                        variable_bounds.insert((variable_name.to_owned(), BoundType::LO), value.to_owned());
+                    }
+                }
+            }
+        } else {
+            variable_bounds.insert((variable_name.to_owned(), bound_type.to_owned()), value.to_owned());
+        }
+
+    }
+    Ok(variable_bounds)
+}
+
+/// Return selected bounds from the model. If none are selected, return none
+/// Return error explaining why, if no bounds are chosen
+fn get_selected_bounds_from_the_model(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Option<&Vec<(String, Rational, BoundType)>>, Box<SimplexError>> {
+    if mps_model_with_selected_variants.selected_bounds.is_none() {
+        Ok(None)
+    } else {
+        let selected_bounds_name = mps_model_with_selected_variants.selected_bounds.as_ref().unwrap();
+        let Some(bounds) = mps_model_with_selected_variants.model.bounds.bounds.get(selected_bounds_name) else {
+            return Err(Box::new(SimplexError::from_string_reason(format!("Selected bounds {selected_bounds_name} were not found among the ones nefined in the model.\nPlease select defined bounds."))));
+        };
+        Ok(Some(bounds))
+    }
+}
+
+/// Set selected RHS to target_rhs or Return error explaining, why that failed. If none are specified and one exist, return that.
 fn get_selected_rhs_from_the_model(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Box<&HashMap<String,Rational>>, Box<SimplexError>> {
     if mps_model_with_selected_variants.selected_rhs.is_none() && mps_model_with_selected_variants.model.rhs.rhs.len() > 1 {
         return Err(Box::new(SimplexError::new("No RHS selected, but model contains multiple RHS.\nIf more RHS are supplied one needs to be chosen.")));
@@ -155,7 +221,7 @@ fn get_selected_rhs_from_the_model(mps_model_with_selected_variants: &MpsModelWi
 }
 
 ///Return (variable count, slack/surplus variables count, artificial variables count)
-fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> (usize, usize, usize) {
+fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsModelWithSelectedVariants, optimised_bounds: &IndexMap<(String, BoundType), Rational>) -> (usize, usize, usize) {
     let variables = mps_model_with_selected_variants.model.columns.variables.len();
     let mut slack_surplus_variables = 0;
     let mut artificial_variables = 0;
@@ -169,6 +235,16 @@ fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsM
                 artificial_variables += 1;
             }
             Constraints::L => slack_surplus_variables += 1,
+        }
+    }
+
+    for (_, bound_type) in optimised_bounds.keys() {
+        match bound_type {
+            BoundType::UP => slack_surplus_variables += 1,
+            BoundType::LO => {
+                artificial_variables += 1;
+                slack_surplus_variables += 1;
+            }
         }
     }
     (variables, slack_surplus_variables, artificial_variables)
@@ -208,12 +284,18 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
 mod tests {
     use crate::parsers::mps;
     use crate::rationals::Rational;
-    use crate::solvers::basic_simplex_table::BasicSimplexTable;
+    use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants};
 
     #[test]
     fn try_from_simple_mps_model_succeeds() {
-        /*let model = mps::test_utils::create_simple_mps_model_for_tests();
-        let simplex_table = BasicSimplexTable::try_from(&model).unwrap();
+        let model = mps::test_utils::create_simple_mps_model_for_tests();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: None,
+            selected_bounds: None,
+            selected_opt_row_name: None
+        };
+        let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
         assert_eq!(simplex_table.base_variable_names, vec!("S1", "A1", "A2"));
         assert_eq!(simplex_table.column_variable_names, vec!("x1", "x2", "S1", "S2", "A1", "A2"));
@@ -232,7 +314,7 @@ mod tests {
         assert_eq!(simplex_table.rows[3], vec![Rational::from_integer(-3),Rational::from_integer(-2),
                                                Rational::from_integer(0),Rational::from_integer(0),
                                                Rational::from_integer(0),Rational::from_integer(0),]);
-    */
+    
     }
 
     #[test]
