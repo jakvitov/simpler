@@ -42,7 +42,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
 
         let optimised_bounds = get_optimised_bounds_from_model(mps_model_with_selected_variants)?;
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds);
-        let (mut slack_surplus_index, mut artifical_index) = (variable_count, variable_count + slack_surplus_variable_count);
+        let (mut slack_surplus_index, mut artificial_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_constraint_names_ordered = get_row_names_with_selected_objective_function(mps_model_with_selected_variants)?;
         simplex_table.column_variable_names = create_column_variable_names(&mps_model_with_selected_variants.model, slack_surplus_variable_count, artificial_variable_count);
 
@@ -93,18 +93,18 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
             //Fill in the artificial variables
             let mut pushed_artificial_variable = false;
             for i in (variable_count + slack_surplus_variable_count)..(variable_count + slack_surplus_variable_count + artificial_variable_count) {
-                if i == artifical_index && !pushed_artificial_variable {
+                if i == artificial_index && !pushed_artificial_variable {
                     match constraint {
                         Constraints::E => {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
-                            artifical_index += 1;
+                            artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         },
                         Constraints::G => {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
-                            artifical_index += 1;
+                            artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         }
                         _ => {
@@ -173,7 +173,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
 
         let mut pushed_artificial_variable = false;
         for i in (variable_count + slack_surplus_variable_count)..(variable_count + slack_surplus_variable_count + artificial_variable_count) {
-            if i == artifical_index && !pushed_artificial_variable {
+            if i == artificial_index && !pushed_artificial_variable {
                 match bound_type {
                     BoundType::UP => {
                         row.push(Rational::zero());
@@ -182,7 +182,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                         row.push(Rational::new(1, 1));
                         simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         pushed_artificial_variable = true;
-                        artifical_index += 1;
+                        artificial_index += 1;
                     }
                 }
             } else {
@@ -252,7 +252,7 @@ fn get_selected_bounds_from_the_model(mps_model_with_selected_variants: &MpsMode
     } else {
         let selected_bounds_name = mps_model_with_selected_variants.selected_bounds.as_ref().unwrap();
         let Some(bounds) = mps_model_with_selected_variants.model.bounds.bounds.get(selected_bounds_name) else {
-            return Err(Box::new(SimplexError::from_string_reason(format!("Selected bounds {selected_bounds_name} were not found among the ones nefined in the model.\nPlease select defined bounds."))));
+            return Err(Box::new(SimplexError::from_string_reason(format!("Selected bounds {selected_bounds_name} were not found among the ones defined in the model.\nPlease select defined bounds."))));
         };
         Ok(Some(bounds))
     }
@@ -432,10 +432,86 @@ mod tests {
 
         assert_eq!(simplex_table.objective_row, vec![rfi(-2), rfi(-8), rz(),  rz(), rz(), rz(), rz(), rz(), rz(), rz(),])
     }
-    //todo test fail on none objective rows
-    //todo test fail on multiple objective rows
-    //todo test fail on none rhs
-    //todo test fail on multiple rhs
+
+    #[test]
+    fn try_from_mps_model_with_multiple_objective_rows_fails_when_none_is_chosen() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: Some("RHS1".to_owned()),
+            selected_bounds: Some("BND1".to_owned()),
+            selected_opt_row_name: None
+        };
+
+        let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
+        assert!(simplex_table_result.is_err());
+        let error_msg = simplex_table_result.err().unwrap().to_string();
+        assert!(error_msg.contains("No objective function name was chosen"));
+    }
+
+    #[test]
+    fn try_from_mps_model_with_multiple_objective_rows_fails_when_not_specified_in_model_is_chosen() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: Some("RHS1".to_owned()),
+            selected_bounds: Some("BND1".to_owned()),
+            selected_opt_row_name: Some("UNKNOWN_ROW".to_owned()),
+        };
+
+        let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
+        assert!(simplex_table_result.is_err());
+        let error_msg = simplex_table_result.err().unwrap().to_string();
+        assert!(error_msg.contains("Objective function named UNKNOWN_ROW was not found"));
+    }
+
+    #[test]
+    fn try_from_mps_model_with_multiple_rhs_fails_when_none_is_chosen() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: None,
+            selected_bounds: Some("BND1".to_owned()),
+            selected_opt_row_name: Some("OBJ2".to_owned())
+        };
+
+        let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
+        assert!(simplex_table_result.is_err());
+        let error_msg = simplex_table_result.err().unwrap().to_string();
+        assert!(error_msg.contains("No RHS selected"));
+    }
+
+    #[test]
+    fn try_from_mps_model_with_multiple_rhs_fails_when_rhs_not_found_in_model() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: Some("UnknownRHS1".to_owned()),
+            selected_bounds: Some("BND1".to_owned()),
+            selected_opt_row_name: Some("OBJ2".to_owned())
+        };
+
+        let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
+        assert!(simplex_table_result.is_err());
+        let error_msg = simplex_table_result.err().unwrap().to_string();
+        assert!(error_msg.contains("No RHS with name UnknownRHS1 found in the model"));
+    }
+
+    #[test]
+    fn try_from_mps_model_with_multiple_bounds_fails_when_specified_bounds_are_not_found_in_model() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: Some("RHS1".to_owned()),
+            selected_bounds: Some("UNKNOWN_BOUNDS".to_owned()),
+            selected_opt_row_name: Some("OBJ2".to_owned())
+        };
+
+        let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
+        assert!(simplex_table_result.is_err());
+        let error_msg = simplex_table_result.err().unwrap().to_string();
+        assert!(error_msg.contains("Selected bounds UNKNOWN_BOUNDS were not found among the ones defined in the model"));
+    }
 
 }
 
