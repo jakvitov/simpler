@@ -233,7 +233,7 @@ pub mod test_utils {
     /// 2/5x1 - 2/3x2 = 5/2
     /// 3/2x1 + 1/5x2 = = -10/3
     /// x1 + x2 -> N
-    pub fn create_mps_model_with_only_equals() -> MpsModel {
+    pub fn create_mps_model_with_only_equals_no_bounds_one_rhs_one_objective() -> MpsModel {
         let name = "OnlyEqualsModel".to_owned();
         let mut rows = Rows::empty();
         rows.rows.insert("ROW1".to_owned(), Constraints::E);
