@@ -1,6 +1,5 @@
-use std::cmp::{PartialOrd};
 use std::collections::{HashMap, HashSet};
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref};
 use indexmap::IndexMap;
 use crate::parsers::mps::{BoundType, Constraints, MpsModel};
 use crate::rationals::Rational;
