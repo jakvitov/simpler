@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use crate::parsers::ParserError;
@@ -6,7 +7,7 @@ use crate::rationals::numerical_error::NumericalError;
 use crate::utils::math::divide_exact;
 
 /// Rational number
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq)]
 pub struct Rational {
     numerator: i128,
     denominator: i128,
@@ -22,8 +23,16 @@ impl Rational {
         Rational {numerator, denominator}
     }
 
+    pub fn from_integer(numerator: i128) -> Self {
+        Self::new(numerator, 1)
+    }
+
     pub fn zero() -> Self {
         Rational {numerator: 0, denominator: 1}
+    }
+
+    pub fn negate(&self) -> Self {
+        Rational {numerator: -self.numerator, denominator: self.denominator}
     }
 
     pub fn is_positive(&self) -> bool {
@@ -94,6 +103,13 @@ impl Rational {
     }
 }
 
+impl PartialOrd for Rational {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let common_denominator = self.denominator * other.denominator;
+        return ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator));
+    }
+}
+
 impl FromStr for Rational {
     type Err = Box<ParserError>;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
@@ -135,7 +151,10 @@ impl Display for Rational {
 
 impl PartialEq for Rational {
     fn eq(&self, other: &Self) -> bool {
-        if self.numerator.abs() > other.numerator.abs() {
+        if (self.numerator == other.numerator) && (self.denominator == other.denominator) {
+            true
+        }
+        else if self.numerator.abs() > other.numerator.abs() {
             let Some(ratio) = divide_exact(self.numerator, other.numerator) else {
                 return false;
             };
@@ -143,7 +162,12 @@ impl PartialEq for Rational {
                 return true;
             }
             false
-        } else  {
+        }
+        else  {
+            //This way we would get ratio as None since we canot divide by zero and eval as false
+            if self.numerator == 0 && 0 == other.numerator {
+                return true;
+            }
             let Some(ratio) = divide_exact(other.numerator, self.numerator) else {
                 return false;
             };
@@ -382,6 +406,12 @@ mod tests {
     }
 
     #[test]
+    fn equality_between_zeroes_suceeds() {
+        let first = Rational::zero();
+        assert_eq!(first, first);
+    }
+
+    #[test]
     fn equality_between_unequal_positive_rationals_fails() {
         let first = Rational::new(2, 3);
         let second = Rational::new(7, 9);
@@ -409,5 +439,55 @@ mod tests {
         let second = Rational::new(7, -9);
         assert!(first.is_negative());
         assert!(second.is_negative());
+    }
+
+    #[test]
+    fn negate_positive_number_succeeds() {
+        let first = Rational::new(2, 3);
+        let negated = first.negate();
+        assert_eq!(negated, Rational::new(-2, 3));
+    }
+
+    #[test]
+    fn negate_negative_number_succeeds() {
+        let first = Rational::new(2, -3);
+        let negated = first.negate();
+        assert_eq!(negated, Rational::new(2, 3));
+    }
+
+    #[test]
+    fn from_integer_suceeds_for_positive() {
+        let num = Rational::from_integer(1);
+        assert_eq!(num, Rational::new(1, 1));
+    }
+
+    #[test]
+    fn from_integer_suceeds_for_positive_negative() {
+        let num = Rational::from_integer(-1);
+        assert_eq!(num, Rational::new(-1, 1));
+    }
+
+    #[test]
+    fn partial_ord_works_for_positives() {
+        let num1 = Rational::new(2,3);
+        let num2 = Rational::new(1,2);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
+    }
+
+    #[test]
+    fn partial_ord_works_for_one_negative() {
+        let num1 = Rational::new(2,3);
+        let num2 = Rational::new(-1,1);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
+    }
+
+    #[test]
+    fn partial_ord_works_for_two_negatives() {
+        let num1 = Rational::new(-2,3);
+        let num2 = Rational::new(-1,1);
+        assert!(num1 > num2);
+        assert!(num2 < num1);
     }
 }

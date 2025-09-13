@@ -62,6 +62,8 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
     debug_assert!(input[0].to_lowercase().trim() == "rows");
 
     let mut rows: Rows = Rows::empty();
+    //We keep the objective rows separately and add them as last to be at the bottom
+    let mut obj_rows: Vec<(String, Constraints)> = Vec::new();
 
     //Skip first item in buffer (string Rows)
     for line in &input[1..] {
@@ -76,6 +78,13 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
         if rows.rows.contains_key(&row_name) {
             return Err(Box::new(ParserError::new("Row with the given name already exists.", line)));
         }
+        if constraint == Constraints::N {
+            obj_rows.push((row_name, constraint));
+        } else {
+            rows.rows.insert(row_name, constraint);
+        }
+    }
+    for (row_name, constraint) in obj_rows {
         rows.rows.insert(row_name, constraint);
     }
     Ok(rows)
@@ -324,6 +333,18 @@ mod tests {
         assert_eq!(*rows.rows.get("LIM1").unwrap(), Constraints::L);
         assert_eq!(*rows.rows.get("LIM2").unwrap(), Constraints::G);
         assert_eq!(*rows.rows.get("MYEQN").unwrap(), Constraints::E);
+    }
+
+    #[test]
+    fn parse_rows_adds_objective_rows_at_the_end() {
+        let input = "ROWS\n N CONST\n N CONST2\n L LIM1\n G LIM2\n E MYEQN".split("\n").collect();
+        let parse_res = parse_rows(&input);
+        assert!(parse_res.is_ok());
+
+        let rows = parse_res.unwrap();
+        assert_eq!(rows.rows.len(), 5);
+        assert_eq!(rows.rows[3], Constraints::N);
+        assert_eq!(rows.rows[4], Constraints::N)
     }
 
     #[test]
