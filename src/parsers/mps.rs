@@ -181,7 +181,7 @@ impl TryFrom<MpsInParsing> for MpsModel {
 
 #[cfg(test)]
 pub mod test_utils {
-    use crate::parsers::mps::{Bounds, Columns, Constraints, MpsModel, Rhs, Rows};
+    use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows};
     use crate::rationals::Rational;
     use std::collections::HashMap;
 
@@ -220,6 +220,81 @@ pub mod test_utils {
         rhs.rhs.insert("RHS1".to_owned(), rhs_values);
 
         let bounds = Bounds::empty();
+        MpsModel {
+            name,
+            rows,
+            columns,
+            rhs,
+            bounds
+        }
+    }
+
+    /// Create MPS with multiple objective functions, optimisable bounds, and two rhs
+    /// 2x1 + x2 <= [6 (RHS1), 2 (RHS2)]   ROW1
+    /// x1 + x2 = [4 (RHS1), 1(RHS2)]     ROW2
+    /// x1 - x2 >= [1 (RHS1), 3(RHS2)]    ROW3
+    /// 3x1 + x2 -> N   OBJ1
+    /// 2x1 + 8x2 -> N  OBJ2
+    /// x1 <= 10    BND1
+    /// x1 <= 20    BND1
+    /// x2 >= 5     BND1
+    /// x2 ≥ 10     BND1
+    /// x2 <= 2     BND1
+    /// x1 >= 10    BND2
+    /// x2 <= 50    BND2
+    pub fn create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives() -> MpsModel {
+        let name = "SimpleMPSModel".to_owned();
+        let mut rows = Rows::empty();
+        rows.rows.insert("ROW1".to_owned(), Constraints::L);
+        rows.rows.insert("ROW2".to_owned(), Constraints::E);
+        rows.rows.insert("ROW3".to_owned(), Constraints::G);
+        rows.rows.insert("OBJ1".to_owned(), Constraints::N);
+        rows.rows.insert("OBJ2".to_owned(), Constraints::N);
+
+        let mut columns = Columns::empty();
+        let mut x1_values = HashMap::new();
+        x1_values.insert("ROW1".to_owned(), Rational::new(2,1));
+        x1_values.insert("ROW2".to_owned(), Rational::new(1,1));
+        x1_values.insert("ROW3".to_owned(), Rational::new(1,1));
+        x1_values.insert("OBJ1".to_owned(), Rational::new(-3,1));
+        x1_values.insert("OBJ2".to_owned(), Rational::new(2,1));
+        columns.variables.insert("x1".to_owned(), x1_values);
+        let mut x2_values = HashMap::new();
+        x2_values.insert("ROW1".to_owned(), Rational::new(1,1));
+        x2_values.insert("ROW2".to_owned(), Rational::new(1,1));
+        x2_values.insert("ROW3".to_owned(), Rational::new(-1,1));
+        x2_values.insert("OBJ1".to_owned(), Rational::new(-2,1));
+        x2_values.insert("OBJ2".to_owned(), Rational::new(8,1));
+        columns.variables.insert("x2".to_owned(), x2_values);
+
+        let mut rhs = Rhs::empty();
+        let mut rhs_values = HashMap::new();
+        rhs_values.insert("ROW1".to_owned(), Rational::new(6,1));
+        rhs_values.insert("ROW2".to_owned(), Rational::new(4,1));
+        rhs_values.insert("ROW3".to_owned(), Rational::new(1,1));
+        rhs.rhs.insert("RHS1".to_owned(), rhs_values);
+
+        let mut rhs_values2 = HashMap::new();
+        rhs_values2.insert("ROW1".to_owned(), Rational::new(2,1));
+        rhs_values2.insert("ROW2".to_owned(), Rational::new(1,1));
+        rhs_values2.insert("ROW3".to_owned(), Rational::new(3,1));
+        rhs.rhs.insert("RHS2".to_owned(), rhs_values2);
+
+        let mut bounds = Bounds::empty();
+        let bnd1: Vec<(String, Rational, BoundType)> = vec![
+        ("x1".to_owned(), Rational::from_integer(10), BoundType::UP),
+        ("x1".to_owned(), Rational::from_integer(20), BoundType::UP),
+        ("x2".to_owned(), Rational::from_integer(5), BoundType::LO),
+        ("x2".to_owned(), Rational::from_integer(10), BoundType::LO),
+        ("x2".to_owned(), Rational::from_integer(20), BoundType::UP),];
+        bounds.bounds.insert("BND1".to_owned(), bnd1);
+
+        let bnd2: Vec<(String, Rational, BoundType)> = vec![
+            ("x1".to_owned(), Rational::from_integer(10), BoundType::LO),
+            ("x2".to_owned(), Rational::from_integer(50), BoundType::UP),
+        ];
+        bounds.bounds.insert("BND2".to_owned(), bnd2);
+
         MpsModel {
             name,
             rows,
