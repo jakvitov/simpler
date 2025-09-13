@@ -203,13 +203,13 @@ pub mod test_utils {
         x1_values.insert("ROW1".to_owned(), Rational::new(2,1));
         x1_values.insert("ROW2".to_owned(), Rational::new(1,1));
         x1_values.insert("ROW3".to_owned(), Rational::new(1,1));
-        x1_values.insert("OBJ".to_owned(), Rational::new(-3,1));
+        x1_values.insert("OBJ".to_owned(), Rational::new(3,1));
         columns.variables.insert("x1".to_owned(), x1_values);
         let mut x2_values = HashMap::new();
         x2_values.insert("ROW1".to_owned(), Rational::new(1,1));
         x2_values.insert("ROW2".to_owned(), Rational::new(1,1));
         x2_values.insert("ROW3".to_owned(), Rational::new(-1,1));
-        x2_values.insert("OBJ".to_owned(), Rational::new(-2,1));
+        x2_values.insert("OBJ".to_owned(), Rational::new(2,1));
         columns.variables.insert("x2".to_owned(), x2_values);
 
         let mut rhs = Rhs::empty();
@@ -256,14 +256,14 @@ pub mod test_utils {
         x1_values.insert("ROW1".to_owned(), Rational::new(2,1));
         x1_values.insert("ROW2".to_owned(), Rational::new(1,1));
         x1_values.insert("ROW3".to_owned(), Rational::new(1,1));
-        x1_values.insert("OBJ1".to_owned(), Rational::new(-3,1));
+        x1_values.insert("OBJ1".to_owned(), Rational::new(3,1));
         x1_values.insert("OBJ2".to_owned(), Rational::new(2,1));
         columns.variables.insert("x1".to_owned(), x1_values);
         let mut x2_values = HashMap::new();
         x2_values.insert("ROW1".to_owned(), Rational::new(1,1));
         x2_values.insert("ROW2".to_owned(), Rational::new(1,1));
         x2_values.insert("ROW3".to_owned(), Rational::new(-1,1));
-        x2_values.insert("OBJ1".to_owned(), Rational::new(-2,1));
+        x2_values.insert("OBJ1".to_owned(), Rational::new(2,1));
         x2_values.insert("OBJ2".to_owned(), Rational::new(8,1));
         columns.variables.insert("x2".to_owned(), x2_values);
 
@@ -319,12 +319,12 @@ pub mod test_utils {
         let mut x1_values = HashMap::new();
         x1_values.insert("ROW1".to_owned(), Rational::new(2,5));
         x1_values.insert("ROW2".to_owned(), Rational::new(3,2));
-        x1_values.insert("OBJ".to_owned(), Rational::from_integer(-1));
+        x1_values.insert("OBJ".to_owned(), Rational::from_integer(1));
         columns.variables.insert("x1".to_owned(), x1_values);
         let mut x2_values = HashMap::new();
         x2_values.insert("ROW1".to_owned(), Rational::new(-3,2));
         x2_values.insert("ROW2".to_owned(), Rational::new(1,5));
-        x2_values.insert("OBJ".to_owned(), Rational::from_integer(-1));
+        x2_values.insert("OBJ".to_owned(), Rational::from_integer(1));
         columns.variables.insert("x2".to_owned(), x2_values);
 
         let mut rhs = Rhs::empty();

@@ -128,7 +128,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
     let objective_row_name = row_constraint_names_ordered.iter().next_back().unwrap().0;
     for (_, variable_values) in &mps_model_with_selected_variants.model.columns.variables {
             let variable_value_for_row = variable_values.get(objective_row_name).map_or(Rational::zero(), |x| x.to_owned());
-            simplex_table.objective_row.push(variable_value_for_row);
+            simplex_table.objective_row.push(variable_value_for_row.negate());
     }
     for i in 0..(artificial_variable_count + slack_surplus_variable_count) {
         simplex_table.objective_row.push(Rational::zero());
@@ -156,6 +156,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                 match bound_type {
                     BoundType::UP => {
                         row.push(Rational::new(1, 1));
+                        simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         push_slack_surplus_variable = true;
                         slack_surplus_index += 1;
                     },
@@ -179,6 +180,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                     },
                     BoundType::LO => {
                         row.push(Rational::new(1, 1));
+                        simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         pushed_artificial_variable = true;
                         artifical_index += 1;
                     }
@@ -338,8 +340,19 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
 #[cfg(test)]
 mod tests {
     use crate::parsers::mps;
-    use crate::rationals::Rational;
+    use crate::rationals::{Rational};
     use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants};
+
+
+    ///Shortened version of Rational::from_integer
+    pub fn rfi(input: i128) -> Rational {
+        Rational::from_integer(input)
+    }
+
+    ///Shortened version of Rational::zero
+    pub fn rz() -> Rational {
+        Rational::zero()
+    }
 
     #[test]
     fn try_from_simple_mps_model_no_bounds_one_rhs_one_objective_succeeds() {
@@ -395,6 +408,30 @@ mod tests {
         assert_eq!(simplex_table.objective_rhs, Rational::zero());
     }
 
+    #[test]
+    fn try_from_mps_model_with_chosen_rhs_chosen_objective_chosen_optimisable_bounds() {
+        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let model_with_selected_variants = MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: Some("RHS1".to_owned()),
+            selected_bounds: Some("BND1".to_owned()),
+            selected_opt_row_name: Some("OBJ2".to_owned())
+        };
+
+        let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
+        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "S1", "S2", "S3", "S4", "S5", "A1", "A2", "A3") );
+        assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(1), Rational::from_integer(10), Rational::from_integer(10), Rational::from_integer(20)]);
+
+        assert_eq!(simplex_table.rows.len(), 6);
+        assert_eq!(simplex_table.rows[0], vec![rfi(2), rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rz(), rz()]);
+        assert_eq!(simplex_table.rows[1], vec![rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rfi(1), rz(), rz()]);
+        assert_eq!(simplex_table.rows[2], vec![rfi(1), rfi(-1), rfi(0), rfi(-1), rz(), rz(), rz(), rz(), rfi(1), rz()]);
+        assert_eq!(simplex_table.rows[3], vec![rfi(1), rz(), rz(), rz(), rfi(1), rz(), rz(), rz(), rz(), rz()]);
+        assert_eq!(simplex_table.rows[4], vec![rz(), rfi(1), rz(), rz(), rz(), rfi(-1), rz(), rz(), rz(), rfi(1)]);
+        assert_eq!(simplex_table.rows[5], vec![rz(), rfi(1), rz(), rz(), rz(), rz(), rfi(1), rz(), rz(), rz()]);
+
+        assert_eq!(simplex_table.objective_row, vec![rfi(-2), rfi(-8), rz(),  rz(), rz(), rz(), rz(), rz(), rz(), rz(),])
+    }
     //todo test fail on none objective rows
     //todo test fail on multiple objective rows
     //todo test fail on none rhs
