@@ -103,7 +103,7 @@ impl Rational {
         Ok(res)
     }
 
-    fn to_mmdn_with_sign(&self) -> String {
+    pub fn to_mmdn_with_sign(&self) -> String {
         let mut res = String::new();
         if self.is_positive() {
             res.push_str("\n<mo>+</mo>");
