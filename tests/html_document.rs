@@ -1,7 +1,6 @@
 use simpler::document::html_output::HtmlOutput;
 use simpler::parsers::parse_mps;
 use std::fs;
-use simpler::document::typst_builder::TypstDocument;
 
 /// Module with integration tests
 /// Integration of MPS parser with HTML document builder

@@ -12,11 +12,4 @@ simple_logger = "5.0.0"
 log = "0.4.27"
 chrono = "0.4.41"
 #Typst
-typst = "0.13"
-typst-pdf = "0.13"
-typst-kit = { version = "0.13", features = ["embed-fonts"] }
-ureq = "2.12.1"
-zune-inflate = "0.2.54"
-tar = "0.4.44"
-time = "0.3"
 indexmap = "2.0"
