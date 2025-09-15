@@ -63,7 +63,7 @@ impl HtmlOutput {
     pub fn add_parsed_mps(&mut self, mps_model: &MpsModel) {
         self.data.push_str("<div class=\"parsed_mps_model\">\n");
         self.data.push_str(format!("<h2>MPS model {}</h2>\n", mps_model.name).as_str());
-        self.data.push_str(format!("<p>Rhs order: {}</p>\n", mps_model.rhs.rhs.keys().map(|x| x.to_owned()).collect::<Vec<String>>().join("|")).as_str());
+        self.data.push_str(format!("<p>Rhs order: {}</p>\n", mps_model.rhs.rhs.keys().map(|x| format!("|{x}|")).collect::<Vec<String>>().join("")).as_str());
         self.data.push_str("<h3>Rows:</h3>\n");
         for (row_name, constraint) in &mps_model.rows.rows {
             self.data.push_str("<p>\n");
@@ -79,14 +79,21 @@ impl HtmlOutput {
             self.data.push_str(format!("<mo>{}</mo>", constraint.to_sign()).as_str());
             for rhs_values_for_rows in mps_model.rhs.rhs.values() {
                 if let Some(rhs_value) =  rhs_values_for_rows.get(row_name) {
+                    self.data.push_str("<mo>|</mo>");
                     self.data.push_str(rhs_value.to_mmdn_with_sign().as_str());
-
+                    self.data.push_str("<mo>|</mo>");
                 }
                 else if *constraint == Constraints::N {
+                    self.data.push_str("<mo>|</mo>");
                     self.data.push_str("<mi>objective</mi>");
+                    self.data.push_str("<mo>|</mo>");
+                    //in case of objective row, we break, we do not want to repeat this row for each rhs
+                    break;
                 }
                 else {
+                    self.data.push_str("<mo>|</mo>");
                     self.data.push_str("<mi>missing value</mi>");
+                    self.data.push_str("<mo>|</mo>");
                 }
             }
             self.data.push_str("</mrow>\n");
