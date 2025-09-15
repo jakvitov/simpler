@@ -36,30 +36,6 @@ impl HtmlOutput {
 </p>", VERSION, Utc::now())}
     }
 
-    fn add_h1(&mut self, header: String) {
-        self.data.push_str("\n<h1>");
-        self.data.push_str(&header);
-        self.data.push_str("</h1>\n");
-    }
-
-    fn add_h2(&mut self, header: String) {
-        self.data.push_str("\n<h2>");
-        self.data.push_str(&header);
-        self.data.push_str("</h2>\n");
-    }
-
-
-    fn start_div(&mut self, class: String) {
-        self.data.push_str(format!("\n<div class=\"{class}\">\n").as_str());
-    }
-
-    fn end_div(&mut self) {
-        self.data.push_str("\n</div>\n");
-    }
-
-    fn add_p(&mut self, data: String) {
-        self.data.push_str(format!("\n<p>{data}</p>\n").as_str())
-    }
     pub fn add_parsed_mps(&mut self, mps_model: &MpsModel) {
         self.data.push_str("<div class=\"parsed_mps_model\">\n");
         self.data.push_str(format!("<h2>MPS model {}</h2>\n", mps_model.name).as_str());
