@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Debug)]
-pub(super) struct SimplexError {
+pub struct SimplexError {
     reason: String,
 }
 

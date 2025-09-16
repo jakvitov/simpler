@@ -178,6 +178,23 @@ impl TryFrom<MpsInParsing> for MpsModel {
     }
 }
 
+pub struct MpsModelWithSelectedVariants {
+    pub(crate) model: MpsModel,
+    pub(crate) selected_rhs: Option<String>,
+    pub(crate) selected_bounds: Option<String>,
+    pub(crate) selected_opt_row_name: Option<String>,
+}
+
+impl MpsModelWithSelectedVariants {
+    pub fn new(model: MpsModel, selected_rhs: Option<String>, selected_bounds: Option<String>, selected_opt_row_name: Option<String>) -> Self {
+        MpsModelWithSelectedVariants {
+            model,
+            selected_rhs: selected_rhs.map_or(None, |x| Some(x.to_lowercase())),
+            selected_bounds: selected_bounds.map_or(None, |x| Some(x.to_lowercase())),
+            selected_opt_row_name: selected_opt_row_name.map_or(None, |x| Some(x.to_lowercase()))
+        }
+    }
+}
 
 #[cfg(test)]
 pub mod test_utils {
