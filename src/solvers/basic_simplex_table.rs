@@ -1,26 +1,21 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref};
 use indexmap::IndexMap;
-use crate::parsers::mps::{BoundType, Constraints, MpsModel};
+use crate::parsers::mps::{BoundType, Constraints, MpsModel, MpsModelWithSelectedVariants};
 use crate::rationals::Rational;
 use crate::solvers::simplex_error::SimplexError;
 
 ///Simplex table used for non-optimised simplex algorithms
-struct BasicSimplexTable {
-    base_variable_names: Vec<String>,
-    column_variable_names: IndexMap<String, usize>,
-    rows: Vec<Vec<Rational>>,
-    rhs: Vec<Rational>,
-    objective_row: Vec<Rational>,
-    objective_rhs: Rational
+pub struct BasicSimplexTable {
+    pub(crate) base_variable_names: Vec<String>,
+    pub(crate) column_variable_names: IndexMap<String, usize>,
+    pub(crate) rows: Vec<Vec<Rational>>,
+    pub(crate) rhs: Vec<Rational>,
+    pub(crate) objective_row: Vec<Rational>,
+    pub(crate) objective_rhs: Rational
 }
 
-struct MpsModelWithSelectedVariants {
-    model: MpsModel,
-    selected_rhs: Option<String>,
-    selected_bounds: Option<String>,
-    selected_opt_row_name: Option<String>,
-}
+
 
 impl BasicSimplexTable {
 

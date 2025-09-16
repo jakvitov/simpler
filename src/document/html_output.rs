@@ -2,6 +2,7 @@ use std::fmt::Display;
 use chrono::Utc;
 use crate::parsers::mps::{Constraints, MpsModel};
 use crate::rationals::Rational;
+use crate::solvers::basic_simplex_table::BasicSimplexTable;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -98,5 +99,25 @@ impl HtmlOutput {
         }
 
         self.data.push_str("</div>\n");
+    }
+
+    fn create_table_from_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.data.push_str("<table>\n");
+
+        //Add the row names
+        self.data.push_str("<tr>");
+        self.data.push_str("<th>Base</th>");
+        for variable_name in basic_simplex_table.column_variable_names.keys() {
+            self.data.push_str(format!("<th>{}</th>", variable_name).as_str());
+        }
+        self.data.push_str("</tr>");
+
+        self.data.push_str("</table>\n")
+    }
+
+    pub fn add_parsed_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.data.push_str("<div class=\"parsed_basic_simplex_table\">\n");
+        self.create_table_from_simplex_table(basic_simplex_table);
+        self.data.push_str("</div>\n>");
     }
 }

@@ -1,4 +1,4 @@
-mod solvers;
+pub mod solvers;
 pub mod parsers;
 pub mod rationals;
 pub mod document;

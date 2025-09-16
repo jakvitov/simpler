@@ -178,6 +178,12 @@ impl TryFrom<MpsInParsing> for MpsModel {
     }
 }
 
+pub struct MpsModelWithSelectedVariants {
+    pub(crate) model: MpsModel,
+    pub(crate) selected_rhs: Option<String>,
+    pub(crate) selected_bounds: Option<String>,
+    pub(crate) selected_opt_row_name: Option<String>,
+}
 
 #[cfg(test)]
 pub mod test_utils {
