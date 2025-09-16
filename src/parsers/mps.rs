@@ -185,6 +185,17 @@ pub struct MpsModelWithSelectedVariants {
     pub(crate) selected_opt_row_name: Option<String>,
 }
 
+impl MpsModelWithSelectedVariants {
+    pub fn new(model: MpsModel, selected_rhs: Option<String>, selected_bounds: Option<String>, selected_opt_row_name: Option<String>) -> Self {
+        MpsModelWithSelectedVariants {
+            model,
+            selected_rhs,
+            selected_bounds,
+            selected_opt_row_name
+        }
+    }
+}
+
 #[cfg(test)]
 pub mod test_utils {
     use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows};
