@@ -8,7 +8,7 @@ use simpler::solvers::basic_simplex_table::BasicSimplexTable;
 /// Integration of MPS parser with HTML document builder
 
 
-const WRITE_OUTPUTS_TO_FILE: bool = true;
+const WRITE_OUTPUTS_TO_FILE: bool = false;
 
 #[test]
 fn generate_html_output_from_simple_correct_mps_parsing_succeeds() {
