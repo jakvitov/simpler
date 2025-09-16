@@ -119,13 +119,45 @@ impl HtmlOutput {
         for variable_name in basic_simplex_table.column_variable_names.keys() {
             self.body.push_str(format!("<th>{}</th>", variable_name).as_str());
         }
+        self.body.push_str("<th>RHS</th>");
         self.body.push_str("</tr>");
+
+        //Add the base variable and row and rhs value, we add by rows, so base variable needs to be the first element in it
+        let mut base_variable_names_iterator = basic_simplex_table.base_variable_names.iter();
+        let mut rhs_values_iterator = basic_simplex_table.rhs.iter();
+
+        //Unwraps are safe, RHS and base having all items necessary should be checked in simplex table construction
+        for row_values in &basic_simplex_table.rows {
+            self.body.push_str("<tr>");
+            //Fill in the base variable name as the first value
+            let base_variable_name = base_variable_names_iterator.next().unwrap();
+            self.body.push_str(format!("<td>{}</td>", base_variable_name).as_str());
+
+            for row_value in row_values {
+                self.body.push_str(format!("<td>{}</td>", row_value).as_str());
+            }
+            //Fill in the RHS value
+            let rhs_value_for_row = rhs_values_iterator.next().unwrap();
+            self.body.push_str(format!("<td>{}</td>", rhs_value_for_row).as_str());
+            self.body.push_str("</tr>");
+        }
+
+        //Fill in the objective function row
+        self.body.push_str("<tr>\n");
+        self.body.push_str("<td>objective</td>");
+        for obj_row_value in &basic_simplex_table.objective_row {
+            self.body.push_str(format!("<td>{}</td>", obj_row_value).as_str());
+        }
+        self.body.push_str(format!("<td>{}</td>", basic_simplex_table.objective_rhs).as_str());
+        self.body.push_str("<tr>\n");
 
         self.body.push_str("</table>\n")
     }
 
     pub fn add_parsed_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<div class=\"parsed_basic_simplex_table\">\n");
+        self.body.push_str("<h2>Parsed Simplex table</h2>\n");
+        self.body.push_str("<p>Simplex table parser uses irrelevant bound optimisation.</p>\n");
         self.create_table_from_simplex_table(basic_simplex_table);
         self.body.push_str("</div>\n");
     }
