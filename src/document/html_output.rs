@@ -59,7 +59,7 @@ impl HtmlOutput {
             for (variable_name, variable_values) in &mps_model.columns.variables {
                 let variable_value = variable_values.get(row_name).map_or(Rational::zero(), |x| x.to_owned());
                 self.body.push_str(variable_value.to_mmdn_with_sign().as_str());
-                self.body.push_str("<mo>×</mo>");
+                self.body.push_str("<mo>⋅</mo>");
                 self.body.push_str(format!("<mi>{}</mi>", variable_name).as_str());
             }
             self.body.push_str(format!("<mo>{}</mo>", constraint.to_sign()).as_str());
