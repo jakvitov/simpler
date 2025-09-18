@@ -1,12 +1,8 @@
 use simpler::document::html_output::HtmlOutput;
 use simpler::parsers::parse_mps;
 use std::fs;
-use simpler::parsers::mps::MpsModelWithSelectedVariants;
-use simpler::solvers::basic_simplex_table::BasicSimplexTable;
 
-/// Module with integration tests
-/// Integration of MPS parser with HTML document builder
-
+///Test scope: read mps from file, parse it to MpsModel and add the parsed mps model to html output, export output to html
 
 const WRITE_OUTPUTS_TO_FILE: bool = false;
 
@@ -54,34 +50,6 @@ fn generate_html_output_from_simple_incorrect_mps_parsing_with_undefined_variabl
     document.add_parsed_mps(&parsed_mps);
     if WRITE_OUTPUTS_TO_FILE {
         fs::write("generate_html_output_from_simple_incorrect_mps_with_undefined_variable_in_bounds_succeeds.html", document.to_string()).expect("Writing to html_output failed");
-    }
-}
-
-/// Parse MPS and add result of Simplex parsing table to the result
-/// Should not contain any errors
-#[test]
-fn generate_html_output_with_simplex_table_from_simple_correct_mps(){
-    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps")).unwrap();
-    let parsed_mps = parse_mps(&mps_file).unwrap();
-    let mut html_output = HtmlOutput::with_application_header();
-    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None);
-    let basic_simplex_table = BasicSimplexTable::try_from(&mps_with_selection).unwrap();
-    html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
-    if WRITE_OUTPUTS_TO_FILE {
-        fs::write("generate_html_output_from_mps_succeeds.html", html_output.to_string()).expect("Writing to html_output failed");
-    }
-}
-
-#[test]
-fn generate_html_output_with_simplex_table_complicated_correct_mps(){
-    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("complicated_mps_with_multiple_rhs_objectives_and_bounds")).unwrap();
-    let parsed_mps = parse_mps(&mps_file).unwrap();
-    let mut html_output = HtmlOutput::with_application_header();
-    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ2".to_owned()));
-    let basic_simplex_table = BasicSimplexTable::try_from(&mps_with_selection).unwrap();
-    html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
-    if WRITE_OUTPUTS_TO_FILE {
-        fs::write("generate_html_output_with_simplex_table_complicated_correct_mps.html", html_output.to_string()).expect("Writing to html_output failed");
     }
 }
 

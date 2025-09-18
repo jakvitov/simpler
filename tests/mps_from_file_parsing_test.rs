@@ -5,9 +5,12 @@ use simpler::rationals::Rational;
 use std::fs;
 use std::path::PathBuf;
 
+/// Test scope: read mps string from a file and parse it to MpsModel
+/// Both error and success variants
+
 fn setup_path(file_name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("tests/data/mps");
+    path.push("../data/mps");
     path.push(file_name);
     path
 }
