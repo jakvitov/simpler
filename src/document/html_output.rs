@@ -154,6 +154,13 @@ impl HtmlOutput {
         self.body.push_str("</table>\n")
     }
 
+    pub fn add_html_convertible_error(&mut self, error: Box<dyn super::html_convertible_error::HtmlConvertibleError>) {
+        self.body.push_str("<div class=\"error\">\n>");
+        self.body.push_str(format!("<h2>{} occurred</h2\n>", error.get_error_name()).as_str());
+        self.body.push_str(error.to_html_string().as_str());
+        self.body.push_str("</div>\n");
+    }
+
     pub fn add_parsed_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<div class=\"parsed_basic_simplex_table\">\n");
         self.body.push_str("<h2>Parsed Simplex table</h2>\n");

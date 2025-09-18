@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
+use crate::document::html_convertible_error::HtmlConvertibleError;
 
 #[derive(Debug)]
 pub struct SimplexError {
@@ -24,4 +25,14 @@ impl SimplexError {
 
 impl Error for SimplexError {
 
+}
+
+impl HtmlConvertibleError for SimplexError {
+    fn to_html_string(&self) -> String {
+        format!("<code>Simplex error message: {}</code>", self.reason)
+    }
+
+    fn get_error_name(&self) -> String {
+        "Simplex error".to_owned()
+    }
 }
