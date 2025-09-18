@@ -1,6 +1,7 @@
 use simpler::parsers::mps::{BoundType, Constraints};
 use simpler::parsers::parse_mps;
 use simpler::rationals::Rational;
+use simpler::utils::tests::CorrectMps::{CORRECT, INCORRECT};
 // Integration tests for the parsers module
 use std::fs;
 use std::path::PathBuf;
@@ -17,7 +18,7 @@ fn setup_path(file_name: &str) -> PathBuf {
 
 #[test]
 fn parsing_simple_correct_mps_succeeds() {
-    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps")).unwrap();
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_mps", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -59,7 +60,7 @@ fn parsing_simple_correct_mps_succeeds() {
 
 #[test]
 fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
-    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_correct_mps_with_blank_lines")).unwrap();
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_mps_with_blank_lines", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     //Name
     assert_eq!(parsed_mps.name, "testprob");
@@ -101,7 +102,7 @@ fn parsing_simple_correct_mps_with_blank_lines_succeeds() {
 
 #[test]
 fn parsing_simple_mps_without_columns_fails() {
-    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_incorrect_mps_without_columns")).unwrap();
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_mps_without_columns", INCORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file);
     assert!(parsed_mps.is_err());
 }

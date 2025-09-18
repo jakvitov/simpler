@@ -22,7 +22,7 @@ impl NumericalError {
 
 impl HtmlConvertibleError for NumericalError {
     fn to_html_string(&self) -> String {
-        format!("<code>Reason: {}</code>\n<code>Input: {}</code>", &self.reason, &self.input)
+        format!("<p><code><b>Reason:</b> {}</code></p>\n<p><code><b>Input:</b> {}</code></p>", &self.reason, &self.input)
     }
 
     fn get_error_name(&self) -> String {

@@ -37,7 +37,11 @@ impl ParserError {
 
 impl HtmlConvertibleError for ParserError {
     fn to_html_string(&self) -> String {
-        format!("<code>Message: {}</code>\n<code>Structure: {}</code>\n", self.message, self.structure)
+        if self.structure.is_empty() {
+            format!("<p><code><b>Message:</b> {}</code></p>\n", self.message)
+        } else {
+            format!("<p><code><b>Message:</b> {}</code></p>\n<p><code><b>Structure:</b> {}</code></p>\n", self.message, self.structure)
+        }
     }
 
     fn get_error_name(&self) -> String {

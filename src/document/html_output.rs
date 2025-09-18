@@ -154,8 +154,8 @@ impl HtmlOutput {
         self.body.push_str("</table>\n")
     }
 
-    pub fn add_html_convertible_error(&mut self, error: Box<dyn super::html_convertible_error::HtmlConvertibleError>) {
-        self.body.push_str("<div class=\"error\">\n>");
+    pub fn add_html_convertible_error(&mut self, error: Box<impl super::html_convertible_error::HtmlConvertibleError>) {
+        self.body.push_str("<div class=\"error\"\n>");
         self.body.push_str(format!("<h2>{} occurred</h2\n>", error.get_error_name()).as_str());
         self.body.push_str(error.to_html_string().as_str());
         self.body.push_str("</div>\n");

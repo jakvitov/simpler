@@ -29,7 +29,7 @@ impl Error for SimplexError {
 
 impl HtmlConvertibleError for SimplexError {
     fn to_html_string(&self) -> String {
-        format!("<code>Simplex error message: {}</code>", self.reason)
+        format!("<p><code><b>Simplex error message:</b> {}</code></p>", self.reason)
     }
 
     fn get_error_name(&self) -> String {
