@@ -8,7 +8,7 @@ use simpler::utils::tests::CorrectMps::CORRECT;
 /// Test scope: read mps from a file, parse it to parsed mps, parse that mps to basic simplex table
 /// with irrelevant bounds removal
 
-const WRITE_OUTPUTS_TO_FILE: bool = true;
+const WRITE_OUTPUTS_TO_FILE: bool = false;
 #[test]
 fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_mps", CORRECT)).unwrap();
