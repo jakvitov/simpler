@@ -314,7 +314,7 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
         }
     }
     if mps_model_with_selected_variants.selected_opt_row_name.is_none() && objective_row_names.len() > 1 {
-        Err(Box::new(SimplexError::new("No objective function name was chosen and model contains more than one objective function.\n Chose one objective function to be used.")))
+        Err(Box::new(SimplexError::new("No objective function name was chosen and model contains more than one objective functions.\n Chose one objective function to be used.")))
     } else if objective_row_names.is_empty() {
         Err(Box::new(SimplexError::new("Model does not contain any objective function.\nSimplex solver cannot optimise this model without objective function.")))
     } else if mps_model_with_selected_variants.selected_opt_row_name.is_none() && objective_row_names.len() == 1{

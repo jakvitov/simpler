@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use crate::document::html_convertible_error::HtmlConvertibleError;
 
 #[derive(Debug)]
 pub struct ParserError {
@@ -31,5 +32,19 @@ impl ParserError {
 
     pub fn from_string_message(message: String, structure: &str) -> Self {
         ParserError { message: message, structure: String::from(structure)}
+    }
+}
+
+impl HtmlConvertibleError for ParserError {
+    fn to_html_string(&self) -> String {
+        if self.structure.is_empty() {
+            format!("<p><code><b>Message:</b> {}</code></p>\n", self.message)
+        } else {
+            format!("<p><code><b>Message:</b> {}</code></p>\n<p><code><b>Structure:</b> {}</code></p>\n", self.message, self.structure)
+        }
+    }
+
+    fn get_error_name(&self) -> String {
+        String::from("Parser error")
     }
 }

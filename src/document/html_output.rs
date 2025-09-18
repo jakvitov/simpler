@@ -59,7 +59,7 @@ impl HtmlOutput {
             for (variable_name, variable_values) in &mps_model.columns.variables {
                 let variable_value = variable_values.get(row_name).map_or(Rational::zero(), |x| x.to_owned());
                 self.body.push_str(variable_value.to_mmdn_with_sign().as_str());
-                self.body.push_str("<mo>×</mo>");
+                self.body.push_str("<mo>⋅</mo>");
                 self.body.push_str(format!("<mi>{}</mi>", variable_name).as_str());
             }
             self.body.push_str(format!("<mo>{}</mo>", constraint.to_sign()).as_str());
@@ -152,6 +152,13 @@ impl HtmlOutput {
         self.body.push_str("<tr>\n");
 
         self.body.push_str("</table>\n")
+    }
+
+    pub fn add_html_convertible_error(&mut self, error: Box<impl super::html_convertible_error::HtmlConvertibleError>) {
+        self.body.push_str("<div class=\"error\"\n>");
+        self.body.push_str(format!("<h2>{} occurred</h2\n>", error.get_error_name()).as_str());
+        self.body.push_str(error.to_html_string().as_str());
+        self.body.push_str("</div>\n");
     }
 
     pub fn add_parsed_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {

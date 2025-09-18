@@ -25,15 +25,15 @@ impl MpsInParsing {
     /// Return parser error with message about which section has not been filled otherwise
     pub(super) fn is_filled(&self) -> Result<(), Box<ParserError>> {
         if self.name.is_none() {
-            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field NAME", "")))
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field NAME. Possible cause: NAME or ROWS is missing.", "")))
         } else if self.rows.is_none() {
-            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field ROWS", "")))
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field ROWS. Possible cause: ROWS or COLUMNS is missing.", "")))
         } else if self.columns.is_none() {
-            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field COLUMNS", "")))
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field COLUMNS. Possible cause: COLUMNS or RHS is missing.", "")))
         } else if self.rhs.is_none() {
-            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field RHS", "")))
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field RHS. Possible cause: RHS or BOUNDS  is missing.", "")))
         } else if self.bounds.is_none() {
-            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field BOUNDS", "")))
+            return Err(Box::new(ParserError::new("Parsed MPS error: model misses field BOUNDS. Possible cause: BOUNDS or ENDATA is missing.", "")))
         }
         Ok(())
     }

@@ -101,7 +101,7 @@ impl Rows {
     }
 }
 
-
+#[derive(Clone)]
 pub struct Columns {
     //BTreeMap variable_name ->( row_name -> value)
     //We use BTreeMap to keep the variables ordered
@@ -120,6 +120,7 @@ impl Columns {
     }
 }
 
+#[derive(Clone)]
 pub struct Bounds {
     // HashMap (bound_name, Vec(variable_name, value, bound_type)
     pub bounds: IndexMap<String, Vec<(String, Rational, BoundType)>>,
@@ -137,6 +138,7 @@ impl Bounds {
     }
 }
 
+#[derive(Clone)]
 pub struct Rhs {
     //HashMap rhs_name -> (row_name -> value)x
     pub(crate) rhs: IndexMap<String, HashMap<String, Rational>>,
@@ -154,6 +156,7 @@ impl Rhs {
     }
 }
 
+#[derive(Clone)]
 pub struct MpsModel {
     pub name: String,
     pub rows: Rows,
@@ -179,10 +182,10 @@ impl TryFrom<MpsInParsing> for MpsModel {
 }
 
 pub struct MpsModelWithSelectedVariants {
-    pub(crate) model: MpsModel,
-    pub(crate) selected_rhs: Option<String>,
-    pub(crate) selected_bounds: Option<String>,
-    pub(crate) selected_opt_row_name: Option<String>,
+    pub model: MpsModel,
+    pub selected_rhs: Option<String>,
+    pub selected_bounds: Option<String>,
+    pub selected_opt_row_name: Option<String>,
 }
 
 impl MpsModelWithSelectedVariants {
