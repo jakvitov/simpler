@@ -200,7 +200,7 @@ impl HtmlOutput {
         }
         self.body.push_str(format!("<td>{}</td>", basic_simplex_table.objective_rhs).as_str());
         // The objective row has !virtual! index in the rows as the last one -> rows.len()
-        get_row_marker_symbol_for_row(&row_markers, basic_simplex_table.rows.len());
+        self.body.push_str(get_row_marker_symbol_for_row(&row_markers, basic_simplex_table.rows.len()));
         self.body.push_str("<tr>\n");
 
         //Fill in the column markers if needed
@@ -245,13 +245,13 @@ fn get_row_marker_symbol_for_row(row_markers: &[usize], row_index: usize) -> &st
         "<td>↓</td>"
     }
     else if row_markers.len() == 2 && row_markers[0] == row_index && row_markers[0] > row_markers[1] {
-        "<td>↰</td>"
+        "<td>↑</td>"
     }
     else if row_markers.len() == 2  && row_markers[1] == row_index && row_markers[0] < row_markers[1] {
         "<td>↲</td>"
     }
     else if row_markers.len() == 2  && row_markers[1] == row_index && row_markers[0] > row_markers[1] {
-        "<td>↑</td>"
+        "<td>↰</td>"
     }
     else if row_markers.len() == 1 && row_markers[0] == row_index {
         "<td>←</td>"
@@ -266,7 +266,46 @@ fn get_row_marker_symbol_for_row(row_markers: &[usize], row_index: usize) -> &st
 
 #[cfg(test)]
 mod tests {
+    use crate::document::html_output::HtmlOutput;
 
+    #[test]
+    fn basic_simplex_table_to_html_table_without_markers_succeeds() {
+        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let mut document = HtmlOutput::empty();
+        document.create_html_table_from_basic_simplex_table(&simplex_table);
+        let output = document.to_string();
+        let start = output.find("<table>").unwrap();
+        let end = output.find("</table>").unwrap() + "</table>".len();
+        let table_code  = output[start..end].trim().replace("\n", "");
+        assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><tr></table>");
+    }
 
+    #[test]
+    fn basic_simplex_table_to_html_table_with_row_addition_markers_downwards_succeeds() {
+        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let mut document = HtmlOutput::empty();
+        document.create_html_table_from_basic_simplex_table_with_row_addition_markers(&simplex_table, 0, 2);
+        let output = document.to_string();
+        let start = output.find("<table>").unwrap();
+        let end = output.find("</table>").unwrap() + "</table>".len();
+        let table_code  = output[start..end].trim().replace("\n", "");
+        assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th><th></th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td><td>↓</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td><td></td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><td>↲</td><tr></table>");
+    }
+
+    #[test]
+    fn basic_simplex_table_to_html_table_with_row_addition_markers_upwards_succeeds() {
+        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let mut document = HtmlOutput::with_application_header();
+        document.create_html_table_from_basic_simplex_table_with_row_addition_markers(&simplex_table, 2, 0);
+
+        let output = document.to_string();
+        let start = output.find("<table>").unwrap();
+        let end = output.find("</table>").unwrap() + "</table>".len();
+        let table_code  = output[start..end].trim().replace("\n", "");
+        assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th><th></th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td><td>↰</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td><td></td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><td>↑</td><tr></table>");
+    }
+
+    //todo add test for one row marker
+    //todo add test for column marker
 
 }

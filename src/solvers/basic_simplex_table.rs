@@ -345,29 +345,6 @@ mod tests {
     use crate::rationals::{Rational};
     use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants};
 
-    /// Base x1 x2 s1 s2 RHS
-    /// s1  1   2   1  0  2
-    /// s2  2   1   0  1  3
-    /// ob -1  -2   0  0  0
-    pub fn create_minimal_simplex_table_for_testing() -> BasicSimplexTable{
-        let mut column_variable_names = IndexMap::new();
-        column_variable_names.insert("x1".to_string(), 0);
-        column_variable_names.insert("x2".to_string(), 1);
-        column_variable_names.insert("S1".to_string(), 2);
-        column_variable_names.insert("S2".to_string(), 2);
-        BasicSimplexTable {
-            base_variable_names: vec!["S1".to_owned(), "S2".to_owned()],
-            column_variable_names:  column_variable_names,
-            rows: vec![
-                vec![rfi(1), rfi(2), rfi(1), rfi(0)],
-                vec![rfi(2), rfi(1), rfi(0), rfi(1)],
-            ],
-            rhs: vec![rfi(2),rfi(3)],
-            objective_row: vec![rfi(-1), rfi(-2), rfi(0), rfi(0), rfi(0)],
-            objective_rhs: rfi(0)
-        }
-    }
-
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
         Rational::from_integer(input)
@@ -537,5 +514,35 @@ mod tests {
         assert!(error_msg.contains("Selected bounds UNKNOWN_BOUNDS were not found among the ones defined in the model"));
     }
 
+}
+
+#[cfg(test)]
+pub mod test_utils {
+    use indexmap::IndexMap;
+    use crate::solvers::basic_simplex_table::BasicSimplexTable;
+    use crate::solvers::basic_simplex_table::tests::rfi;
+
+    /// Base x1 x2 s1 s2 RHS
+    /// s1  1   2   1  0  2
+    /// s2  2   1   0  1  3
+    /// ob -1  -2   0  0  0
+    pub fn create_minimal_simplex_table_for_testing() -> BasicSimplexTable{
+        let mut column_variable_names = IndexMap::new();
+        column_variable_names.insert("x1".to_string(), 0);
+        column_variable_names.insert("x2".to_string(), 1);
+        column_variable_names.insert("S1".to_string(), 2);
+        column_variable_names.insert("S2".to_string(), 2);
+        BasicSimplexTable {
+            base_variable_names: vec!["S1".to_owned(), "S2".to_owned()],
+            column_variable_names:  column_variable_names,
+            rows: vec![
+                vec![rfi(1), rfi(2), rfi(1), rfi(0)],
+                vec![rfi(2), rfi(1), rfi(0), rfi(1)],
+            ],
+            rhs: vec![rfi(2),rfi(3)],
+            objective_row: vec![rfi(-1), rfi(-2), rfi(0), rfi(0)],
+            objective_rhs: rfi(0)
+        }
+    }
 }
 
