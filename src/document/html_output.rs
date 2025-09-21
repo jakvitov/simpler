@@ -150,7 +150,7 @@ impl HtmlOutput {
         if row_markers.len() == 2 {
             debug_assert!(row_markers[0] != row_markers[1]);
         }
-        row_markers.iter().for_each(|index| debug_assert!(*index <= row_markers.len()));
+        row_markers.iter().for_each(|index| debug_assert!(*index <= basic_simplex_table.rows.len()));
         if column_marker.is_some() && !basic_simplex_table.rows.is_empty(){
             debug_assert!(column_marker.unwrap() < basic_simplex_table.rows[0].len())
         }
@@ -316,7 +316,17 @@ mod tests {
         let table_code  = output[start..end].trim().replace("\n", "");
         assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><tr><tr><td></td><td></td><td></td><td>↑</td><td></td></tr></table>");
     }
-    //todo add test for one row marker
-    //todo add test for column marker
+
+    #[test]
+    fn basic_simple_table_to_html_table_with_one_row_marker_succeeds() {
+        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let mut document = HtmlOutput::with_application_header();
+        document.create_html_table_from_basic_simplex_table_with_one_row_marker(&simplex_table, 1);
+        let output = document.to_string();
+        let start = output.find("<table>").unwrap();
+        let end = output.find("</table>").unwrap() + "</table>".len();
+        let table_code  = output[start..end].trim().replace("\n", "");
+        assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th><th></th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td><td></td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td><td>←</td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><td></td><tr></table>");
+    }
 
 }
