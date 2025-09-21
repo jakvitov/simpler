@@ -2,7 +2,7 @@ use std::fs;
 use simpler::document::html_output::HtmlOutput;
 use simpler::parsers::mps::MpsModelWithSelectedVariants;
 use simpler::parsers::parse_mps;
-use simpler::solvers::basic_simplex_table::BasicSimplexTable;
+use simpler::solvers::basic_simplex_table::{BasicSimplexTable, OptimizationType};
 use simpler::utils::tests::CorrectMps::CORRECT;
 
 /// Test scope: read mps from a file, parse it to parsed mps, parse that mps to basic simplex table
@@ -14,7 +14,7 @@ fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("simple_mps", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
-    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None);
+    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None, OptimizationType::MIN);
     let basic_simplex_table = BasicSimplexTable::try_from(&mps_with_selection).unwrap();
     html_output.add_parsed_mps(&mps_with_selection.model);
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
@@ -29,7 +29,7 @@ fn parse_complicated_mps_with_multiple_rhs_objectives_and_bounds_to_basic_simple
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("complicated_mps_with_multiple_rhs_objectives_and_bounds", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
-    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ2".to_owned()));
+    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ2".to_owned()), OptimizationType::MIN);
     let basic_simplex_table = BasicSimplexTable::try_from(&mps_with_selection).unwrap();
     html_output.add_parsed_mps(&mps_with_selection.model);
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
@@ -45,7 +45,7 @@ fn parse_complicated_mps_with_multiple_rhs_objectives_and_bounds_to_basic_simple
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("complicated_mps_with_multiple_rhs_objectives_and_bounds", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
-    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, Some("RHS1".to_owned()), Some("BND1".to_owned()), None);
+    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, Some("RHS1".to_owned()), Some("BND1".to_owned()), None, OptimizationType::MIN);
     let error = BasicSimplexTable::try_from(&mps_with_selection).err().unwrap();
     html_output.add_parsed_mps(&mps_with_selection.model);
     html_output.add_html_convertible_error(error);

@@ -1,9 +1,10 @@
 use super::mps_parser::MpsInParsing;
 use super::ParserError;
 use crate::rationals::Rational;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::str::FromStr;
 use indexmap::IndexMap;
+use crate::solvers::basic_simplex_table::OptimizationType;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]
@@ -186,15 +187,17 @@ pub struct MpsModelWithSelectedVariants {
     pub selected_rhs: Option<String>,
     pub selected_bounds: Option<String>,
     pub selected_opt_row_name: Option<String>,
+    pub optimization_type: OptimizationType
 }
 
 impl MpsModelWithSelectedVariants {
-    pub fn new(model: MpsModel, selected_rhs: Option<String>, selected_bounds: Option<String>, selected_opt_row_name: Option<String>) -> Self {
+    pub fn new(model: MpsModel, selected_rhs: Option<String>, selected_bounds: Option<String>, selected_opt_row_name: Option<String>, optimization_type: OptimizationType) -> Self {
         MpsModelWithSelectedVariants {
             model,
             selected_rhs: selected_rhs.map_or(None, |x| Some(x.to_lowercase())),
             selected_bounds: selected_bounds.map_or(None, |x| Some(x.to_lowercase())),
-            selected_opt_row_name: selected_opt_row_name.map_or(None, |x| Some(x.to_lowercase()))
+            selected_opt_row_name: selected_opt_row_name.map_or(None, |x| Some(x.to_lowercase())),
+            optimization_type: optimization_type
         }
     }
 }

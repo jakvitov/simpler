@@ -3,7 +3,7 @@ use std::ops::{Deref};
 use indexmap::IndexMap;
 use crate::parsers::mps::{BoundType, Constraints, MpsModel, MpsModelWithSelectedVariants};
 use crate::rationals::Rational;
-use crate::solvers::simplex_error::SimplexError;
+use super::simplex_error::SimplexError;
 
 ///Simplex table used for non-optimised simplex algorithms
 pub struct BasicSimplexTable {
@@ -12,16 +12,24 @@ pub struct BasicSimplexTable {
     pub(crate) rows: Vec<Vec<Rational>>,
     pub(crate) rhs: Vec<Rational>,
     pub(crate) objective_row: Vec<Rational>,
-    pub(crate) objective_rhs: Rational
+    pub(crate) objective_rhs: Rational,
+    pub(crate) optimization_type: OptimizationType,
+    pub(crate) artificial_variables: bool
 }
 
-
+#[derive(Debug, Copy, Eq, PartialEq, Clone)]
+pub enum OptimizationType {
+    MAX,
+    MIN
+}
 
 impl BasicSimplexTable {
 
-    fn empty() -> Self {
+    fn empty(optimization_type: OptimizationType) -> Self {
         BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: IndexMap::new(),
-            rows: Vec::new(), rhs: Vec::new(), objective_row: Vec::new(), objective_rhs: Rational::zero()}
+            rows: Vec::new(), rhs: Vec::new(), objective_row: Vec::new(), objective_rhs: Rational::zero(),
+            optimization_type: optimization_type, artificial_variables: false
+        }
     }
 
 }
@@ -32,7 +40,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
 
     /// Construct simplex table from supplied MPS model
     fn try_from(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Self, Self::Error> {
-        let mut simplex_table = BasicSimplexTable::empty();
+        let mut simplex_table = BasicSimplexTable::empty(mps_model_with_selected_variants.optimization_type);
 
         let optimised_bounds = get_optimised_bounds_from_model(mps_model_with_selected_variants)?;
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds);
@@ -335,7 +343,7 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
 mod tests {
     use crate::parsers::mps;
     use crate::rationals::{Rational};
-    use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants};
+    use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
 
 
     ///Shortened version of Rational::from_integer
@@ -355,7 +363,8 @@ mod tests {
             model,
             selected_rhs: None,
             selected_bounds: None,
-            selected_opt_row_name: None
+            selected_opt_row_name: None,
+            optimization_type: OptimizationType::MIN
         };
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
@@ -387,7 +396,8 @@ mod tests {
             model,
             selected_rhs: None,
             selected_bounds: None,
-            selected_opt_row_name: None
+            selected_opt_row_name: None,
+            optimization_type: OptimizationType::MIN
         };
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
@@ -409,7 +419,8 @@ mod tests {
             model,
             selected_rhs: Some("RHS1".to_owned()),
             selected_bounds: Some("BND1".to_owned()),
-            selected_opt_row_name: Some("OBJ2".to_owned())
+            selected_opt_row_name: Some("OBJ2".to_owned()),
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
@@ -434,7 +445,8 @@ mod tests {
             model,
             selected_rhs: Some("RHS1".to_owned()),
             selected_bounds: Some("BND1".to_owned()),
-            selected_opt_row_name: None
+            selected_opt_row_name: None,
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
@@ -451,6 +463,7 @@ mod tests {
             selected_rhs: Some("RHS1".to_owned()),
             selected_bounds: Some("BND1".to_owned()),
             selected_opt_row_name: Some("UNKNOWN_ROW".to_owned()),
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
@@ -466,7 +479,8 @@ mod tests {
             model,
             selected_rhs: None,
             selected_bounds: Some("BND1".to_owned()),
-            selected_opt_row_name: Some("OBJ2".to_owned())
+            selected_opt_row_name: Some("OBJ2".to_owned()),
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
@@ -482,7 +496,8 @@ mod tests {
             model,
             selected_rhs: Some("UnknownRHS1".to_owned()),
             selected_bounds: Some("BND1".to_owned()),
-            selected_opt_row_name: Some("OBJ2".to_owned())
+            selected_opt_row_name: Some("OBJ2".to_owned()),
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
@@ -498,7 +513,8 @@ mod tests {
             model,
             selected_rhs: Some("RHS1".to_owned()),
             selected_bounds: Some("UNKNOWN_BOUNDS".to_owned()),
-            selected_opt_row_name: Some("OBJ2".to_owned())
+            selected_opt_row_name: Some("OBJ2".to_owned()),
+            optimization_type: OptimizationType::MIN
         };
 
         let simplex_table_result = BasicSimplexTable::try_from(&model_with_selected_variants);
