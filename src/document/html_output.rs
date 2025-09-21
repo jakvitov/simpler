@@ -305,6 +305,17 @@ mod tests {
         assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th><th></th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td><td>↰</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td><td></td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><td>↑</td><tr></table>");
     }
 
+    #[test]
+    fn basic_simple_table_to_html_table_with_column_marker_succeeds() {
+        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let mut document = HtmlOutput::with_application_header();
+        document.create_html_table_from_basic_simplex_table_with_column_marker(&simplex_table, 2);
+        let output = document.to_string();
+        let start = output.find("<table>").unwrap();
+        let end = output.find("</table>").unwrap() + "</table>".len();
+        let table_code  = output[start..end].trim().replace("\n", "");
+        assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><tr><tr><td></td><td></td><td></td><td>↑</td><td></td></tr></table>");
+    }
     //todo add test for one row marker
     //todo add test for column marker
 
