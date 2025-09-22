@@ -2,7 +2,7 @@ use std::fs;
 use simpler::document::html_output::HtmlOutput;
 use simpler::parsers::mps::MpsModelWithSelectedVariants;
 use simpler::parsers::parse_mps;
-use simpler::solvers::basic_simplex_table::{BasicSimplexTable, OptimizationType};
+use simpler::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use simpler::utils::tests::CorrectMps::CORRECT;
 
 /// Test scope: read mps from a file, parse it to parsed mps, parse that mps to basic simplex table
