@@ -109,12 +109,14 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
+                            simplex_table.artificial_variables = true;
                         },
                         Constraints::G => {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
+                            simplex_table.artificial_variables = true;
                         }
                         _ => {
                             row.push(Rational::zero());
@@ -192,6 +194,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                         simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         pushed_artificial_variable = true;
                         artificial_index += 1;
+                        simplex_table.artificial_variables = true;
                     }
                 }
             } else {
@@ -348,10 +351,9 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
 
 #[cfg(test)]
 mod tests {
-    use indexmap::IndexMap;
     use crate::parsers::mps;
     use crate::rationals::{Rational};
-    use crate::solvers::basic_simplex_table::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
+    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
 
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
@@ -535,8 +537,8 @@ mod tests {
 #[cfg(test)]
 pub mod test_utils {
     use indexmap::IndexMap;
-    use crate::solvers::basic_simplex_table::BasicSimplexTable;
-    use crate::solvers::basic_simplex_table::tests::rfi;
+    use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
+    use crate::solvers::basic_simplex_table_data::tests::rfi;
 
     /// Base x1 x2 s1 s2 RHS
     /// s1  1   2   1  0  2
@@ -557,8 +559,21 @@ pub mod test_utils {
             ],
             rhs: vec![rfi(2),rfi(3)],
             objective_row: vec![rfi(-1), rfi(-2), rfi(0), rfi(0)],
-            objective_rhs: rfi(0)
+            objective_rhs: rfi(0),
+            artificial_variables: false,
+            optimization_type: super::OptimizationType::MIN
         }
+    }
+    
+    /// Base x1 x2 s1 s2 RHS
+    /// s1  1   2   1  0  2
+    /// s2  2   1   0  1  3
+    /// ob  1   2   0  0  0
+    pub fn create_optimal_simplex_table() -> BasicSimplexTable {
+        let mut res = create_minimal_simplex_table_for_testing();
+        res.objective_row[0] = rfi(1);
+        res.objective_row[1] = rfi(2);
+        res
     }
 }
 
