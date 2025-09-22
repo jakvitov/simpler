@@ -44,6 +44,10 @@ impl Rational {
         (self.numerator < 0) ^ (self.denominator < 0)
     }
 
+    pub fn invert(&self) -> Rational {
+        Self::new(self.denominator, self.numerator)
+    }
+
     ///Reduce given rational
     /// 2/4 -> 1/2
     /// -2/4 -> -1/4
@@ -62,7 +66,7 @@ impl Rational {
     ///self + other = new_rational
     ///Uses provided gcd_cache for gcd and lcm operations
     #[allow(dead_code)]
-    fn add(&self, other: &Rational, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    pub fn add(&self, other: &Rational, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
         let mut res = Rational::new(numerator, den_lcm);
@@ -73,7 +77,7 @@ impl Rational {
     ///self - other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
     #[allow(dead_code)]
-    fn subtract(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    pub fn subtract(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) - ((den_lcm/other.denominator)*other.numerator);
         let mut res = Rational::new(numerator, den_lcm);
@@ -84,23 +88,40 @@ impl Rational {
     ///self * other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
     #[allow(dead_code)]
-    fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    pub fn multiply(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let numerator = self.numerator * other.numerator;
         let denominator = self.denominator * other.denominator;
         let mut res = Rational::new(numerator, denominator);
         res.reduce(gcd_cache)?;
         Ok(res)
     }
+    
+    //Mutate self as result of self * other
+    pub fn multiply_by(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+        self.numerator = self.numerator * other.numerator;
+        self.denominator = self.denominator * other.denominator;
+        self.reduce(gcd_cache)?;
+        Ok(())
+    }
 
     /// self / other = new_rational
     /// Usees provided gcd_cache for gcd and lcm operations
     #[allow(dead_code)]
-    fn divide(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    pub fn divide(&self, other: &Self, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let numerator = self.numerator * other.denominator;
         let denominator = self.denominator * other.numerator;
         let mut res = Rational::new(numerator, denominator);
         res.reduce(gcd_cache)?;
         Ok(res)
+    }
+
+    pub fn divide_by(&mut self, other: &Self, gcd_cache: &mut GcdCache)-> Result<(), Box<NumericalError>> {
+        let numerator = self.numerator * other.denominator;
+        let denominator = self.denominator * other.numerator;
+        self.numerator = numerator;
+        self.denominator = denominator;
+        self.reduce(gcd_cache)?;
+        Ok(())
     }
 
     pub fn to_mmdn_with_sign(&self) -> String {
@@ -381,6 +402,39 @@ mod tests {
     }
 
     #[test]
+    fn multiplication_by_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(1, 7);
+        let b = Rational::new(1, 1);
+
+        a.multiply_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 1, denominator: 7});
+    }
+
+    #[test]
+    fn multiplication_by_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(6, 7);
+        let b = Rational::new(33, 28);
+
+       a.multiply_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 99, denominator: 98});
+    }
+
+    #[test]
+    fn multiplication_by_with_negatives_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(-6, -7);
+        let b = Rational::new(-33, 28);
+
+        a.multiply_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: -99, denominator: 98});
+    }
+
+    #[test]
     fn division_without_reduction_is_correct() {
         let mut gcd_cache = GcdCache::init();
         let a = Rational::new(1, 2);
@@ -411,6 +465,39 @@ mod tests {
         let res = a.divide(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(res, Rational{numerator: -1, denominator: 4});
+    }
+
+    #[test]
+    fn division_by_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(1, 2);
+        let b = Rational::new(2, 5);
+
+       a.divide_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 5, denominator: 4});
+    }
+
+    #[test]
+    fn division_by_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(2, 5);
+        let b = Rational::new(2, 10);
+
+        a.divide_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 2, denominator: 1});
+    }
+
+    #[test]
+    fn division_by_with_negative_values_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = Rational::new(-1, -10);
+        let b = Rational::new(2, -5);
+
+        a.divide_by(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: -1, denominator: 4});
     }
 
     #[test]
