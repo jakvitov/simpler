@@ -74,6 +74,15 @@ impl Rational {
         Ok(res)
     }
 
+    pub fn add_to(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+        let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
+        let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
+        self.numerator = numerator;
+        self.denominator = den_lcm;
+        self.reduce(gcd_cache)?;
+        Ok(())
+    }
+
     ///self - other = new_rational
     /// Uses provided gcd_cache for gcd and lcm operations
     #[allow(dead_code)]
@@ -327,6 +336,28 @@ mod tests {
         };
 
         assert_eq!(res, Rational{numerator: 2, denominator: 1});
+    }
+
+    #[test]
+    fn add_to_without_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(1, 7);
+
+        a.add(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 9, denominator: 14});
+    }
+
+    #[test]
+    fn add_to_with_reduction_is_correct() {
+        let mut gcd_cache = GcdCache::init();
+        let a = Rational::new(1, 2);
+        let b = Rational::new(3, 2);
+
+        a.add(&b, &mut gcd_cache).unwrap();
+
+        assert_eq!(a, Rational{numerator: 2, denominator: 1});
     }
 
     #[test]
