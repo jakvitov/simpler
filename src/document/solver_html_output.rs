@@ -41,6 +41,12 @@ impl HtmlOutput {
 
     }
 
+    pub fn add_base_variable_switch_info_to_html_document(&mut self, basic_simplex_table: &BasicSimplexTable, old_value: &String, new_value: &String) {
+        self.body.push_str("<hr>");
+        self.body.push_str(format!("<p>At the end of the iteration, base variable is changed. Pivot variable {} enters base instead of {}.</p>", new_value, old_value).as_str());
+        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+    }
+
     /// Start simplex iteration by adding a header and appropriate div
     pub fn start_simplex_iteration(&mut self, n: usize) {
         self.body.push_str("<div class=\"simplex-iteration\">");
