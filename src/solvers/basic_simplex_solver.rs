@@ -1,4 +1,4 @@
-use super::basic_simplex_table_data::BasicSimplexTable;
+use super::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use super::simplex_error::SimplexError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
@@ -8,7 +8,7 @@ use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
 /// Both simplex table and html output are edited
 /// This method returns resulting optimal value
 /// Since all errors are added to the
-pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
+pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput, optimization_type: OptimizationType) -> Result<Option<Rational>, Box<NumericalError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
@@ -136,6 +136,7 @@ mod tests {
     use super::super::basic_simplex_table_data::test_utils::create_optimal_simplex_table;
     use crate::rationals::{GcdCache, Rational};
     use crate::solvers::basic_simplex_solver::{basic_simplex_gauss_elimination, get_pivot, get_t_vector, solve_basic_simplex};
+    use crate::solvers::basic_simplex_table_data::OptimizationType;
     use crate::solvers::basic_simplex_table_data::test_utils::create_unbounded_simplex_table;
 
     #[test]
@@ -190,10 +191,10 @@ mod tests {
     }
 
     #[test]
-    fn check_basic_simplex_solve_succeeds() {
+    fn check_basic_simplex_min_solve_succeeds() {
         let mut simplex_table = create_minimal_simplex_table_for_testing();
         let mut html_output = HtmlOutput::with_application_header();
-        let res = solve_basic_simplex(&mut simplex_table, &mut html_output);
+        let res = solve_basic_simplex(&mut simplex_table, &mut html_output, OptimizationType::MIN);
         assert!(res.is_ok());
         let res = res.unwrap();
         assert!(res.is_some());
@@ -204,7 +205,7 @@ mod tests {
     fn check_basic_unbounded_simplex_suceeds() {
         let mut simplex_table = create_unbounded_simplex_table();
         let mut html_output = HtmlOutput::with_application_header();
-        let res = solve_basic_simplex(&mut simplex_table, &mut html_output);
+        let res = solve_basic_simplex(&mut simplex_table, &mut html_output, OptimizationType::MIN);
         assert!(res.is_ok());
         let res = res.unwrap();
         assert!(res.is_none());
