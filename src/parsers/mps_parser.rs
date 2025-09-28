@@ -135,6 +135,9 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
     Ok(res)
 }
 fn parse_bounds(input: &Vec<&str>)  -> Result<Bounds, Box<ParserError>> {
+    if input.len() == 1 && input[0] == "bounds" {
+        return Ok(Bounds::empty());
+    }
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Bounds section is incorrect", input.join("\n"))))
     }
