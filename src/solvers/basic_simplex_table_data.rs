@@ -575,5 +575,16 @@ pub mod test_utils {
         res.objective_row[1] = rfi(2);
         res
     }
+
+    /// Base x1  x2 s1 s2 RHS
+    /// s1  1   -2   1  0  2
+    /// s2  2   -1   0  1  3
+    /// ob -1   -2   0  0  0
+    pub fn create_unbounded_simplex_table() -> BasicSimplexTable {
+        let mut res = create_minimal_simplex_table_for_testing();
+        res.rows[0][1] = res.rows[0][1].negate();
+        res.rows[1][1] = res.rows[1][1].negate();
+        res
+    }
 }
 

@@ -10,7 +10,7 @@ use simpler::utils::tests::CorrectMps::CORRECT;
 const WRITE_OUTPUTS_TO_FILE: bool = false;
 
 #[test]
-fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
+fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("basic_simplex_two_iterations_mps", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
@@ -21,8 +21,29 @@ fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
     let res = solvers::solve_basic_simplex(&mut basic_simplex_table, &mut html_output);
 
     assert!(res.is_ok());
+    let res = res.unwrap();
     assert_eq!(res.unwrap(), Rational::from_integer(10));
     if WRITE_OUTPUTS_TO_FILE {
-        fs::write("parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html.html", html_output.to_string()).expect("Writing to html_output failed");
+        fs::write("solve_basic_simplex_two_iterations_from_mps_file_succeeds.html", html_output.to_string()).expect("Writing to html_output failed");
     }
+}
+
+#[test]
+fn solve_basic_simplex_unbounded_two_iterations_from_mps_file_succeeds() {
+    let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("basic_unbounded_simplex_two_iterations_mps", CORRECT)).unwrap();
+    let parsed_mps = parse_mps(&mps_file).unwrap();
+    let mut html_output = HtmlOutput::with_application_header();
+    let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None, OptimizationType::MIN);
+    let mut basic_simplex_table = BasicSimplexTable::try_from(&mps_with_selection).unwrap();
+    html_output.add_parsed_mps(&mps_with_selection.model);
+    html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
+    let res = solvers::solve_basic_simplex(&mut basic_simplex_table, &mut html_output);
+
+    assert!(res.is_ok());
+    let res = res.unwrap();
+    if WRITE_OUTPUTS_TO_FILE {
+        fs::write("solve_basic_simplex_unbounded_two_iterations_from_mps_file_succeeds.html", html_output.to_string()).expect("Writing to html_output failed");
+    }
+    assert!(res.is_none());
+
 }

@@ -35,11 +35,12 @@ impl Rational {
         Rational {numerator: -self.numerator, denominator: self.denominator}
     }
 
-    /// self >= 0
+    /// self > 0
     pub fn is_positive(&self) -> bool {
-        !self.is_negative()
+        !(self.numerator == 0 || self.is_negative())
     }
 
+    /// self < 0
     pub fn is_negative(&self) -> bool {
         (self.numerator < 0) ^ (self.denominator < 0)
     }
@@ -574,6 +575,12 @@ mod tests {
         let second = Rational::new(-7, -9);
         assert!(first.is_positive());
         assert!(second.is_positive());
+    }
+
+    #[test]
+    fn is_positive_fails_for_zero() {
+        let first = Rational::zero();
+        assert!(!first.is_positive());
     }
 
     #[test]
