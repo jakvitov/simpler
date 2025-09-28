@@ -341,10 +341,10 @@ mod tests {
     #[test]
     fn add_to_without_reduction_is_correct() {
         let mut gcd_cache = GcdCache::init();
-        let a = Rational::new(1, 2);
+        let mut a = Rational::new(1, 2);
         let b = Rational::new(1, 7);
 
-        a.add(&b, &mut gcd_cache).unwrap();
+        a.add_to(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 9, denominator: 14});
     }
@@ -352,10 +352,10 @@ mod tests {
     #[test]
     fn add_to_with_reduction_is_correct() {
         let mut gcd_cache = GcdCache::init();
-        let a = Rational::new(1, 2);
+        let mut a = Rational::new(1, 2);
         let b = Rational::new(3, 2);
 
-        a.add(&b, &mut gcd_cache).unwrap();
+        a.add_to(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 2, denominator: 1});
     }
