@@ -75,5 +75,16 @@ impl HtmlOutput {
         self.body.push_str(format!("<p>Pivot row {} is multiplied by {} and added to target row {}.</p>", pivot.0, coefficient, target_row).as_str());
         self.create_html_table_from_basic_simplex_table_with_row_addition_markers(basic_simplex_table, pivot.0, target_row);
     }
+
+    pub fn add_unbouded_solution_with_t_vec(&mut self, basic_simplex_table: &BasicSimplexTable, t_vec: &Vec<Rational>) {
+        self.body.push_str("<hr>");
+        self.body.push_str("<h4>Unbounded solution found</h4>\n");
+        self.body.push_str(format!("<p>Unbounded solution found during pivot calculation. All t-vector values are negative!</p>").as_str());
+        self.body.push_str("<div class=\"simplex-table-with-t-vec\">");
+        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+        // The t-vec should stretch by one row objective row (table has no markers here)
+        self.add_vector_with_header_as_vertical_table_with_given_length(t_vec, basic_simplex_table.rows.len() + 1, "t");
+        self.body.push_str("</div>");
+    }
     // END Basic simplex
 }

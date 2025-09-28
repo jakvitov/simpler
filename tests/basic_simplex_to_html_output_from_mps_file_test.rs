@@ -21,6 +21,7 @@ fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
     let res = solvers::solve_basic_simplex(&mut basic_simplex_table, &mut html_output);
 
     assert!(res.is_ok());
+    let res = res.unwrap();
     assert_eq!(res.unwrap(), Rational::from_integer(10));
     if WRITE_OUTPUTS_TO_FILE {
         fs::write("parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html.html", html_output.to_string()).expect("Writing to html_output failed");
