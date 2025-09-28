@@ -74,6 +74,8 @@ impl Rational {
         Ok(res)
     }
 
+    /// self + other = self
+    /// Self is mutated and other is added to it
     pub fn add_to(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
@@ -105,7 +107,7 @@ impl Rational {
         Ok(res)
     }
     
-    //Mutate self as result of self * other
+    ///Mutate self as result of self * other
     pub fn multiply_by(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         self.numerator = self.numerator * other.numerator;
         self.denominator = self.denominator * other.denominator;
@@ -124,6 +126,7 @@ impl Rational {
         Ok(res)
     }
 
+    /// Mutate self to contain self/other
     pub fn divide_by(&mut self, other: &Self, gcd_cache: &mut GcdCache)-> Result<(), Box<NumericalError>> {
         let numerator = self.numerator * other.denominator;
         let denominator = self.denominator * other.numerator;
