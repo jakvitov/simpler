@@ -65,14 +65,14 @@ impl HtmlOutput {
 
     pub fn add_pivot_row_normalisation_to_html_document(&mut self, basic_simplex_table: &BasicSimplexTable, coefficient: &Rational, pivot: &(usize, usize)) {
         self.body.push_str("<hr>");
-        self.body.push_str(format!("<p>Pivot row {} is normalised by {}</p>", pivot.0, coefficient.to_mmdn_with_sign()).as_str());
+        self.body.push_str(format!("<p>Pivot row {} is normalised by {}</p>", pivot.0, coefficient).as_str());
         self.create_html_table_from_basic_simplex_table_with_one_row_marker(basic_simplex_table, pivot.0);
     }
 
     pub fn add_row_normalisation_by_pivot_row_to_html_document(&mut self, basic_simplex_table: &BasicSimplexTable,
                                                                coefficient: &Rational, pivot: &(usize, usize), target_row: usize) {
         self.body.push_str("<hr>");
-        self.body.push_str(format!("<p>Pivot row {} is multiplied by {} and added to target row {}.</p>", pivot.0, coefficient.to_mmdn_with_sign(), target_row).as_str());
+        self.body.push_str(format!("<p>Pivot row {} is multiplied by {} and added to target row {}.</p>", pivot.0, coefficient, target_row).as_str());
         self.create_html_table_from_basic_simplex_table_with_row_addition_markers(basic_simplex_table, pivot.0, target_row);
     }
     // END Basic simplex
