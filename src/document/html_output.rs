@@ -40,9 +40,22 @@ impl HtmlOutput {
         self.styles.push_str("table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
-}")
+}
+.simplex-table-with-t-vec {
+  display: flex;
+  gap: 20px; /* Space between tables */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.simplex-table-with-t-vec table {
+  flex: 0 0 auto; /* Don't grow/shrink, use natural size */
+}
+")
     }
 
+    pub fn add_bug_report_panel(&mut self) {
+        unimplemented!()
+    }
 
     pub fn add_html_convertible_error(&mut self, error: Box<impl super::html_convertible_error::HtmlConvertibleError>) {
         self.body.push_str("<div class=\"error\"\n>");

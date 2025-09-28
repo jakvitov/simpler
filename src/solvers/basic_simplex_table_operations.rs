@@ -6,7 +6,7 @@ impl BasicSimplexTable {
 
     /// Normalize the pivot row and rhs to contain 1 in the pivot element
     /// Return coefficient by which the row was multiplied
-    fn normalize_pivot_row(&mut self, pivot: &(usize, usize), gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+   pub  fn normalize_pivot_row(&mut self, pivot: &(usize, usize), gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let coefficient = (&self.rows[pivot.0][pivot.1]).invert();
         for  i in &mut self.rows[pivot.0] {
             i.multiply_by(&coefficient, gcd_cache)?;
@@ -19,7 +19,7 @@ impl BasicSimplexTable {
     /// Normalize i-th row by adding n*pivot row to it
     /// Objective row's index is treated as last row + 1 (rows.len())
     /// Return coefficient by which the row was multiplied
-    fn normalize_row_by_pivot_row(&mut self, pivot: &(usize, usize), target_row_index: usize, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
+    pub fn normalize_row_by_pivot_row(&mut self, pivot: &(usize, usize), target_row_index: usize, gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         debug_assert!(target_row_index != pivot.0);
         //We normalise the objective row
         if target_row_index == self.rows.len() {

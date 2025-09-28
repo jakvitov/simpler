@@ -4,7 +4,7 @@ use crate::rationals::Rational;
 use std::collections::HashMap;
 use std::str::FromStr;
 use indexmap::IndexMap;
-use crate::solvers::basic_simplex_table::OptimizationType;
+use crate::solvers::basic_simplex_table_data::OptimizationType;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]

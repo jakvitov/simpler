@@ -30,9 +30,9 @@ fn gcd_eucleidian(mut a: i128, mut b: i128) -> Result<i128, Box<NumericalError>>
 /// Defined for both positive non zero integers
 fn lcm_eucleidian(a: i128, b: i128, gcd_cache: &mut GcdCache) -> Result<i128, Box<NumericalError>> {
     if a == 0 || b == 0 {
-        return Result::Err(Box::new(NumericalError::new("Both arguments of LCM are zero.", format!("lcm({},{})", a,b))));
+        return Err(Box::new(NumericalError::new("Both arguments of LCM are zero.", format!("lcm({},{})", a,b))));
     } else if a < 0 || b < 0 {
-        return Result::Err(Box::new(NumericalError::new("Either of the arguments of LCM are negative.", format!("lcm({},{})", a,b))));
+        return Err(Box::new(NumericalError::new("Either of the arguments of LCM are negative.", format!("lcm({},{})", a,b))));
     }
     let gcd = gcd_cache.gcd(a,b)?;
     Ok((a*b) /gcd)

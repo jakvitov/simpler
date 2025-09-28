@@ -1,8 +1,9 @@
 
 // Module containing methods concerning creating tables for the HtmlOutput
 
+use crate::rationals::Rational;
 use super::html_output::HtmlOutput;
-use crate::solvers::basic_simplex_table::BasicSimplexTable;
+use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 
 impl HtmlOutput {
 
@@ -16,29 +17,37 @@ impl HtmlOutput {
     }
 
     /// Create HTML table from basic simplex table without any markers
-    fn create_html_table_from_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
+    pub (super) fn create_html_table_from_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.create_html_table_form_basic_simplex_table(basic_simplex_table, Vec::new(), None)
     }
 
     /// Create HTML table from basic simplex table with two rows interaction markers
     /// First numerical row of the basic simplex table has index 0
     /// Objective row has index as last ordinary row + 1 (basic_simplex_table.rows.len())
-    fn create_html_table_from_basic_simplex_table_with_row_addition_markers(&mut self, basic_simplex_table: &BasicSimplexTable, start: usize, end: usize) {
+    pub (super) fn create_html_table_from_basic_simplex_table_with_row_addition_markers(&mut self, basic_simplex_table: &BasicSimplexTable, start: usize, end: usize) {
         self.create_html_table_form_basic_simplex_table(basic_simplex_table, vec![start, end], None);
     }
 
     /// Create HTML table from basic simplex table with one row marked with marker
     /// First numerical row of the basic simplex table has index 0
     /// Objective row has index as last ordinary row + 1 (basic_simplex_table.rows.len())
-    fn create_html_table_from_basic_simplex_table_with_one_row_marker(&mut self, basic_simplex_table: &BasicSimplexTable, row: usize) {
+    pub (super) fn create_html_table_from_basic_simplex_table_with_one_row_marker(&mut self, basic_simplex_table: &BasicSimplexTable, row: usize) {
         self.create_html_table_form_basic_simplex_table(basic_simplex_table, vec![row], None)
     }
 
     /// Create HTML table from basic simplex table with one column marked with marker
     /// Column for the first variable has index 0 (basic_simplex_table.rows[0][0])
     /// Last available column has index equal to last variable column (not rhs)
-    fn create_html_table_from_basic_simplex_table_with_column_marker(&mut self, basic_simplex_table: &BasicSimplexTable, column_marker_index: usize) {
+    pub (super) fn create_html_table_from_basic_simplex_table_with_column_marker(&mut self, basic_simplex_table: &BasicSimplexTable, column_marker_index: usize) {
         self.create_html_table_form_basic_simplex_table(basic_simplex_table, Vec::new(), Some(column_marker_index))
+    }
+
+    /// Create HTML table from basic simplex table with one column and one row marked with marker
+    /// Column for the first variable has index 0 (basic_simplex_table.rows[0][0])
+    /// Last available column has index equal to last variable column (not rhs)
+
+    pub (super) fn create_html_table_from_basic_simplex_table_with_row_and_column_marker(&mut self, basic_simplex_table: &BasicSimplexTable, row_marker_index: usize, column_marker_index: usize) {
+        self.create_html_table_form_basic_simplex_table(basic_simplex_table, vec![row_marker_index], Some(column_marker_index))
     }
 
     /// Create html table from basic simplex table
@@ -59,7 +68,6 @@ impl HtmlOutput {
         if column_marker.is_some() && !basic_simplex_table.rows.is_empty(){
             debug_assert!(column_marker.unwrap() < basic_simplex_table.rows[0].len())
         }
-        debug_assert!(!(row_markers.len() > 0 && column_marker.is_some()));
 
         self.body.push_str("<table>\n");
         //Add the row names
@@ -124,6 +132,15 @@ impl HtmlOutput {
 
         self.body.push_str("</table>\n")
     }
+
+    pub fn create_table_from_vector(&mut self, values: &Vec<Rational>, header: &str) -> String {
+        let mut res = String::new();
+        res.push_str("<table>\n");
+        res.push_str(format!("<th>{header}</th>").as_str());
+        values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", value.to_mmdn_with_sign()).as_str());});
+        res.push_str("</table>\n");
+        res
+    }
 }
 
 /// Return correct row marker symbol for row based on the row index and specified markers
@@ -161,7 +178,7 @@ mod tests {
 
     #[test]
     fn basic_simplex_table_to_html_table_without_markers_succeeds() {
-        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let simplex_table = crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing();
         let mut document = HtmlOutput::empty();
         document.create_html_table_from_basic_simplex_table(&simplex_table);
         let output = document.to_string();
@@ -173,7 +190,7 @@ mod tests {
 
     #[test]
     fn basic_simplex_table_to_html_table_with_row_addition_markers_downwards_succeeds() {
-        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let simplex_table = crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing();
         let mut document = HtmlOutput::empty();
         document.create_html_table_from_basic_simplex_table_with_row_addition_markers(&simplex_table, 0, 2);
         let output = document.to_string();
@@ -185,7 +202,7 @@ mod tests {
 
     #[test]
     fn basic_simplex_table_to_html_table_with_row_addition_markers_upwards_succeeds() {
-        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let simplex_table = crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing();
         let mut document = HtmlOutput::with_application_header();
         document.create_html_table_from_basic_simplex_table_with_row_addition_markers(&simplex_table, 2, 0);
 
@@ -198,7 +215,7 @@ mod tests {
 
     #[test]
     fn basic_simple_table_to_html_table_with_column_marker_succeeds() {
-        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let simplex_table = crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing();
         let mut document = HtmlOutput::with_application_header();
         document.create_html_table_from_basic_simplex_table_with_column_marker(&simplex_table, 2);
         let output = document.to_string();
@@ -210,7 +227,7 @@ mod tests {
 
     #[test]
     fn basic_simple_table_to_html_table_with_one_row_marker_succeeds() {
-        let simplex_table = crate::solvers::basic_simplex_table::test_utils::create_minimal_simplex_table_for_testing();
+        let simplex_table = crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing();
         let mut document = HtmlOutput::with_application_header();
         document.create_html_table_from_basic_simplex_table_with_one_row_marker(&simplex_table, 1);
         let output = document.to_string();
@@ -218,6 +235,11 @@ mod tests {
         let end = output.find("</table>").unwrap() + "</table>".len();
         let table_code  = output[start..end].trim().replace("\n", "");
         assert_eq!(table_code, "<table><tr><th>Base</th><th>x1</th><th>x2</th><th>S1</th><th>S2</th><th>RHS</th><th></th></tr><tr><td>S1</td><td>1</td><td>2</td><td>1</td><td>0</td><td>2</td><td></td></tr><tr><td>S2</td><td>2</td><td>1</td><td>0</td><td>1</td><td>3</td><td>←</td></tr><tr><td>objective</td><td>-1</td><td>-2</td><td>0</td><td>0</td><td>0</td><td></td><tr></table>");
+    }
+
+    #[test]
+    fn t_vector_to_table_suceeds() {
+        //todo write this test
     }
 
 }
