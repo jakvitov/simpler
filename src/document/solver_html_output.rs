@@ -45,7 +45,8 @@ impl HtmlOutput {
         self.body.push_str(format!("<p>Optimity check failed for element {} of the objective row.</p>", pivot.1).as_str());
         self.body.push_str("<div class=\"simplex-table-with-t-vec\">");
         self.create_html_table_from_basic_simplex_table_with_row_and_column_marker(basic_simplex_table, pivot.0, pivot.1);
-        self.create_table_from_vector(t_vec, "t");
+        // The t-vec should stretch by two rows (objective row and marker row)
+        self.add_vector_with_header_as_vertical_table_with_given_length(t_vec, basic_simplex_table.rows.len() + 2, "t");
         self.body.push_str("</div>");
         self.body.push_str(format!("Pivot has been chosed as element [{},{}].", pivot.0, pivot.1).as_str())
 
@@ -56,7 +57,7 @@ impl HtmlOutput {
         self.body.push_str(format!("<p>At the end of the iteration, base variable is changed. Pivot variable {} enters base instead of {}.</p>", new_value, old_value).as_str());
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
     }
-    
+
     /// End simplex iteration section
     pub fn end_simplex_iteration(&mut self) {
         self.body.push_str("</div>\n");

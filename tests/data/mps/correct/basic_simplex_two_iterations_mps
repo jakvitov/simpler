@@ -1,4 +1,4 @@
-NAME          TWOSIMPLEX
+NAME          BASIC_SIMPLEX_TWO_ITERATIONS
 ROWS
  N  OBJ
  L  CON1
@@ -13,4 +13,5 @@ COLUMNS
 RHS
     RHS1      CON1      4
     RHS1      CON2      6
+BOUNDS
 ENDATA

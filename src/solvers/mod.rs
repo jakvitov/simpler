@@ -5,6 +5,8 @@ pub mod simplex_error;
 mod basic_simplex_solver;
 mod basic_simplex_table_operations;
 
+pub use basic_simplex_solver::solve_basic_simplex;
+
 pub enum SimplexSoverAlgorithm {
     BASIC_SIMPLEX,
     TWO_PHASE_SIMPLEX

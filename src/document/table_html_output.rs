@@ -50,6 +50,11 @@ impl HtmlOutput {
         self.create_html_table_form_basic_simplex_table(basic_simplex_table, vec![row_marker_index], Some(column_marker_index))
     }
 
+    /// Given vector add it as vertical table to self. If n is bigger than vec length, stretch the table to be n long with empty td.
+    pub (super) fn add_vector_with_header_as_vertical_table_with_given_length(&mut self, vec: &Vec<Rational>, n: usize, header: &str) {
+        self.body.push_str(self.create_overflowing_table_from_vector(vec, header, n).as_str());
+    }
+
     /// Create html table from basic simplex table
     /// Row  markers - size = 1 - mark given row as target for some action with ←
     ///              - size = 2 - draw arrow from first index to second index row. Indexes in this
@@ -127,17 +132,30 @@ impl HtmlOutput {
                     self.body.push_str("<td></td>");
                 }
             }
+            // In case we already did some row markers, we need to add one extra empty box for
+            // the right lower corner
+            if !row_markers.is_empty() {
+                self.body.push_str("<td></td>")
+            }
             self.body.push_str("</tr>\n");
         }
 
         self.body.push_str("</table>\n")
     }
 
-    pub fn create_table_from_vector(&mut self, values: &Vec<Rational>, header: &str) -> String {
+    /// Create vertical table from given vector, if the given length is bigger than the vector size,
+    /// stretch the table adding empty rows to match the length.
+    /// Header is not considered as part of the length
+    fn create_overflowing_table_from_vector(&self, values: &Vec<Rational>, header: &str, length: usize) -> String {
         let mut res = String::new();
         res.push_str("<table>\n");
         res.push_str(format!("<th>{header}</th>").as_str());
         values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", value.to_mmdn_with_sign()).as_str());});
+        if length > values.len() {
+            for i in 0..(length - values.len()) {
+                res.push_str("<tr><td>&#8199;</td></tr>");
+            }
+        }
         res.push_str("</table>\n");
         res
     }
