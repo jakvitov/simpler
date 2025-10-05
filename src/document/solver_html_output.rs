@@ -20,7 +20,6 @@ impl HtmlOutput {
         self.body.push_str(format!("<h3>Simplex iteration {n}</h3>\n").as_str());
     }
 
-
     //START - Basic simplex
     pub fn add_basic_simplex_optimal_solution_to_the_html_document(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<hr>");
@@ -87,4 +86,10 @@ impl HtmlOutput {
         self.body.push_str("</div>");
     }
     // END Basic simplex
+    
+    // START Two-phase simplex
+    
+    
+    
+    // END - Two-phase simplex
 }

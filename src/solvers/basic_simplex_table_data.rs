@@ -588,5 +588,21 @@ pub mod test_utils {
         res.rows[1][1] = res.rows[1][1].negate();
         res
     }
+
+    /// Base x1 x2 s1 s2  A1 RHS
+    /// s1  1   2   1  0   0  2
+    /// A1  2   1   0 -1   1  3
+    /// ob -1  -2   0  0   0  0
+    pub fn create_simplex_table_with_artificial_variables() -> BasicSimplexTable {
+        let mut res = create_minimal_simplex_table_for_testing();
+        res.column_variable_names.insert("A1".to_owned(), 4);
+        res.rows[0].push(rfi(0));
+        res.rows[1].push(rfi(1));
+        res.rows[1][3] = res.rows[1][3].negate();
+        res.objective_row[0] = rfi(0);
+        res.base_variable_names[1] = "A1".to_owned();
+        res.artificial_variable_index = Some(4);
+        res
+    }
 }
 
