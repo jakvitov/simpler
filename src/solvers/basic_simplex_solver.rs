@@ -122,8 +122,8 @@ fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational
 }
 
 fn check_basic_simplex_compatibility(simplex_table: &BasicSimplexTable) -> Result<(), Box<SimplexError>> {
-    if simplex_table.artificial_variables {
-        return Err(Box::new(SimplexError::new("Greater than or equal constraints were met. The basic simplex algorithm does not support them.\nUse two phase simplex instead.\nNote that ≥ constraints might be introduced with bounds as well.\nFor pure ≥ problems you can use conversion and convert your table to pure ≤.")))
+    if simplex_table.artificial_variable_index.is_some() {
+        return Err(Box::new(SimplexError::new("Standard form of the LP is not feasible.\nAuxiliary variables were created and two-phase simplex needs to be used.\nProbably greater than or equal constraints were met.\nNote that ≥ constraints might be introduced with bounds as well.\nFor pure ≥ problems you can use conversion and convert your table to pure ≤ using duality.")))
     }
     Ok(())
 }

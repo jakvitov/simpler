@@ -12,6 +12,9 @@ impl HtmlOutput {
         self.body.push_str("<div class=\"parsed_basic_simplex_table\">\n");
         self.body.push_str("<h2>Parsed Simplex table</h2>\n");
         self.body.push_str("<p>Simplex table parser uses irrelevant bound optimisation.</p>\n");
+        if basic_simplex_table.artificial_variable_index.is_some() {
+            self.body.push_str("<p>Standard form of the LP was not initially feasible. Artificial variables were added to the initial simplex table and two-phase simplex needs to be used to find initial feasible solution.</p>\n")
+        }
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
         self.body.push_str("</div>\n");
     }
