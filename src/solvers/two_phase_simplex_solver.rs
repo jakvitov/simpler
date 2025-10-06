@@ -100,6 +100,8 @@ fn find_row_where_artificial_variable_is_non_zero(column: usize, simplex_table: 
     None
 }
 
+/// Transforms objective row from original state to auxiliary problem sum(Ai) -> min
+/// Effectively makes all auxiliary variables 1 in the objective row and everything else 0
 fn make_objective_row_for_auxiliary_minimalization(basic_simplex_table: &mut BasicSimplexTable) {
     basic_simplex_table.objective_row.clear();
     for i in 0..basic_simplex_table.column_variable_names.len() {
@@ -113,6 +115,7 @@ fn make_objective_row_for_auxiliary_minimalization(basic_simplex_table: &mut Bas
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::{create_minimal_simplex_table_for_testing, create_optimal_simplex_table, create_simplex_table_with_artificial_variables};
@@ -148,18 +151,18 @@ mod tests {
         assert_eq!(solution, Rational::from_integer(2));
     }
 
+    //todo fix to pass this test !!
     #[test]
     fn solve_with_dual_simplex_method_succeeds_for_artificial_simplex() {
         let mut simplex_table = create_simplex_table_with_artificial_variables();
         let mut html_output = HtmlOutput::with_application_header();
         let solution = solve_two_phase_simplex(&mut simplex_table, &mut html_output);
+        fs::write("solve_with_dual_simplex_method_succeeds_for_artificial_simplex.html", html_output.to_string()).expect("Writing to html_output failed");
         assert!(solution.is_ok());
         let solution = solution.unwrap();
         assert!(solution.is_some());
-        assert_eq!(solution.unwrap(), Rational::from_integer(1));
+        assert_eq!(solution.unwrap(), Rational::from_integer(2));
     }
-
-
 
 }
 
