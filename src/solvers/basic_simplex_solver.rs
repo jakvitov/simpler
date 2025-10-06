@@ -4,12 +4,19 @@ use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
 
+
+
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
 /// This method returns resulting optimal value
 /// Since all errors are added to the
 pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
+    solve_basic_simplex_table(simplex_table, html_output)
+}
+
+
+pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
     loop {
