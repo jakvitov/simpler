@@ -45,7 +45,7 @@ pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &
 }
 
 /// Perform one simplex iteration with output to the HtmlOutput
-fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
+pub(super) fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
                            html_output: &mut HtmlOutput, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
 
     //Normalise row
@@ -71,7 +71,7 @@ fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot:
 
 /// Return pivot in the current simplex table based on the pessimal column and t_vec
 /// Pivot has format (row_index, column_index)
-fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
+pub(super) fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
     // t-vec elements must always be greater than zero!
     let mut min_value: Option<&Rational> = None;
     let mut min_index = 0usize;
@@ -89,7 +89,7 @@ fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usi
     (min_index, pessimal_column.0)
 }
 
-fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Rational>, Box<NumericalError>> {
+pub(super) fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Rational>, Box<NumericalError>> {
     simplex_table.rows.iter().for_each(|row| debug_assert!(pessimal_column.0 < row.len()));
 
     let mut res: Vec<Rational> = Vec::with_capacity(simplex_table.rows.len());
@@ -104,7 +104,7 @@ fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rat
 
 /// Return Some(position, &value) if there is suboptimal element in the objective row
 /// Return None if the objective row signals optimality
-fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational)> {
+pub(super) fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational)> {
     let mut pessimal_element: Option<(usize, &Rational)> = None;
 
     for (position, i) in simplex_table.objective_row.iter().enumerate() {
