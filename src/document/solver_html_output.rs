@@ -1,3 +1,4 @@
+use std::process::CommandEnvs;
 use super::html_output::HtmlOutput;
 use crate::rationals::Rational;
 use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
@@ -113,16 +114,29 @@ impl HtmlOutput {
             self.body.push_str("<p>Oops! Since we could not minimise sum of artificials to zero, the problem is not feasible!</p>")
         }
     }
-    
+
     pub fn add_starting_phase_two_dual_simplex_header(&mut self) {
         self.body.push_str("<h3>Starting phase two with initially feasible table.</h3>\n");
     }
-    
+
     pub fn add_eliminated_auxiliary_variables_info(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<hr>\n");
         self.body.push_str("<h4>Removed auxiliary variables from simplex table.</h4>\n");
         self.body.push_str("<p>Original objective row was added back to simplex table.</p>\n");
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+    }
+
+    pub fn add_objective_function_negation_info(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.body.push_str("<hr>\n");
+        self.body.push_str("<h4>Minimalization problem conversion<h4>\n");
+        self.body.push_str("<p>LP objective is minimalization. We need to transform the objective function by multiplying with -1.</p>");
+        self.create_html_table_from_basic_simplex_table_with_one_row_marker(basic_simplex_table, basic_simplex_table.rows.len());
+    }
+    
+    pub fn add_target_value_negation_for_min_simplex(&mut self, coefficient: &Rational) {
+        self.body.push_str("<h4>Minimalization problem conversion final transformation</h4>\n");
+        self.body.push_str("<p>Since we transformed objective function by -1 for min to max conversion, we need to transform the objective value back!</p>");
+        self.body.push_str(format!("<p><strong>Optimal value {} is transformed to {}.</strong></p>", coefficient, coefficient.negate()).as_str());
     }
 
 

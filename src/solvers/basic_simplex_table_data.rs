@@ -590,7 +590,7 @@ pub mod test_utils {
             objective_row: vec![rfi(-1), rfi(-2), rfi(0), rfi(0)],
             objective_rhs: rfi(0),
             artificial_variable_index: None,
-            optimization_type: super::OptimizationType::MIN
+            optimization_type: super::OptimizationType::MAX
         }
     }
     
@@ -620,6 +620,7 @@ pub mod test_utils {
     /// s1  1   2   1  0   0  2
     /// A1  2   1   0 -1   1  3
     /// ob -1  -2   0  0   0  0
+    /// Solution 1
     pub fn create_simplex_table_with_artificial_variables() -> BasicSimplexTable {
         let mut res = create_minimal_simplex_table_for_testing();
         res.column_variable_names.insert("A1".to_owned(), 4);
