@@ -47,7 +47,7 @@ impl HtmlOutput {
         // The t-vec should stretch by two rows (objective row and marker row)
         self.add_vector_with_header_as_vertical_table_with_given_length(t_vec, basic_simplex_table.rows.len() + 2, "t");
         self.body.push_str("</div>");
-        self.body.push_str(format!("Pivot has been chosed as element [{},{}].", pivot.0, pivot.1).as_str())
+        self.body.push_str(format!("Pivot has been chosen as element [{},{}].", pivot.0, pivot.1).as_str())
 
     }
 
@@ -86,10 +86,45 @@ impl HtmlOutput {
         self.body.push_str("</div>");
     }
     // END Basic simplex
-    
+
     // START Two-phase simplex
+    /// Output for user, that two-phase simplex problem can be solved with basic simplex
+    pub fn add_basic_simplex_chosen_instead(&mut self) {
+        self.body.push_str("<p>No artificial variables found.<b>Standard form of this LP is initially feasible</b>, therefore proceeding with basic simplex.</p>")
+    }
+
+    /// Output initial (not feasible) auxiliary table with auxiliary minimalization objective row
+    pub fn add_initial_unfeasible_auxiliary_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.body.push_str("<h3>Initial auxiliary table</h3>\n");
+        self.body.push_str("<p>Initially unfeasible. With target to minimise sum of auxiliary variables.</p>\n");
+        self.body.push_str("<p>Eliminating auxiliary variables from objective row to create feasible table.</p>\n");
+        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+    }
+
+    pub fn add_starting_phase_one_dual_simplex_header(&mut self) {
+        self.body.push_str("<h3>Starting phase one with initially feasible table</h3>\n");
+    }
+
+    pub fn add_finished_phase_one_dual_simplex_info(&mut self, objective_rhs: Rational) {
+        self.body.push_str(format!("<p>Finished Phase I with objective value: {}</p>\n", objective_rhs).as_str());
+        if objective_rhs == Rational::zero() {
+            self.body.push_str("<p>That means, that initial feasible solution for phase II was found!<p/>")
+        } else {
+            self.body.push_str("<p>Oops! Since we could not minimise sum of artificials to zero, the problem is not feasible!</p>")
+        }
+    }
     
+    pub fn add_starting_phase_two_dual_simplex_header(&mut self) {
+        self.body.push_str("<h3>Starting phase two with initially feasible table.</h3>\n");
+    }
     
-    
+    pub fn add_eliminated_auxiliary_variables_info(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.body.push_str("<hr>\n");
+        self.body.push_str("<h4>Removed auxiliary variables from simplex table.</h4>\n");
+        self.body.push_str("<p>Original objective row was added back to simplex table.</p>\n");
+        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+    }
+
+
     // END - Two-phase simplex
 }
