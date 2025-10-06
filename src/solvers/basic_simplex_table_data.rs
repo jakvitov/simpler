@@ -39,6 +39,19 @@ impl BasicSimplexTable {
             self.rows[0].len()
         }
     }
+    
+    /// Remove artificial variables from the simplex table
+    /// and add the original_objective_row
+    pub(super) fn eliminate_artifical_variables_from_simplex_table(&mut self, original_objective_row: Vec<Rational>) {
+        let Some(artificial_variable_index) = self.artificial_variable_index else {
+            return;
+        };
+
+        self.column_variable_names.drain(artificial_variable_index..);
+        self.rows.iter_mut().for_each(|row| {row.drain(artificial_variable_index..);});
+        self.objective_row = original_objective_row;
+        self.objective_row.drain(artificial_variable_index..);
+    }
 }
 
 impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
@@ -354,6 +367,7 @@ mod tests {
     use crate::parsers::mps;
     use crate::rationals::{Rational};
     use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
+    use crate::solvers::basic_simplex_table_data::test_utils::create_simplex_table_with_artificial_variables;
 
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
@@ -532,6 +546,19 @@ mod tests {
         assert!(simplex_table_result.is_err());
         let error_msg = simplex_table_result.err().unwrap().to_string();
         assert!(error_msg.contains("Selected bounds UNKNOWN_BOUNDS were not found among the ones defined in the model"));
+    }
+
+    #[test]
+    fn create_simplex_table_with_artificial_variables_succeeds() {
+        let mut simplex_table = create_simplex_table_with_artificial_variables();
+        let original_objective_row = vec![rfi(-10), rfi(-20), rfi(0), rfi(0), rfi(100)];
+
+        simplex_table.eliminate_artifical_variables_from_simplex_table(original_objective_row);
+
+        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!["x1","x2","S1","S2"]);
+        assert_eq!(simplex_table.rows[0], vec![rfi(1), rfi(2), rfi(1), rfi(0)]);
+        assert_eq!(simplex_table.rows[1], vec![rfi(2), rfi(1), rfi(0), rfi(-1)]);
+        assert_eq!(simplex_table.objective_row, vec![rfi(-10), rfi(-20), rfi(0), rfi(0)]);
     }
 
 }
