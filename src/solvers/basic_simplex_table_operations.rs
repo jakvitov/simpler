@@ -51,8 +51,8 @@ impl BasicSimplexTable {
 
 #[cfg(test)]
 mod tests {
-    use crate::rationals::{GcdCache, Rational};
     use super::super::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
+    use crate::rationals::{GcdCache, Rational};
 
     #[test]
     fn normalize_pivot_row_succeeds() {

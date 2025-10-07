@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
-use std::ops::{Deref};
-use indexmap::IndexMap;
+use super::simplex_error::SimplexError;
 use crate::parsers::mps::{BoundType, Constraints, MpsModel, MpsModelWithSelectedVariants};
 use crate::rationals::Rational;
-use super::simplex_error::SimplexError;
+use indexmap::IndexMap;
+use std::collections::{HashMap, HashSet};
+use std::ops::Deref;
 
 ///Simplex table used for non-optimised simplex algorithms
 pub struct BasicSimplexTable {
@@ -365,9 +365,9 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
 #[cfg(test)]
 mod tests {
     use crate::parsers::mps;
-    use crate::rationals::{Rational};
-    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
+    use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::create_simplex_table_with_artificial_variables;
+    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
 
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
@@ -565,9 +565,9 @@ mod tests {
 
 #[cfg(test)]
 pub mod test_utils {
-    use indexmap::IndexMap;
-    use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
     use crate::solvers::basic_simplex_table_data::tests::rfi;
+    use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
+    use indexmap::IndexMap;
 
     /// Base x1 x2 s1 s2 RHS
     /// s1  1   2   1  0  2

@@ -115,7 +115,6 @@ fn make_objective_row_for_auxiliary_minimalization(basic_simplex_table: &mut Bas
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::{create_minimal_simplex_table_for_testing, create_optimal_simplex_table, create_simplex_table_with_artificial_variables};

@@ -1,6 +1,6 @@
+use crate::document::html_convertible_error::HtmlConvertibleError;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use crate::document::html_convertible_error::HtmlConvertibleError;
 
 #[derive(Debug)]
 pub struct NumericalError {
