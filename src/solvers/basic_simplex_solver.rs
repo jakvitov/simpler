@@ -145,10 +145,10 @@ fn check_basic_simplex_compatibility(simplex_table: &BasicSimplexTable) -> Resul
 
 #[cfg(test)]
 mod tests {
-    use crate::document::html_output::HtmlOutput;
     use super::super::basic_simplex_solver::check_optimity;
     use super::super::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
     use super::super::basic_simplex_table_data::test_utils::create_optimal_simplex_table;
+    use crate::document::html_output::HtmlOutput;
     use crate::rationals::{GcdCache, Rational};
     use crate::solvers::basic_simplex_solver::{basic_simplex_gauss_elimination, get_pivot, get_t_vector, solve_basic_simplex};
     use crate::solvers::basic_simplex_table_data::test_utils::create_unbounded_simplex_table;

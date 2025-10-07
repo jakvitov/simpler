@@ -1,10 +1,10 @@
-use std::cmp::Ordering;
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 use crate::parsers::ParserError;
 use crate::rationals::gcd_cache::GcdCache;
 use crate::rationals::numerical_error::NumericalError;
 use crate::utils::math::divide_exact;
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 /// Rational number
 #[derive(Debug, Copy, Clone, Eq)]
@@ -245,9 +245,9 @@ impl PartialEq for Rational {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use crate::rationals::gcd_cache::GcdCache;
     use crate::rationals::Rational;
+    use std::str::FromStr;
 
     #[test]
     fn negative_numerator_and_denominator_conversion_succeeds() {

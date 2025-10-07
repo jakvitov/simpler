@@ -1,6 +1,6 @@
+use crate::document::html_convertible_error::HtmlConvertibleError;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use crate::document::html_convertible_error::HtmlConvertibleError;
 
 #[derive(Debug)]
 pub struct SimplexError {
