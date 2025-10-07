@@ -4,6 +4,7 @@ pub mod basic_simplex_table_data;
 pub mod simplex_error;
 mod basic_simplex_solver;
 mod basic_simplex_table_operations;
+mod two_phase_simplex_solver;
 
 pub use basic_simplex_solver::solve_basic_simplex;
 

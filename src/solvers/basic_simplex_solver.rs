@@ -4,12 +4,19 @@ use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
 
+
+
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
 /// This method returns resulting optimal value
 /// Since all errors are added to the
 pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
+    solve_basic_simplex_table(simplex_table, html_output)
+}
+
+
+pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
     loop {
@@ -24,9 +31,9 @@ pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &
         let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache)?;
 
         //Check unbounded solution
-        let mut all_negative = true;
-        t_vec.iter().for_each(|element| {if element.is_positive() {all_negative = false;}});
-        if all_negative {
+        let mut all_negative_or_none = true;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
+        if all_negative_or_none {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
@@ -45,7 +52,7 @@ pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &
 }
 
 /// Perform one simplex iteration with output to the HtmlOutput
-fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
+pub(super) fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
                            html_output: &mut HtmlOutput, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
 
     //Normalise row
@@ -71,15 +78,19 @@ fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot:
 
 /// Return pivot in the current simplex table based on the pessimal column and t_vec
 /// Pivot has format (row_index, column_index)
-fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
+pub(super) fn get_pivot(t_vec: &Vec<Option<Rational>>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
     // t-vec elements must always be greater than zero!
     let mut min_value: Option<&Rational> = None;
     let mut min_index = 0usize;
 
     for (index, value) in t_vec.iter().enumerate() {
-        if (min_value.is_some() && *min_value.unwrap() > *value && *value >= Rational::zero()) || min_value.is_none() {
-            min_value = Some(value);
-            min_index = index;
+        if let Some(value) = value {
+            if (min_value.is_some() && *min_value.unwrap() > *value && *value >= Rational::zero()) || min_value.is_none() {
+                min_value = Some(value);
+                min_index = index;
+            }
+        } else {
+            continue;
         }
     }
     //Only case when this is none is when the t_vec is empty or all negative
@@ -89,13 +100,17 @@ fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usi
     (min_index, pessimal_column.0)
 }
 
-fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Rational>, Box<NumericalError>> {
+pub(super) fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Option<Rational>>, Box<NumericalError>> {
     simplex_table.rows.iter().for_each(|row| debug_assert!(pessimal_column.0 < row.len()));
 
-    let mut res: Vec<Rational> = Vec::with_capacity(simplex_table.rows.len());
+    let mut res: Vec<Option<Rational>> = Vec::with_capacity(simplex_table.rows.len());
     for (i, row) in simplex_table.rows.iter().enumerate() {
+        if row[pessimal_column.0] == Rational::zero() {
+            res.push(None);
+            continue;
+        }
         let t_val = simplex_table.rhs[i].divide(&row[pessimal_column.0], gcd_cache)?;
-        res.push(t_val);
+        res.push(Some(t_val));
     }
 
     debug_assert!(res.len() == simplex_table.rhs.len());
@@ -104,7 +119,7 @@ fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rat
 
 /// Return Some(position, &value) if there is suboptimal element in the objective row
 /// Return None if the objective row signals optimality
-fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational)> {
+pub(super) fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational)> {
     let mut pessimal_element: Option<(usize, &Rational)> = None;
 
     for (position, i) in simplex_table.objective_row.iter().enumerate() {
@@ -122,8 +137,8 @@ fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usize, Rational
 }
 
 fn check_basic_simplex_compatibility(simplex_table: &BasicSimplexTable) -> Result<(), Box<SimplexError>> {
-    if simplex_table.artificial_variables {
-        return Err(Box::new(SimplexError::new("Greater than or equal constraints were met. The basic simplex algorithm does not support them.\nUse two phase simplex instead.\nNote that ≥ constraints might be introduced with bounds as well.\nFor pure ≥ problems you can use conversion and convert your table to pure ≤.")))
+    if simplex_table.artificial_variable_index.is_some() {
+        return Err(Box::new(SimplexError::new("Standard form of the LP is not feasible.\nAuxiliary variables were created and two-phase simplex needs to be used.\nProbably greater than or equal constraints were met.\nNote that ≥ constraints might be introduced with bounds as well.\nFor pure ≥ problems you can use conversion and convert your table to pure ≤ using duality.")))
     }
     Ok(())
 }
@@ -142,7 +157,7 @@ mod tests {
     fn get_pivot_suceeds() {
         let mut gcd_cache = GcdCache::init();
         let simplex_table = create_minimal_simplex_table_for_testing();
-        let t_vector = vec![Rational::new(1, 1), Rational::new(3, 1)];
+        let t_vector = vec![Some(Rational::new(1, 1)), Some(Rational::new(3, 1))];
         let pivot = get_pivot(&t_vector, &(1,  Rational::new(-2, 1)));
         assert_eq!(pivot, (0,  1));
     }
@@ -153,7 +168,7 @@ mod tests {
         let simplex_table = create_minimal_simplex_table_for_testing();
         let t_vector = get_t_vector(&simplex_table, &(1, Rational::new(-2, 1)), &mut gcd_cache);
         assert!(t_vector.is_ok());
-        assert_eq!(t_vector.unwrap(), vec![Rational::new(1, 1), Rational::new(3,1)]);
+        assert_eq!(t_vector.unwrap(), vec![Some(Rational::new(1, 1)), Some(Rational::new(3,1))]);
 
     }
 

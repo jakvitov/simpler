@@ -14,7 +14,7 @@ pub struct BasicSimplexTable {
     pub(crate) objective_row: Vec<Rational>,
     pub(crate) objective_rhs: Rational,
     pub(crate) optimization_type: OptimizationType,
-    pub(crate) artificial_variables: bool
+    pub(crate) artificial_variable_index: Option<usize>
 }
 
 #[derive(Debug, Copy, Eq, PartialEq, Clone)]
@@ -28,7 +28,7 @@ impl BasicSimplexTable {
     fn empty(optimization_type: OptimizationType) -> Self {
         BasicSimplexTable {base_variable_names: Vec::new(), column_variable_names: IndexMap::new(),
             rows: Vec::new(), rhs: Vec::new(), objective_row: Vec::new(), objective_rhs: Rational::zero(),
-            optimization_type: optimization_type, artificial_variables: false
+            optimization_type: optimization_type, artificial_variable_index: None
         }
     }
 
@@ -38,6 +38,19 @@ impl BasicSimplexTable {
         } else {
             self.rows[0].len()
         }
+    }
+    
+    /// Remove artificial variables from the simplex table
+    /// and add the original_objective_row
+    pub(super) fn eliminate_artifical_variables_from_simplex_table(&mut self, original_objective_row: Vec<Rational>) {
+        let Some(artificial_variable_index) = self.artificial_variable_index else {
+            return;
+        };
+
+        self.column_variable_names.drain(artificial_variable_index..);
+        self.rows.iter_mut().for_each(|row| {row.drain(artificial_variable_index..);});
+        self.objective_row = original_objective_row;
+        self.objective_row.drain(artificial_variable_index..);
     }
 }
 
@@ -56,6 +69,10 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
         simplex_table.column_variable_names = create_column_variable_names(&mps_model_with_selected_variants.model, slack_surplus_variable_count, artificial_variable_count);
 
         let rhs: &HashMap<String, Rational> = get_selected_rhs_from_the_model(mps_model_with_selected_variants)?.deref();
+
+        if artificial_variable_count > 0 {
+            simplex_table.artificial_variable_index = Some(artificial_index);
+        }
 
         //Fill in rows except the objective one
         for &(row_name, constraint) in &row_constraint_names_ordered {
@@ -109,14 +126,12 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
-                            simplex_table.artificial_variables = true;
                         },
                         Constraints::G => {
                             row.push(Rational::new(1, 1));
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
-                            simplex_table.artificial_variables = true;
                         }
                         _ => {
                             row.push(Rational::zero());
@@ -194,7 +209,6 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                         simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         pushed_artificial_variable = true;
                         artificial_index += 1;
-                        simplex_table.artificial_variables = true;
                     }
                 }
             } else {
@@ -203,7 +217,6 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
         }
         simplex_table.rows.push(row);
     }
-
     Ok(simplex_table)
     }
 }
@@ -354,6 +367,7 @@ mod tests {
     use crate::parsers::mps;
     use crate::rationals::{Rational};
     use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
+    use crate::solvers::basic_simplex_table_data::test_utils::create_simplex_table_with_artificial_variables;
 
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
@@ -382,6 +396,7 @@ mod tests {
         assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6),Rational::from_integer(4)
                                            ,Rational::from_integer(1)]);
         assert_eq!(simplex_table.rows.len(), 3);
+        assert_eq!(simplex_table.artificial_variable_index.unwrap(), 4);
         assert_eq!(simplex_table.rows[0], vec![Rational::from_integer(2),Rational::from_integer(1),
                                                Rational::from_integer(1),Rational::from_integer(0),
                                                Rational::from_integer(0),Rational::from_integer(0),]);
@@ -406,7 +421,7 @@ mod tests {
             selected_rhs: None,
             selected_bounds: None,
             selected_opt_row_name: None,
-            optimization_type: OptimizationType::MIN
+            optimization_type: OptimizationType::MAX
         };
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
 
@@ -415,6 +430,7 @@ mod tests {
         assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "A1", "A2"));
         assert_eq!(simplex_table.rhs, vec![Rational::new(5,2), Rational::new(-10,3)]);
         assert_eq!(simplex_table.rows.len(), 2);
+        assert_eq!(simplex_table.artificial_variable_index.unwrap(), 2);
         assert_eq!(simplex_table.rows[0], vec![Rational::new(2,5), Rational::new(-3,2), Rational::from_integer(1), Rational::zero()]);
         assert_eq!(simplex_table.rows[1], vec![Rational::new(3,2), Rational::new(1,5), Rational::zero(), Rational::from_integer(1)]);
         assert_eq!(simplex_table.objective_row, vec![Rational::from_integer(-1), Rational::from_integer(-1), Rational::zero(), Rational::zero()]);
@@ -435,7 +451,7 @@ mod tests {
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
         assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "S1", "S2", "S3", "S4", "S5", "A1", "A2", "A3") );
         assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(1), Rational::from_integer(10), Rational::from_integer(10), Rational::from_integer(20)]);
-
+        assert_eq!(simplex_table.artificial_variable_index.unwrap(), 7);
         assert_eq!(simplex_table.rows.len(), 6);
         assert_eq!(simplex_table.rows[0], vec![rfi(2), rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rz(), rz()]);
         assert_eq!(simplex_table.rows[1], vec![rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rfi(1), rz(), rz()]);
@@ -532,6 +548,19 @@ mod tests {
         assert!(error_msg.contains("Selected bounds UNKNOWN_BOUNDS were not found among the ones defined in the model"));
     }
 
+    #[test]
+    fn create_simplex_table_with_artificial_variables_succeeds() {
+        let mut simplex_table = create_simplex_table_with_artificial_variables();
+        let original_objective_row = vec![rfi(-10), rfi(-20), rfi(0), rfi(0), rfi(100)];
+
+        simplex_table.eliminate_artifical_variables_from_simplex_table(original_objective_row);
+
+        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!["x1","x2","S1","S2"]);
+        assert_eq!(simplex_table.rows[0], vec![rfi(1), rfi(2), rfi(1), rfi(0)]);
+        assert_eq!(simplex_table.rows[1], vec![rfi(2), rfi(1), rfi(0), rfi(-1)]);
+        assert_eq!(simplex_table.objective_row, vec![rfi(-10), rfi(-20), rfi(0), rfi(0)]);
+    }
+
 }
 
 #[cfg(test)]
@@ -560,8 +589,8 @@ pub mod test_utils {
             rhs: vec![rfi(2),rfi(3)],
             objective_row: vec![rfi(-1), rfi(-2), rfi(0), rfi(0)],
             objective_rhs: rfi(0),
-            artificial_variables: false,
-            optimization_type: super::OptimizationType::MIN
+            artificial_variable_index: None,
+            optimization_type: super::OptimizationType::MAX
         }
     }
     
@@ -584,6 +613,22 @@ pub mod test_utils {
         let mut res = create_minimal_simplex_table_for_testing();
         res.rows[0][1] = res.rows[0][1].negate();
         res.rows[1][1] = res.rows[1][1].negate();
+        res
+    }
+
+    /// Base x1 x2 s1 s2  A1 RHS
+    /// s1  1   2   1  0   0  2
+    /// A1  2   1   0 -1   1  3
+    /// ob -1  -2   0  0   0  0
+    /// Solution 1
+    pub fn create_simplex_table_with_artificial_variables() -> BasicSimplexTable {
+        let mut res = create_minimal_simplex_table_for_testing();
+        res.column_variable_names.insert("A1".to_owned(), 4);
+        res.rows[0].push(rfi(0));
+        res.rows[1].push(rfi(1));
+        res.rows[1][3] = res.rows[1][3].negate();
+        res.base_variable_names[1] = "A1".to_owned();
+        res.artificial_variable_index = Some(4);
         res
     }
 }

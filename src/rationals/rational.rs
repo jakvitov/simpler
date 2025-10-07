@@ -35,6 +35,10 @@ impl Rational {
         Rational {numerator: -self.numerator, denominator: self.denominator}
     }
 
+    pub fn negate_mut(&mut self) {
+        self.numerator = -self.numerator;
+    }
+
     /// self > 0
     pub fn is_positive(&self) -> bool {
         !(self.numerator == 0 || self.is_negative())
@@ -161,8 +165,11 @@ impl Rational {
 
 impl PartialOrd for Rational {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.denominator == 0 || other.denominator == 0 {
+            println!("here");
+        }
         let common_denominator = self.denominator * other.denominator;
-        return ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator));
+        ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator))
     }
 }
 
@@ -603,6 +610,20 @@ mod tests {
         let first = Rational::new(2, -3);
         let negated = first.negate();
         assert_eq!(negated, Rational::new(2, 3));
+    }
+
+    #[test]
+    fn negate_mut_positive_number_succeeds() {
+        let mut first = Rational::new(2, 3);
+        first.negate_mut();
+        assert_eq!(first, Rational::new(-2, 3));
+    }
+
+    #[test]
+    fn negate_mut_negative_number_succeeds() {
+        let mut first = Rational::new(2, -3);
+        first.negate_mut();
+        assert_eq!(first, Rational::new(2, 3));
     }
 
     #[test]

@@ -12,6 +12,9 @@ impl HtmlOutput {
         self.body.push_str("<div class=\"parsed_basic_simplex_table\">\n");
         self.body.push_str("<h2>Parsed Simplex table</h2>\n");
         self.body.push_str("<p>Simplex table parser uses irrelevant bound optimisation.</p>\n");
+        if basic_simplex_table.artificial_variable_index.is_some() {
+            self.body.push_str("<p>Standard form of the LP was not initially feasible. Artificial variables were added to the initial simplex table and two-phase simplex needs to be used to find initial feasible solution.</p>\n")
+        }
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
         self.body.push_str("</div>\n");
     }
@@ -51,7 +54,7 @@ impl HtmlOutput {
     }
 
     /// Given vector add it as vertical table to self. If n is bigger than vec length, stretch the table to be n long with empty td.
-    pub (super) fn add_vector_with_header_as_vertical_table_with_given_length(&mut self, vec: &Vec<Rational>, n: usize, header: &str) {
+    pub (super) fn add_vector_with_header_as_vertical_table_with_given_length(&mut self, vec: &Vec<Option<Rational>>, n: usize, header: &str) {
         self.body.push_str(self.create_overflowing_table_from_vector(vec, header, n).as_str());
     }
 
@@ -146,11 +149,11 @@ impl HtmlOutput {
     /// Create vertical table from given vector, if the given length is bigger than the vector size,
     /// stretch the table adding empty rows to match the length.
     /// Header is not considered as part of the length
-    fn create_overflowing_table_from_vector(&self, values: &Vec<Rational>, header: &str, length: usize) -> String {
+    fn create_overflowing_table_from_vector(&self, values: &Vec<Option<Rational>>, header: &str, length: usize) -> String {
         let mut res = String::new();
         res.push_str("<table>\n");
         res.push_str(format!("<th>{header}</th>").as_str());
-        values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", value.to_mmdn_with_sign()).as_str());});
+        values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", {if value.is_none() {"UNDEFINED".to_owned()} else { value.unwrap().to_string()}}).as_str());});
         if length > values.len() {
             for i in 0..(length - values.len()) {
                 res.push_str("<tr><td>&#8199;</td></tr>");
