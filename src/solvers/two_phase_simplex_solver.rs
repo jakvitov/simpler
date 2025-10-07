@@ -151,13 +151,12 @@ mod tests {
         assert_eq!(solution, Rational::from_integer(2));
     }
 
-    //todo fix to pass this test !!
     #[test]
     fn solve_with_dual_simplex_method_succeeds_for_artificial_simplex() {
         let mut simplex_table = create_simplex_table_with_artificial_variables();
         let mut html_output = HtmlOutput::with_application_header();
         let solution = solve_two_phase_simplex(&mut simplex_table, &mut html_output);
-        fs::write("solve_with_dual_simplex_method_succeeds_for_artificial_simplex.html", html_output.to_string()).expect("Writing to html_output failed");
+        //fs::write("solve_with_dual_simplex_method_succeeds_for_artificial_simplex.html", html_output.to_string()).expect("Writing to html_output failed");
         assert!(solution.is_ok());
         let solution = solution.unwrap();
         assert!(solution.is_some());

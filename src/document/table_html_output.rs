@@ -153,7 +153,7 @@ impl HtmlOutput {
         let mut res = String::new();
         res.push_str("<table>\n");
         res.push_str(format!("<th>{header}</th>").as_str());
-        values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", {if value.is_none() {"UNDEFINED".to_owned()} else { value.unwrap().to_mmdn_with_sign()}}).as_str());});
+        values.iter().for_each(|value| {res.push_str(format!("<tr><td>{}</td></tr>", {if value.is_none() {"UNDEFINED".to_owned()} else { value.unwrap().to_string()}}).as_str());});
         if length > values.len() {
             for i in 0..(length - values.len()) {
                 res.push_str("<tr><td>&#8199;</td></tr>");
