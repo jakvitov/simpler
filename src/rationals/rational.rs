@@ -165,8 +165,11 @@ impl Rational {
 
 impl PartialOrd for Rational {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.denominator == 0 || other.denominator == 0 {
+            println!("here");
+        }
         let common_denominator = self.denominator * other.denominator;
-        return ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator));
+        ((common_denominator / self.denominator) * self.numerator).partial_cmp(&((common_denominator / other.denominator) * other.numerator))
     }
 }
 

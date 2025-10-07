@@ -31,9 +31,9 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache)?;
 
         //Check unbounded solution
-        let mut all_negative = true;
-        t_vec.iter().for_each(|element| {if element.is_positive() {all_negative = false;}});
-        if all_negative {
+        let mut all_negative_or_none = true;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
+        if all_negative_or_none {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
@@ -78,15 +78,19 @@ pub(super) fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTa
 
 /// Return pivot in the current simplex table based on the pessimal column and t_vec
 /// Pivot has format (row_index, column_index)
-pub(super) fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
+pub(super) fn get_pivot(t_vec: &Vec<Option<Rational>>, pessimal_column: &(usize, Rational)) -> (usize, usize) {
     // t-vec elements must always be greater than zero!
     let mut min_value: Option<&Rational> = None;
     let mut min_index = 0usize;
 
     for (index, value) in t_vec.iter().enumerate() {
-        if (min_value.is_some() && *min_value.unwrap() > *value && *value >= Rational::zero()) || min_value.is_none() {
-            min_value = Some(value);
-            min_index = index;
+        if let Some(value) = value {
+            if (min_value.is_some() && *min_value.unwrap() > *value && *value >= Rational::zero()) || min_value.is_none() {
+                min_value = Some(value);
+                min_index = index;
+            }
+        } else {
+            continue;
         }
     }
     //Only case when this is none is when the t_vec is empty or all negative
@@ -96,13 +100,17 @@ pub(super) fn get_pivot(t_vec: &Vec<Rational>, pessimal_column: &(usize, Rationa
     (min_index, pessimal_column.0)
 }
 
-pub(super) fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Rational>, Box<NumericalError>> {
+pub(super) fn get_t_vector(simplex_table: &BasicSimplexTable, pessimal_column: &(usize, Rational), gcd_cache: &mut GcdCache) -> Result<Vec<Option<Rational>>, Box<NumericalError>> {
     simplex_table.rows.iter().for_each(|row| debug_assert!(pessimal_column.0 < row.len()));
 
-    let mut res: Vec<Rational> = Vec::with_capacity(simplex_table.rows.len());
+    let mut res: Vec<Option<Rational>> = Vec::with_capacity(simplex_table.rows.len());
     for (i, row) in simplex_table.rows.iter().enumerate() {
+        if row[pessimal_column.0] == Rational::zero() {
+            res.push(None);
+            continue;
+        }
         let t_val = simplex_table.rhs[i].divide(&row[pessimal_column.0], gcd_cache)?;
-        res.push(t_val);
+        res.push(Some(t_val));
     }
 
     debug_assert!(res.len() == simplex_table.rhs.len());
@@ -149,7 +157,7 @@ mod tests {
     fn get_pivot_suceeds() {
         let mut gcd_cache = GcdCache::init();
         let simplex_table = create_minimal_simplex_table_for_testing();
-        let t_vector = vec![Rational::new(1, 1), Rational::new(3, 1)];
+        let t_vector = vec![Some(Rational::new(1, 1)), Some(Rational::new(3, 1))];
         let pivot = get_pivot(&t_vector, &(1,  Rational::new(-2, 1)));
         assert_eq!(pivot, (0,  1));
     }
@@ -160,7 +168,7 @@ mod tests {
         let simplex_table = create_minimal_simplex_table_for_testing();
         let t_vector = get_t_vector(&simplex_table, &(1, Rational::new(-2, 1)), &mut gcd_cache);
         assert!(t_vector.is_ok());
-        assert_eq!(t_vector.unwrap(), vec![Rational::new(1, 1), Rational::new(3,1)]);
+        assert_eq!(t_vector.unwrap(), vec![Some(Rational::new(1, 1)), Some(Rational::new(3,1))]);
 
     }
 

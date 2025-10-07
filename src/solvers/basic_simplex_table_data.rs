@@ -627,7 +627,6 @@ pub mod test_utils {
         res.rows[0].push(rfi(0));
         res.rows[1].push(rfi(1));
         res.rows[1][3] = res.rows[1][3].negate();
-        res.objective_row[0] = rfi(0);
         res.base_variable_names[1] = "A1".to_owned();
         res.artificial_variable_index = Some(4);
         res

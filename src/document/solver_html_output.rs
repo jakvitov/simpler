@@ -39,7 +39,7 @@ impl HtmlOutput {
         self.body.push_str("</div>\n");
     }
 
-    pub fn add_pivot_information_to_the_html_document(&mut self, basic_simplex_table: &BasicSimplexTable, t_vec: &Vec<Rational>,
+    pub fn add_pivot_information_to_the_html_document(&mut self, basic_simplex_table: &BasicSimplexTable, t_vec: &Vec<Option<Rational>>,
                                                       pivot: &(usize, usize)) {
         self.body.push_str("<hr>");
         self.body.push_str(format!("<p>Optimity check failed for element {} of the objective row.</p>", pivot.1).as_str());
@@ -76,10 +76,10 @@ impl HtmlOutput {
         self.create_html_table_from_basic_simplex_table_with_row_addition_markers(basic_simplex_table, pivot.0, target_row);
     }
 
-    pub fn add_unbouded_solution_with_t_vec(&mut self, basic_simplex_table: &BasicSimplexTable, t_vec: &Vec<Rational>) {
+    pub fn add_unbouded_solution_with_t_vec(&mut self, basic_simplex_table: &BasicSimplexTable, t_vec: &Vec<Option<Rational>>) {
         self.body.push_str("<hr>");
         self.body.push_str("<h4>Unbounded solution found</h4>\n");
-        self.body.push_str(format!("<p>Unbounded solution found during pivot calculation. All t-vector values are negative!</p>").as_str());
+        self.body.push_str(format!("<p>Unbounded solution found during pivot calculation. All t-vector values are negative or undefined!</p>").as_str());
         self.body.push_str("<div class=\"simplex-table-with-t-vec\">");
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
         // The t-vec should stretch by one row objective row (table has no markers here)
