@@ -62,7 +62,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
     fn try_from(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Self, Self::Error> {
         let mut simplex_table = BasicSimplexTable::empty(mps_model_with_selected_variants.optimization_type);
 
-        let optimised_bounds = get_optimised_bounds_from_model(mps_model_with_selected_variants)?;
+        let optimised_bounds = mps_model_with_selected_variants.get_optimised_bounds_from_model()?;
         let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds);
         let (mut slack_surplus_index, mut artificial_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_constraint_names_ordered = get_row_names_with_selected_objective_function(mps_model_with_selected_variants)?;
@@ -234,53 +234,6 @@ fn create_column_variable_names(mps_model: &MpsModel, slack_surplus_count: usize
         index += 1;
     }
     variable_names
-}
-
-/// Obtain and optimise bounds obtained from the model. Return empty vec if none are selected
-/// Return Error explaining why, if that is not possible
-fn get_optimised_bounds_from_model(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<IndexMap<(String, BoundType), Rational>, Box<SimplexError>> {
-    let Some(selected_bounds) = get_selected_bounds_from_the_model(mps_model_with_selected_variants)? else {
-        return Ok(IndexMap::new());
-    };
-    //Variable_name, bound_type, Rational
-    let mut variable_bounds: IndexMap<(String, BoundType), Rational> = IndexMap::new();
-    for (variable_name, value, bound_type) in selected_bounds {
-        //todo optimise these heap copies
-        let found_val = variable_bounds.get(&(variable_name.to_owned(), bound_type.to_owned()));
-        if let Some(current_bound_value) = found_val {
-            let current_bound_value = found_val.unwrap();
-            match bound_type {
-                BoundType::UP => {
-                    if value < current_bound_value {
-                        variable_bounds.insert((variable_name.to_owned(), BoundType::UP), value.to_owned());
-                    }
-                },
-                BoundType::LO => {
-                    if value > current_bound_value {
-                        variable_bounds.insert((variable_name.to_owned(), BoundType::LO), value.to_owned());
-                    }
-                }
-            }
-        } else {
-            variable_bounds.insert((variable_name.to_owned(), bound_type.to_owned()), value.to_owned());
-        }
-
-    }
-    Ok(variable_bounds)
-}
-
-/// Return selected bounds from the model. If none are selected, return none
-/// Return error explaining why, if no bounds are chosen
-fn get_selected_bounds_from_the_model(mps_model_with_selected_variants: &MpsModelWithSelectedVariants) -> Result<Option<&Vec<(String, Rational, BoundType)>>, Box<SimplexError>> {
-    if mps_model_with_selected_variants.selected_bounds.is_none() {
-        Ok(None)
-    } else {
-        let selected_bounds_name = mps_model_with_selected_variants.selected_bounds.as_ref().unwrap();
-        let Some(bounds) = mps_model_with_selected_variants.model.bounds.bounds.get(selected_bounds_name) else {
-            return Err(Box::new(SimplexError::from_string_reason(format!("Selected bounds {selected_bounds_name} were not found among the ones defined in the model.\nPlease select defined bounds."))));
-        };
-        Ok(Some(bounds))
-    }
 }
 
 /// Set selected RHS to target_rhs or Return error explaining, why that failed. If none are specified and one exist, return that.
