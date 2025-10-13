@@ -68,6 +68,14 @@ impl Constraints {
             Self::E => '=',
         }
     }
+
+    pub(crate) fn inverse_mut(&mut self) {
+        match self {
+            Self::L => *self =  Self::G,
+            Self::G => *self = Self::L,
+            _ => (),
+        }
+    }
 }
 
 impl FromStr for Constraints {
@@ -104,8 +112,8 @@ impl Rows {
 
 #[derive(Clone)]
 pub struct Columns {
-    //BTreeMap variable_name ->( row_name -> value)
-    //We use BTreeMap to keep the variables ordered
+    //IndexMap variable_name ->( row_name -> value)
+    //Use index map to keep variables in order
     pub(crate) variables: IndexMap<String, HashMap<String, Rational>>,
 }
 
@@ -365,6 +373,16 @@ pub mod test_utils {
             bounds
         }
 
+    }
+
+    #[test]
+    fn inverse_mut_constraint_succeeds() {
+        let mut g = Constraints::G;
+        let mut e = Constraints::E;
+        g.inverse_mut();
+        e.inverse_mut();
+        assert_eq!(g, Constraints::L);
+        assert_eq!(e, Constraints::E);
     }
 
 }
