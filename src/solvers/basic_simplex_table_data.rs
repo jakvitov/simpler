@@ -63,7 +63,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
         let mut simplex_table = BasicSimplexTable::empty(mps_model_with_selected_variants.optimization_type);
 
         let optimised_bounds = get_optimised_bounds_from_model(mps_model_with_selected_variants)?;
-        let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds);
+        let (variable_count, slack_surplus_variable_count, artificial_variable_count) = get_simplex_table_column_parts_length(mps_model_with_selected_variants, &optimised_bounds)?;
         let (mut slack_surplus_index, mut artificial_index) = (variable_count, variable_count + slack_surplus_variable_count);
         let row_constraint_names_ordered = get_row_names_with_selected_objective_function(mps_model_with_selected_variants)?;
         simplex_table.column_variable_names = create_column_variable_names(&mps_model_with_selected_variants.model, slack_surplus_variable_count, artificial_variable_count);
@@ -80,6 +80,7 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
             if *constraint == Constraints::N {
                 continue;
             }
+            let rhs_value = get_rhs_vlaue_for_row(row_name, rhs)?;
             let mut row: Vec<Rational> = Vec::new();
             //We iterate over row names (keys) unwrap is safe
 
@@ -122,18 +123,28 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
                 if i == artificial_index && !pushed_artificial_variable {
                     match constraint {
                         Constraints::E => {
-                            row.push(Rational::new(1, 1));
+                            row.push(Rational::from_integer(1));
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         },
                         Constraints::G => {
-                            row.push(Rational::new(1, 1));
+                            row.push(Rational::from_integer(1));
                             pushed_artificial_variable = true;
                             artificial_index += 1;
                             simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
                         }
-                        _ => {
+                        Constraints::L => {
+                            if rhs_value.is_negative() {
+                                row.push(Rational::from_integer(-1));
+                                pushed_artificial_variable = true;
+                                artificial_index += 1;
+                                simplex_table.base_variable_names.push(simplex_table.column_variable_names.keys()[i].to_owned());
+                            } else {
+                                row.push(Rational::zero());
+                            }
+                        }
+                        Constraints::N => {
                             row.push(Rational::zero());
                         }
                     }
@@ -144,9 +155,6 @@ impl TryFrom<&MpsModelWithSelectedVariants> for BasicSimplexTable {
             simplex_table.rows.push(row);
 
             //Handle selected RHS, objective function is added at the end once
-            let Some(rhs_value) = rhs.get(row_name) else {
-                return Err(Box::new(SimplexError::from_string_reason(format!("Row {row_name} is not specified in the supplied RHS.\nSolver cannot optimise."))));
-            };
             simplex_table.rhs.push(rhs_value.to_owned());
     }
 
@@ -303,12 +311,12 @@ fn get_selected_rhs_from_the_model(mps_model_with_selected_variants: &MpsModelWi
 }
 
 ///Return (variable count, slack/surplus variables count, artificial variables count)
-fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsModelWithSelectedVariants, optimised_bounds: &IndexMap<(String, BoundType), Rational>) -> (usize, usize, usize) {
+fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsModelWithSelectedVariants, optimised_bounds: &IndexMap<(String, BoundType), Rational>) -> Result<(usize, usize, usize), Box<SimplexError>> {
     let variables = mps_model_with_selected_variants.model.columns.variables.len();
-    let mut slack_surplus_variables = 0;
-    let mut artificial_variables = 0;
+    let mut slack_surplus_variables = 0usize;
+    let mut artificial_variables = 0usize;
 
-    for (_, constraint) in &mps_model_with_selected_variants.model.rows.rows {
+    for (row_name, constraint) in &mps_model_with_selected_variants.model.rows.rows {
         match  constraint {
             Constraints::N => (),
             Constraints::E => artificial_variables += 1,
@@ -316,7 +324,15 @@ fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsM
                 slack_surplus_variables += 1;
                 artificial_variables += 1;
             }
-            Constraints::L => slack_surplus_variables += 1,
+            Constraints::L => {
+                //add artificial variable in case, that RHS is negative
+                let rhs = get_selected_rhs_from_the_model(mps_model_with_selected_variants)?;
+                let rhs_value_for_row = get_rhs_vlaue_for_row(row_name, &rhs)?;
+                if rhs_value_for_row.is_negative() {
+                    artificial_variables += 1;
+                }
+                slack_surplus_variables += 1
+            }
         }
     }
 
@@ -329,7 +345,7 @@ fn get_simplex_table_column_parts_length(mps_model_with_selected_variants: &MpsM
             }
         }
     }
-    (variables, slack_surplus_variables, artificial_variables)
+    Ok((variables, slack_surplus_variables, artificial_variables))
 }
 
 /// Return row names with the selected objective at the end
@@ -360,6 +376,13 @@ fn get_row_names_with_selected_objective_function(mps_model_with_selected_varian
         non_objective_row_names.push((obj_function_row_name, &Constraints::N));
         Ok(non_objective_row_names)
     }
+}
+
+fn get_rhs_vlaue_for_row(row_name: &String, rhs: &HashMap<String, Rational>) -> Result<Rational, Box<SimplexError>> {
+    let Some(rhs_value_for_row) = rhs.get(row_name) else {
+        return Err(Box::new(SimplexError::from_string_reason(format!("Value of row {} not found in the selected RHS.", row_name))))
+    };
+    Ok(rhs_value_for_row.to_owned())
 }
 
 #[cfg(test)]
@@ -437,9 +460,12 @@ mod tests {
         assert_eq!(simplex_table.objective_rhs, Rational::zero());
     }
 
+    //todo add negative rhs to generate new artificial variable 
     #[test]
     fn try_from_mps_model_with_chosen_rhs_chosen_objective_chosen_optimisable_bounds() {
-        let model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mut model = mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mut rhs = model.rhs.rhs.get_mut("RHS1").unwrap();
+        rhs.get_mut("ROW1").unwrap().negate_mut();
         let model_with_selected_variants = MpsModelWithSelectedVariants {
             model,
             selected_rhs: Some("RHS1".to_owned()),
@@ -449,18 +475,18 @@ mod tests {
         };
 
         let simplex_table = BasicSimplexTable::try_from(&model_with_selected_variants).unwrap();
-        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "S1", "S2", "S3", "S4", "S5", "A1", "A2", "A3") );
-        assert_eq!(simplex_table.rhs, vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(1), Rational::from_integer(10), Rational::from_integer(10), Rational::from_integer(20)]);
+        assert_eq!(simplex_table.column_variable_names.keys().collect::<Vec<&String>>(), vec!("x1", "x2", "S1", "S2", "S3", "S4", "S5", "A1", "A2", "A3", "A4") );
+        assert_eq!(simplex_table.rhs, vec![Rational::from_integer(-6), Rational::from_integer(4), Rational::from_integer(1), Rational::from_integer(10), Rational::from_integer(10), Rational::from_integer(20)]);
         assert_eq!(simplex_table.artificial_variable_index.unwrap(), 7);
         assert_eq!(simplex_table.rows.len(), 6);
-        assert_eq!(simplex_table.rows[0], vec![rfi(2), rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rz(), rz()]);
-        assert_eq!(simplex_table.rows[1], vec![rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(), rfi(1), rz(), rz()]);
-        assert_eq!(simplex_table.rows[2], vec![rfi(1), rfi(-1), rfi(0), rfi(-1), rz(), rz(), rz(), rz(), rfi(1), rz()]);
-        assert_eq!(simplex_table.rows[3], vec![rfi(1), rz(), rz(), rz(), rfi(1), rz(), rz(), rz(), rz(), rz()]);
-        assert_eq!(simplex_table.rows[4], vec![rz(), rfi(1), rz(), rz(), rz(), rfi(-1), rz(), rz(), rz(), rfi(1)]);
-        assert_eq!(simplex_table.rows[5], vec![rz(), rfi(1), rz(), rz(), rz(), rz(), rfi(1), rz(), rz(), rz()]);
+        assert_eq!(simplex_table.rows[0], vec![rfi(2), rfi(1), rfi(1), rz(), rz(), rz(), rz(),rfi(-1), rz(), rz(), rz()]);
+        assert_eq!(simplex_table.rows[1], vec![rfi(1), rfi(1), rz(), rz(), rz(), rz(), rz(),rz(), rfi(1), rz(), rz()]);
+        assert_eq!(simplex_table.rows[2], vec![rfi(1), rfi(-1), rfi(0), rfi(-1), rz(), rz(), rz(),rz(), rz(), rfi(1), rz()]);
+        assert_eq!(simplex_table.rows[3], vec![rfi(1), rz(), rz(), rz(), rfi(1), rz(), rz(),rz(), rz(), rz(), rz()]);
+        assert_eq!(simplex_table.rows[4], vec![rz(), rfi(1), rz(), rz(), rz(), rfi(-1), rz(),rz(), rz(), rz(), rfi(1)]);
+        assert_eq!(simplex_table.rows[5], vec![rz(), rfi(1), rz(), rz(), rz(), rz(), rfi(1), rz(),rz(), rz(), rz()]);
 
-        assert_eq!(simplex_table.objective_row, vec![rfi(-2), rfi(-8), rz(),  rz(), rz(), rz(), rz(), rz(), rz(), rz(),])
+        assert_eq!(simplex_table.objective_row, vec![rfi(-2), rfi(-8), rz(),  rz(), rz(), rz(), rz(),rz(), rz(), rz(), rz(),])
     }
 
     #[test]
