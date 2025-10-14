@@ -52,9 +52,9 @@ impl BoundType {
 impl FromStr for BoundType {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "up" => Ok(Self::UP),
-            "lo" => Ok(Self::LO),
+        match s {
+            "UP" => Ok(Self::UP),
+            "LO" => Ok(Self::LO),
             _ => Err(())
         }
     }
@@ -96,11 +96,11 @@ impl FromStr for Constraints {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "n" => Ok(Constraints::N),
-            "l" => Ok(Constraints::L),
-            "g" => Ok(Constraints::G),
-            "e" => Ok(Constraints::E),
+        match s {
+            "N" => Ok(Constraints::N),
+            "L" => Ok(Constraints::L),
+            "G" => Ok(Constraints::G),
+            "E" => Ok(Constraints::E),
             _ => Err(())
         }
     }
@@ -216,9 +216,9 @@ impl MpsModelWithSelectedVariants {
     pub fn new(model: MpsModel, selected_rhs: Option<String>, selected_bounds: Option<String>, selected_opt_row_name: Option<String>, optimization_type: OptimizationType) -> Self {
         MpsModelWithSelectedVariants {
             model,
-            selected_rhs: selected_rhs.map_or(None, |x| Some(x.to_lowercase())),
-            selected_bounds: selected_bounds.map_or(None, |x| Some(x.to_lowercase())),
-            selected_opt_row_name: selected_opt_row_name.map_or(None, |x| Some(x.to_lowercase())),
+            selected_rhs: selected_rhs,
+            selected_bounds: selected_bounds,
+            selected_opt_row_name: selected_opt_row_name,
             optimization_type: optimization_type
         }
     }
