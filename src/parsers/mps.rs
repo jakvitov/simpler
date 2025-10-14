@@ -33,6 +33,20 @@ impl BoundType {
             BoundType::LO => '>'
         }
     }
+
+    pub(crate) fn invert_mut(&mut self) {
+        match self {
+            BoundType::UP => *self = BoundType::LO,
+            BoundType::LO => *self = BoundType::UP
+        }
+    }
+
+    pub(crate) fn invert(&self) -> BoundType {
+        match self {
+            BoundType::UP => BoundType::LO,
+            BoundType::LO => BoundType::UP
+        }
+    }
 }
 
 impl FromStr for BoundType {
@@ -69,7 +83,7 @@ impl Constraints {
         }
     }
 
-    pub(crate) fn inverse_mut(&mut self) {
+    pub(crate) fn invert_mut(&mut self) {
         match self {
             Self::L => *self =  Self::G,
             Self::G => *self = Self::L,
@@ -376,13 +390,37 @@ pub mod test_utils {
     }
 
     #[test]
-    fn inverse_mut_constraint_succeeds() {
+    fn invert_mut_constraint_succeeds() {
         let mut g = Constraints::G;
         let mut e = Constraints::E;
-        g.inverse_mut();
-        e.inverse_mut();
+        g.invert_mut();
+        e.invert_mut();
         assert_eq!(g, Constraints::L);
         assert_eq!(e, Constraints::E);
+    }
+
+    #[test]
+    fn invert_mut_bound_type_succeeds() {
+        let mut a = BoundType::UP;
+        let mut b = BoundType::LO;
+
+        a.invert_mut();
+        b.invert_mut();
+
+        assert_eq!(a, BoundType::LO);
+        assert_eq!(b, BoundType::UP);
+    }
+
+    #[test]
+    fn invert_bound_type_succeeds() {
+        let mut a = BoundType::UP;
+        let mut b = BoundType::LO;
+
+        let c = a.invert();
+        let d = b.invert();
+
+        assert_eq!(c, BoundType::LO);
+        assert_eq!(d, BoundType::UP);
     }
 
 }
