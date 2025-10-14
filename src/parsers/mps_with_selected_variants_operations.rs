@@ -91,6 +91,7 @@ impl MpsModelWithSelectedVariants {
         Ok(())
     }
 
+    // todo split into verify mps model, prune mps model and transform intially infeasible row functions
 
     /// Given MPS model, convert initially unfeasible constrains, such as:
     /// x1 <= -5 -> x1 >= 5
@@ -312,6 +313,8 @@ mod tests {
     //
     //
     // }
+
+    //todo add tests for mps model verification
 
     #[test]
     fn verify_mps_succeeds() {
