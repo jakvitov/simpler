@@ -35,9 +35,12 @@ impl MpsModelWithSelectedVariants {
             }
         }
 
-        //Column variables don't have none existent rows
+        //Column variables don't have none existent rows and are legal
         let row_names_set = self.model.rows.rows.iter().map(|(row_name, constraint)| row_name).collect::<HashSet<_>>();
         for (variable_name, variable_values) in &self.model.columns.variables {
+            if !is_variable_name_legal(variable_name) {
+                return Err(Box::new(ParserError::from_string_structure("Variable name is illegal. Letters A,a,S,s followed by numbers are reserved for slack, surplus and artificial variable.", format!("Failing variable name: {}.", variable_name))));
+            }
             for (row_name, value) in variable_values {
                 if !row_names_set.contains(row_name) {
                     return Err(Box::new(ParserError::from_string_structure("COLUMN specifies variable for non-existent row", format!("Variable name {}. Non existent row name {}.", variable_name, row_name))))
