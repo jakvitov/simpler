@@ -277,6 +277,7 @@ fn is_variable_name_legal(variable_name: &String) -> bool {
 mod tests {
     use super::super::mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives;
     use crate::parsers::mps::{Constraints, MpsModelWithSelectedVariants};
+    use crate::parsers::mps_with_selected_variants_operations::is_variable_name_legal;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
 
     // #[test]
@@ -309,7 +310,6 @@ mod tests {
     //
     // }
 
-
     #[test]
     fn verify_mps_succeeds() {
         let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
@@ -317,6 +317,25 @@ mod tests {
         let res = mps_model_with_selected_variants.verify_mps_model();
         res.expect("Test failed.");
         assert!(mps_model_with_selected_variants.verify_mps_model().is_ok());
+    }
+
+    #[test]
+    fn is_variable_name_legal_succeeds_for_legal() {
+        let legal = "AHOJ".to_owned();
+        assert!(is_variable_name_legal(&legal));
+    }
+
+    #[test]
+    fn is_variable_name_legal_fails_for_illegal() {
+        let illegal = "A12".to_owned();
+        let illegal2 = "S3".to_owned();
+        let illegal3 = illegal.to_lowercase();
+        let illegal4 = illegal2.to_lowercase();
+        assert!(!is_variable_name_legal(&illegal));
+        assert!(!is_variable_name_legal(&illegal2));
+        assert!(!is_variable_name_legal(&illegal3));
+        assert!(!is_variable_name_legal(&illegal4));
+
     }
 
 }
