@@ -1,4 +1,3 @@
-use std::process::CommandEnvs;
 use super::html_output::HtmlOutput;
 use crate::rationals::Rational;
 use crate::solvers::basic_simplex_table_data::BasicSimplexTable;

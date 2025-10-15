@@ -1,4 +1,3 @@
-use std::error::Error;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::utils::ApplicationError;
 use super::mps::Constraints;

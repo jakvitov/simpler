@@ -1,11 +1,10 @@
-use std::collections::HashSet;
-use std::env::var;
 use super::mps::{BoundType, Constraints, MpsModelWithSelectedVariants};
 use super::ParserError;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::rationals::Rational;
 use crate::solvers::simplex_error::SimplexError;
 use indexmap::IndexMap;
+use std::collections::HashSet;
 
 impl MpsModelWithSelectedVariants {
 
@@ -287,7 +286,7 @@ fn is_variable_name_legal(variable_name: &String) -> bool {
 #[cfg(test)]
 mod tests {
     use super::super::mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives;
-    use crate::parsers::mps::{BoundType, Constraints, MpsModelWithSelectedVariants};
+    use crate::parsers::mps::{BoundType, MpsModelWithSelectedVariants};
     use crate::parsers::mps_with_selected_variants_operations::is_variable_name_legal;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
@@ -321,8 +320,6 @@ mod tests {
     //
     //
     // }
-
-    //todo add tests for mps model verification
 
     #[test]
     fn verify_mps_succeeds() {

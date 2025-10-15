@@ -1,10 +1,10 @@
 use super::mps_parser::MpsInParsing;
 use super::ParserError;
 use crate::rationals::Rational;
+use crate::solvers::basic_simplex_table_data::OptimizationType;
+use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::str::FromStr;
-use indexmap::IndexMap;
-use crate::solvers::basic_simplex_table_data::OptimizationType;
 
 /// Sections in which is the MPS format devided
 #[derive(PartialEq, Debug, Clone)]
@@ -269,9 +269,9 @@ impl From<MpsModelWithSelectedVariants> for CroppedMpsModel {
 pub mod test_utils {
     use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, CroppedMpsModel, MpsModel, MpsModelWithSelectedVariants, Rhs, Rows};
     use crate::rationals::Rational;
-    use std::collections::HashMap;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
     use crate::solvers::basic_simplex_table_data::OptimizationType::MIN;
+    use std::collections::HashMap;
 
     /// Create simple MPS for tests
     /// 2x1 + x2 <= 6
