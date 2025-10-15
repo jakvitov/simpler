@@ -271,6 +271,7 @@ pub mod test_utils {
     use crate::rationals::Rational;
     use std::collections::HashMap;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
+    use crate::solvers::basic_simplex_table_data::OptimizationType::MIN;
 
     /// Create simple MPS for tests
     /// 2x1 + x2 <= 6
@@ -429,6 +430,26 @@ pub mod test_utils {
             bounds
         }
 
+    }
+
+    /// 2x1 + x2 <= -6 RHS1  ROW1
+    /// x1 + x2 = 4 RHS1    ROW2
+    /// x1 - x2 >= 1 RHS1    ROW3
+    /// 3x1 + x2 -> N   OBJ1
+    /// x1 <= -20    BND1
+    /// x2 >= 5     BND1
+    /// x2 ≥ 10     BND1
+    pub fn create_cropped_mps_model_with_initially_unfeasible_rhs_and_bounds() -> CroppedMpsModel {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.rows.rows.shift_remove(&"OBJ2".to_owned());
+        model.rhs.rhs.swap_remove(&"RHS2".to_owned());
+        model.bounds.bounds.swap_remove(&"BND2".to_owned());
+
+        model.rhs.rhs.get_mut(&"RHS1".to_owned()).unwrap().get_mut("ROW1").unwrap().negate_mut();
+        model.bounds.bounds.get_mut(&"BND1".to_owned()).unwrap().remove(0);
+        model.bounds.bounds.get_mut(&"BND1".to_owned()).unwrap().remove(3);
+        model.bounds.bounds.get_mut(&"BND1".to_owned()).unwrap()[0].1.negate_mut();
+        CroppedMpsModel::new(model, MIN)
     }
 
     #[test]
