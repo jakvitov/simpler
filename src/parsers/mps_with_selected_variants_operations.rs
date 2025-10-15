@@ -10,6 +10,7 @@ use indexmap::IndexMap;
 impl MpsModelWithSelectedVariants {
 
     fn verify_mps_model(&self) -> Result<(), Box<dyn HtmlConvertibleError>>{
+        let row_names_set = self.model.rows.rows.iter().map(|(row_name, constraint)| row_name).collect::<HashSet<_>>();
 
         //Verify selected RHS
         let mut selected_rhs;
@@ -35,8 +36,14 @@ impl MpsModelWithSelectedVariants {
             }
         }
 
+        //Each rhs has row
+        for row_name in selected_rhs.keys() {
+            if !row_names_set.contains(&row_name) {
+                return Err(Box::new(ParserError::from_string_structure("Selected RHS contains not defined ROW.", format!("RHS: {}, ROW: {}.", self.selected_rhs.as_ref().unwrap_or(&"DEFAULT".to_owned()), row_name))));
+            }
+        }
+
         //Column variables don't have none existent rows and are legal
-        let row_names_set = self.model.rows.rows.iter().map(|(row_name, constraint)| row_name).collect::<HashSet<_>>();
         for (variable_name, variable_values) in &self.model.columns.variables {
             if !is_variable_name_legal(variable_name) {
                 return Err(Box::new(ParserError::from_string_structure("Variable name is illegal. Letters A,a,S,s followed by numbers are reserved for slack, surplus and artificial variable.", format!("Failing variable name: {}.", variable_name))));
@@ -280,8 +287,9 @@ fn is_variable_name_legal(variable_name: &String) -> bool {
 #[cfg(test)]
 mod tests {
     use super::super::mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives;
-    use crate::parsers::mps::{Constraints, MpsModelWithSelectedVariants};
+    use crate::parsers::mps::{BoundType, Constraints, MpsModelWithSelectedVariants};
     use crate::parsers::mps_with_selected_variants_operations::is_variable_name_legal;
+    use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
 
     // #[test]
@@ -320,10 +328,102 @@ mod tests {
     fn verify_mps_succeeds() {
         let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
         let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
-        let res = mps_model_with_selected_variants.verify_mps_model();
-        res.expect("Test failed.");
         assert!(mps_model_with_selected_variants.verify_mps_model().is_ok());
     }
+
+    #[test]
+    fn verify_mps_fails_for_no_selected_rhs() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, None, Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_undefined_selected_rhs() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("kdljfkldj".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_rhs_with_undefined_row() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.rhs.rhs.get_mut(&"RHS1".to_owned()).unwrap().insert("KJDF".to_owned(), Rational::zero());
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_row_with_undefined_rhs() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.rhs.rhs.get_mut(&"RHS1".to_owned()).unwrap().remove(&"ROW1".to_owned());
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_variable_with_undefined_row() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.columns.variables.get_mut("x1").unwrap().insert("kjdfld".to_owned(), Rational::zero());
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_illegal_variable_name() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let x1_values = model.columns.variables.get("x1").unwrap().clone();
+        model.columns.variables.swap_remove("x1");
+        model.columns.variables.insert("S1".to_owned(), x1_values);
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_none_obj_functions() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.rows.rows.swap_remove("OBJ1");
+        model.rows.rows.swap_remove("OBJ2");
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_obj_function_name_not_found() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJDF2221".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_no_obj_function_defined_and_multiple_present() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), None, OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_undefined_variable_in_bounds() {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.bounds.bounds.get_mut("BND1").unwrap().push(("dfdf".to_owned(), Rational::zero(), BoundType::LO));
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_missing_selected_bounds() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BNDDFDF1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
+    #[test]
+    fn verify_mps_fails_for_none_bounds_selected_when_more_present() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, None, Some("BNDDFDF1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        assert!(mps_model_with_selected_variants.verify_mps_model().is_err());
+    }
+
 
     #[test]
     fn is_variable_name_legal_succeeds_for_legal() {
