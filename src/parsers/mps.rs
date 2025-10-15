@@ -224,11 +224,53 @@ impl MpsModelWithSelectedVariants {
     }
 }
 
+pub struct CroppedMpsModel {
+    pub model: MpsModel,
+    pub optimization_type: OptimizationType,
+}
+
+impl CroppedMpsModel {
+    pub fn new(model: MpsModel, optimization_type: OptimizationType) -> Self {
+        CroppedMpsModel {model, optimization_type}
+    }
+}
+
+impl From<MpsModelWithSelectedVariants> for CroppedMpsModel {
+
+    /// Crop MPS model leaving only user selected or default parts
+    /// This method does not perform full validation, only fails if required working component
+    fn from(mut initial_model: MpsModelWithSelectedVariants) -> Self {
+        // Crop RHS
+        if let Some(selected_rhs_name) = initial_model.selected_rhs {
+            initial_model.model.rhs.rhs.retain(|name, _| *name == selected_rhs_name);
+        }
+
+        // Crop objective function
+        let mut rows_to_remove: Vec<String> = Vec::new();
+        if let Some(selected_obj_row_name) = initial_model.selected_opt_row_name {
+            for (row_name, constriant) in &initial_model.model.rows.rows {
+                if *constriant == Constraints::N && *row_name != selected_obj_row_name {
+                    rows_to_remove.push(row_name.clone());
+                }
+            }
+        }
+        rows_to_remove.iter().for_each(|key| {initial_model.model.rows.rows.shift_remove(key);()});
+
+        //Crop bounds
+        if let Some(selected_bounds) = initial_model.selected_bounds {
+            initial_model.model.bounds.bounds.retain(|x,y| *x == selected_bounds);
+        }
+
+        CroppedMpsModel::new(initial_model.model, initial_model.optimization_type)
+    }
+}
+
 #[cfg(test)]
 pub mod test_utils {
-    use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, MpsModel, Rhs, Rows};
+    use crate::parsers::mps::{BoundType, Bounds, Columns, Constraints, CroppedMpsModel, MpsModel, MpsModelWithSelectedVariants, Rhs, Rows};
     use crate::rationals::Rational;
     use std::collections::HashMap;
+    use crate::solvers::basic_simplex_table_data::OptimizationType;
 
     /// Create simple MPS for tests
     /// 2x1 + x2 <= 6
@@ -421,6 +463,25 @@ pub mod test_utils {
 
         assert_eq!(c, BoundType::LO);
         assert_eq!(d, BoundType::UP);
+    }
+
+    #[test]
+    fn mps_model_with_selected_variants_to_cropped_mps_succeeds() {
+        let model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        let mps_model_with_selected_variants = MpsModelWithSelectedVariants::new(model, Some("RHS1".to_owned()), Some("BND1".to_owned()), Some("OBJ1".to_owned()), OptimizationType::MAX);
+        let cropped = CroppedMpsModel::from(mps_model_with_selected_variants);
+
+        assert_eq!(cropped.optimization_type, OptimizationType::MAX);
+        assert_eq!(cropped.model.rhs.rhs.len(), 1);
+        assert!(cropped.model.rhs.rhs.contains_key("RHS1"));
+
+
+        let optimal_row_names = cropped.model.rows.rows.iter().filter(|(_, constraint)| **constraint == Constraints::N ).map(|(name, constraint)| name).collect::<Vec<&String>>();
+        assert_eq!(optimal_row_names.len(), 1);
+        assert_eq!(*optimal_row_names.first().unwrap(), "OBJ1");
+
+        assert_eq!(cropped.model.bounds.bounds.len(), 1);
+        assert_eq!(cropped.model.bounds.bounds.keys()[0], "BND1");
     }
 
 }
