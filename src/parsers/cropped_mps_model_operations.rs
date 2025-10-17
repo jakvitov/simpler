@@ -1,7 +1,10 @@
-use crate::document::html_convertible_error::HtmlConvertibleError;
-use crate::utils::ApplicationError;
-use super::mps::Constraints;
+use super::mps::{Bounds, Constraints};
 use super::mps::CroppedMpsModel;
+use crate::document::html_convertible_error::HtmlConvertibleError;
+use crate::parsers::mps::BoundType::{LO, UP};
+use crate::rationals::Rational;
+use crate::utils::ApplicationError;
+use std::collections::HashMap;
 
 impl CroppedMpsModel {
 
@@ -11,7 +14,7 @@ impl CroppedMpsModel {
     /// BND UP -5
     /// BND LO -5
     /// by inverting them to feasible starters.
-    fn convert_initially_unfeasible_rhs_constraints_and_bounds(&mut self) -> Result<(), Box<dyn HtmlConvertibleError>> {
+    pub fn convert_initially_unfeasible_rhs_constraints_and_bounds(&mut self) -> Result<(), Box<ApplicationError>> {
 
         //Convert ROWS
         let mut rows_to_convert: Vec<String> = Vec::new();
@@ -80,14 +83,83 @@ impl CroppedMpsModel {
 
         Ok(())
     }
+    
+    //todo implement optimise cropped model bounds
+    ///Optimise models bounds removing the redundant ones
+    pub fn optimise_bounds(&mut self) -> Result<(), Box<ApplicationError>> {
+        if self.model.bounds.bounds.len() > 1 {
+            return Err(Box::new(ApplicationError::with_reason("Multiple BOUNDS found in cropped MPS model.")));
+        } else if self.model.bounds.bounds.is_empty() {
+            return Ok(());
+        }
 
+        // var_name -> UP, LO (var_name -> <=, >=)
+        let mut optimal_bounds: HashMap<String, (Option<Rational>, Option<Rational>)> = HashMap::new();
+        if let Some((_, model_bounds)) = self.model.bounds.bounds.first() {
+            for (variable_name, value, bound_type) in model_bounds {
+                if let Some((upper_bound, lower_bound)) = optimal_bounds.get(variable_name)  {
+                    if *bound_type == UP {
+                        if let Some(bound_value) = *upper_bound{
+                            if *value < bound_value {
+                                //todo remove these hideous heap copies
+                                optimal_bounds.insert(variable_name.to_owned(), (Some(value.to_owned()), *lower_bound));
+                            }
+                        } else {
+                            optimal_bounds.insert(variable_name.to_owned(), (Some(value.to_owned()), *lower_bound));
+                        }
+                    } else if *bound_type == LO {
+                        if let Some(bound_value) = *lower_bound {
+                            if *value > bound_value {
+                                optimal_bounds.insert(variable_name.to_owned(), (*upper_bound, Some(value.to_owned())));
+                            }
+                        } else {
+                            optimal_bounds.insert(variable_name.to_owned(), (*upper_bound, Some(value.to_owned())));
+                        }
+                    }
+                } else if *bound_type == UP {
+                    optimal_bounds.insert(variable_name.to_owned(), (Some(value.to_owned()), None ));
+                } else if *bound_type == LO {
+                    optimal_bounds.insert(variable_name.to_owned(), (None, Some(value.to_owned())));
+                }
+            }
+        } else {
+            return Err(Box::new(ApplicationError::with_reason("None BOUNDS were found in cropped MPS model.")));
+        }
+
+
+        self.model.bounds.bounds[0].retain(|(variable_name, value, bound_type)| {
+            if let Some(variable_optimised_bounds) = optimal_bounds.get(variable_name) {
+                if *bound_type == UP {
+                    if let Some(optimal_upperbound) = variable_optimised_bounds.0 {
+                        *value == optimal_upperbound
+                    } else {
+                        true
+                    }
+                }
+                else if *bound_type == LO {
+                    if let Some(optimal_lowerbound) = variable_optimised_bounds.1 {
+                        *value == optimal_lowerbound
+                    } else {
+                        true
+                    }
+                } else {
+                    true
+                }
+            }
+            else {
+                true
+            }
+        });
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parsers::mps::{BoundType, Constraints};
-    use crate::rationals::Rational;
     use super::super::mps::test_utils::create_cropped_mps_model_with_initially_unfeasible_rhs_and_bounds;
+    use crate::parsers::mps::{BoundType, Constraints};
+    use crate::parsers::mps::test_utils::create_rich_cropped_mps_model_for_test;
+    use crate::rationals::Rational;
 
     #[test]
     fn convert_initially_unfeasible_rhs_constraints_and_bounds_succeeds() {
@@ -103,5 +175,26 @@ mod tests {
 
         assert_eq!(model.model.bounds.bounds.get("BND1").unwrap()[0].2, BoundType::LO);
         assert_eq!(model.model.bounds.bounds.get("BND1").unwrap()[0].1, Rational::from_integer(20));
+    }
+
+    #[test]
+    fn optimise_bounds_succeeds() {
+        let mut model = create_rich_cropped_mps_model_for_test();
+        model.optimise_bounds().expect("Test failed");
+        /// x1 <= 10    BND1
+        /// x2 ≥ 10     BND1
+        /// x2 <= 20    BND1
+        assert_eq!(model.model.bounds.bounds.first().unwrap().1.len(), 3);
+
+        assert_eq!(model.model.bounds.bounds.first().unwrap().1[0].1, Rational::from_integer(10));
+        assert_eq!(model.model.bounds.bounds.first().unwrap().1[1].1, Rational::from_integer(10));
+        assert_eq!(model.model.bounds.bounds.first().unwrap().1[2].1, Rational::from_integer(20));
+    }
+
+    #[test]
+    fn optimise_bounds_succeeds_for_model_without_bounds() {
+        let mut model = create_rich_cropped_mps_model_for_test();
+        model.model.bounds.bounds.clear();
+        model.optimise_bounds().expect("Test failed");
     }
 }

@@ -327,7 +327,7 @@ pub mod test_utils {
     /// x1 <= 20    BND1
     /// x2 >= 5     BND1
     /// x2 ≥ 10     BND1
-    /// x2 <= 2     BND1
+    /// x2 <= 20    BND1
     /// x1 >= 10    BND2
     /// x2 <= 50    BND2
     pub fn create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives() -> MpsModel {
@@ -465,6 +465,7 @@ pub mod test_utils {
         let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
         model.rows.rows.shift_remove(&"OBJ2".to_owned());
         model.rhs.rhs.swap_remove(&"RHS2".to_owned());
+        model.bounds.bounds.swap_remove(&"BND2".to_owned());
         CroppedMpsModel::new(model, MIN)
     }
 

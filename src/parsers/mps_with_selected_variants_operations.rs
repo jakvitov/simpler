@@ -97,8 +97,6 @@ impl MpsModelWithSelectedVariants {
         Ok(())
     }
 
-    // todo split into verify mps model, prune mps model and transform intially infeasible row functions
-
     /// Given MPS model, convert initially unfeasible constrains, such as:
     /// x1 <= -5 -> x1 >= 5
     /// x1 >= -10 -> x1 <= 10
@@ -217,7 +215,7 @@ impl MpsModelWithSelectedVariants {
         res
     }
 
-
+    //todo remove after method is implemented for the cropped mps
     /// Obtain and optimise bounds obtained from the model. Return empty vec if none are selected
     /// Return Error explaining why, if that is not possible
     pub fn get_optimised_bounds_from_model(self: &MpsModelWithSelectedVariants) -> Result<IndexMap<(String, BoundType), Rational>, Box<SimplexError>> {
