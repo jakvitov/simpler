@@ -452,6 +452,22 @@ pub mod test_utils {
         CroppedMpsModel::new(model, MIN)
     }
 
+    /// 2x1 + x2 <= [6 (RHS1)]   ROW1
+    /// x1 + x2 = [4 (RHS1)]     ROW2
+    /// x1 - x2 >= [1 (RHS1)]    ROW3
+    /// 3x1 + x2 -> N   OBJ1
+    /// x1 <= 10    BND1
+    /// x1 <= 20    BND1
+    /// x2 >= 5     BND1
+    /// x2 ≥ 10     BND1
+    /// x2 <= 2     BND1
+    pub fn create_rich_cropped_mps_model_for_test() -> CroppedMpsModel {
+        let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
+        model.rows.rows.shift_remove(&"OBJ2".to_owned());
+        model.rhs.rhs.swap_remove(&"RHS2".to_owned());
+        CroppedMpsModel::new(model, MIN)
+    }
+
     #[test]
     fn invert_mut_constraint_succeeds() {
         let mut g = Constraints::G;
