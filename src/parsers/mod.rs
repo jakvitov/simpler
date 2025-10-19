@@ -1,6 +1,8 @@
 mod parser_error;
 mod mps_parser;
 pub mod mps;
+mod mps_with_selected_variants_operations;
+mod cropped_mps_model_operations;
 
 pub use parser_error::ParserError;
 

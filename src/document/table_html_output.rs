@@ -1,8 +1,8 @@
 
 // Module containing methods concerning creating tables for the HtmlOutput
 
-use crate::rationals::Rational;
 use super::html_output::HtmlOutput;
+use crate::rationals::Rational;
 use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 
 impl HtmlOutput {

@@ -44,7 +44,7 @@ fn parse_name(name_line: &str) -> Result<String, Box<ParserError>> {
         return Err(Box::new(ParserError::from_string_structure("Incorrect NAME section in MPS", name_line.to_string())));
     }
 
-    if name_line[0..4].to_string() != "name" {
+    if name_line[0..4].to_string() != "NAME" {
         return Err(Box::new(ParserError::from_string_structure("MPS model does not start with NAME section", name_line.to_string())));
     }
 
@@ -59,7 +59,7 @@ fn parse_rows(input: &Vec<&str>)  -> Result<Rows, Box<ParserError>> {
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Missing section ROWS in the MPS model.", input.join("\n"))));
     }
-    debug_assert!(input[0].to_lowercase().trim() == "rows");
+    debug_assert!(input[0].trim() == "ROWS");
 
     let mut rows: Rows = Rows::empty();
     //We keep the objective rows separately and add them as last to be at the bottom
@@ -95,7 +95,7 @@ fn parse_columns(input: &Vec<&str>)  -> Result<Columns, Box<ParserError>> {
     if input.len() < 2 {
         return Err(Box::new(ParserError::from_string_structure("Column section is incorrect", input.join("\n"))))
     }
-    debug_assert!(input[0].to_lowercase().trim() == "columns");
+    debug_assert!(input[0].trim() == "COLUMNS");
 
     let mut res = Columns::empty();
 
@@ -139,9 +139,10 @@ fn parse_bounds(input: &Vec<&str>)  -> Result<Bounds, Box<ParserError>> {
         return Ok(Bounds::empty());
     }
     if input.len() < 2 {
+        return Ok(Bounds::empty());
         return Err(Box::new(ParserError::from_string_structure("Bounds section is incorrect", input.join("\n"))))
     }
-    debug_assert!(input[0].to_lowercase().trim() == "bounds");
+    debug_assert!(input[0].trim() == "BOUNDS");
     let mut res = Bounds::empty();
 
     //We iterate from 1, because line 0 is "bounds"
@@ -173,7 +174,7 @@ fn parse_rhs(input: &Vec<&str>)  -> Result<Rhs, Box<ParserError>> {
         return Err(Box::new(ParserError::from_string_structure("RHS section empty.", input.join("\n").to_string())));
     }
 
-    debug_assert!(input[0].to_lowercase().trim() == "rhs");
+    debug_assert!(input[0].trim() == "RHS");
     let mut res = Rhs::empty();
     //We skip first line, because it contains "rhs" string
     for line in input[1..].iter() {
@@ -215,8 +216,8 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
         return Err(Box::new(ParserError::from_string_structure("Input MPS is empty!", input.clone())));
     }
 
-    let lowercase_input = input.to_ascii_lowercase().to_string();
-    let mut lines = lowercase_input.lines().filter(|l| !l.trim().is_empty());
+    let input = input.to_string();
+    let mut lines = input.lines().filter(|l| !l.trim().is_empty());
     let mut state = Sections::NAME;
     let mut buffer = Vec::<&str>::new();
     let mut mps_in_parsing = MpsInParsing::empty();
@@ -227,7 +228,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 state = Sections::ROWS;
             },
             Sections::ROWS => {
-                if line == "columns" {
+                if line == "COLUMNS" {
                     state = Sections::COLUMNS;
                     let parsed_rows = parse_rows(&buffer)?;
                     mps_in_parsing.rows = Some(parsed_rows);
@@ -237,7 +238,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::COLUMNS => {
-                if line == "rhs" {
+                if line == "RHS" {
                     state = Sections::RHS;
                     let parsed_columns = parse_columns(&buffer)?;
                     mps_in_parsing.columns = Some(parsed_columns);
@@ -247,7 +248,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::RHS => {
-                if line == "bounds" {
+                if line == "BOUNDS" {
                     state = Sections::BOUNDS;
                     let parsed_rhs = parse_rhs(&buffer)?;
                     mps_in_parsing.rhs = Some(parsed_rhs);
@@ -257,7 +258,7 @@ pub fn parse_mps(input: &String) -> Result<MpsModel, Box<ParserError>> {
                 }
             },
             Sections::BOUNDS => {
-                if line == "endata" {
+                if line == "ENDATA" {
                     state = Sections::ENDATA;
                     let parsed_bounds = parse_bounds(&buffer)?;
                     mps_in_parsing.bounds = Some(parsed_bounds);
@@ -286,7 +287,7 @@ mod tests {
 
     #[test]
     fn parse_name_succeeds() {
-        let input = "name         my_model\n";
+        let input = "NAME         my_model\n";
         let parsing_result = parse_name(&input.to_string());
         assert!(parsing_result.is_ok());
         let Ok(res) = parsing_result else {
