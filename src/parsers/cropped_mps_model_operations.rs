@@ -67,8 +67,6 @@ impl CroppedMpsModel {
                     bounds_to_invert.push(index);
                 }
             }
-        } else {
-            return Err(Box::new(ApplicationError::with_reason("None BOUNDS were found in cropped MPS model.")));
         }
 
         for i in bounds_to_invert {
@@ -76,8 +74,6 @@ impl CroppedMpsModel {
                 //Unwrap is safe, since we checked for one bounds above
                 model_bounds.1[i].2.invert_mut();
                 model_bounds.1[i].1.negate_mut();
-            } else {
-                return Err(Box::new(ApplicationError::with_reason("None BOUNDS were found in cropped MPS model.")));
             }
         }
 

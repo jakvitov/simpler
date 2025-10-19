@@ -19,6 +19,7 @@ fn parse_simple_correct_mps_to_basic_simplex_table_and_output_all_to_html() {
     mps_with_selection.verify_mps_model().unwrap();
     let mut cropped_model = CroppedMpsModel::from(mps_with_selection);
     cropped_model.optimise_bounds().unwrap();
+    cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
 
     let basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
     html_output.add_parsed_mps(&cropped_model.model);
@@ -39,6 +40,7 @@ fn parse_complicated_mps_with_multiple_rhs_objectives_and_bounds_to_basic_simple
     mps_with_selection.verify_mps_model().unwrap();
     let mut cropped_model = CroppedMpsModel::from(mps_with_selection);
     cropped_model.optimise_bounds().unwrap();
+    cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
 
     let basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
     html_output.add_parsed_mps(&cropped_model.model);
