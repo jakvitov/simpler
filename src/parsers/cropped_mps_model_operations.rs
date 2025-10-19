@@ -60,11 +60,11 @@ impl CroppedMpsModel {
         if self.model.bounds.bounds.len() > 1 {
             return Err(Box::new(ApplicationError::with_reason("Multiple BOUNDS found in cropped MPS model.")));
         }
-        let mut bounds_to_invert: Vec<(usize)> = Vec::new();
+        let mut bounds_to_invert: Vec<usize> = Vec::new();
         if let Some((_, model_bounds)) = self.model.bounds.bounds.first() {
             for (index, (_, value, _)) in model_bounds.iter().enumerate() {
                 if value.is_negative() {
-                    bounds_to_invert.push((index));
+                    bounds_to_invert.push(index);
                 }
             }
         } else {

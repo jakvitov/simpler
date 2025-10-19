@@ -8,11 +8,11 @@ use std::collections::HashSet;
 
 impl MpsModelWithSelectedVariants {
 
-    fn verify_mps_model(&self) -> Result<(), Box<dyn HtmlConvertibleError>>{
-        let row_names_set = self.model.rows.rows.iter().map(|(row_name, constraint)| row_name).collect::<HashSet<_>>();
+    pub fn verify_mps_model(&self) -> Result<(), Box<dyn HtmlConvertibleError>>{
+        let row_names_set = self.model.rows.rows.iter().map(|(row_name, _)| row_name).collect::<HashSet<_>>();
 
         //Verify selected RHS
-        let mut selected_rhs;
+        let selected_rhs;
         if self.selected_rhs.is_none() && self.model.rhs.rhs.len() == 1{
             selected_rhs = &self.model.rhs.rhs[0];
         } else if let Some(selected_rhs_name) = &self.selected_rhs {
@@ -47,7 +47,7 @@ impl MpsModelWithSelectedVariants {
             if !is_variable_name_legal(variable_name) {
                 return Err(Box::new(ParserError::from_string_structure("Variable name is illegal. Letters A,a,S,s followed by numbers are reserved for slack, surplus and artificial variable.", format!("Failing variable name: {}.", variable_name))));
             }
-            for (row_name, value) in variable_values {
+            for (row_name, _) in variable_values {
                 if !row_names_set.contains(row_name) {
                     return Err(Box::new(ParserError::from_string_structure("COLUMN specifies variable for non-existent row", format!("Variable name {}. Non existent row name {}.", variable_name, row_name))))
                 }
@@ -84,7 +84,7 @@ impl MpsModelWithSelectedVariants {
 
 
         //Selected bounds are present
-        if self.model.bounds.bounds.len() == 1 && self.selected_bounds.is_none() {
+        if (self.model.bounds.bounds.len() == 1 || self.model.bounds.bounds.is_empty()) && self.selected_bounds.is_none() {
             //OK
         } else if let Some(selected_bound_name) = &self.selected_bounds {
             if !self.model.bounds.bounds.contains_key(selected_bound_name) {
@@ -95,40 +95,6 @@ impl MpsModelWithSelectedVariants {
         }
 
         Ok(())
-    }
-
-    //todo remove after method is implemented for the cropped mps
-    /// Obtain and optimise bounds obtained from the model. Return empty vec if none are selected
-    /// Return Error explaining why, if that is not possible
-    pub fn get_optimised_bounds_from_model(self: &MpsModelWithSelectedVariants) -> Result<IndexMap<(String, BoundType), Rational>, Box<SimplexError>> {
-        let Some(selected_bounds) = self.get_selected_bounds_from_the_model()? else {
-            return Ok(IndexMap::new());
-        };
-        //Variable_name, bound_type, Rational
-        let mut variable_bounds: IndexMap<(String, BoundType), Rational> = IndexMap::new();
-        for (variable_name, value, bound_type) in selected_bounds {
-            //todo optimise these heap copies
-            let found_val = variable_bounds.get(&(variable_name.to_owned(), bound_type.to_owned()));
-            if let Some(current_bound_value) = found_val {
-                let current_bound_value = found_val.unwrap();
-                match bound_type {
-                    BoundType::UP => {
-                        if value < current_bound_value {
-                            variable_bounds.insert((variable_name.to_owned(), BoundType::UP), value.to_owned());
-                        }
-                    },
-                    BoundType::LO => {
-                        if value > current_bound_value {
-                            variable_bounds.insert((variable_name.to_owned(), BoundType::LO), value.to_owned());
-                        }
-                    }
-                }
-            } else {
-                variable_bounds.insert((variable_name.to_owned(), bound_type.to_owned()), value.to_owned());
-            }
-
-        }
-        Ok(variable_bounds)
     }
 
     /// Return selected bounds from the model. If none are selected, return none
