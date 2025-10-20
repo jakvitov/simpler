@@ -20,6 +20,7 @@ impl HtmlOutput {
     /// Adds whole initially parsed mps to the html output
     pub fn add_parsed_mps(&mut self, mps_model: &MpsModel) {
         self.body.push_str("<div class=\"parsed_mps_model\">\n");
+        self.body.push_str("<hr>");
         self.body.push_str(format!("<h2>Input MPS model {}</h2>\n", mps_model.name).as_str());
         self.body.push_str(format!("<p>Rhs order: {}</p>\n", mps_model.rhs.rhs.keys().map(|x| format!("|{x}|")).collect::<Vec<String>>().join("")).as_str());
         self.add_mps(mps_model);

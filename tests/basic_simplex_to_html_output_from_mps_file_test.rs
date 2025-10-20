@@ -7,7 +7,7 @@ use simpler::solvers;
 use simpler::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use simpler::utils::tests::CorrectMps::CORRECT;
 
-const WRITE_OUTPUTS_TO_FILE: bool = true;
+const WRITE_OUTPUTS_TO_FILE: bool = false;
 
 #[test]
 fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
