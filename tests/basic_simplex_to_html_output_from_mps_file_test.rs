@@ -7,7 +7,7 @@ use simpler::solvers;
 use simpler::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use simpler::utils::tests::CorrectMps::CORRECT;
 
-const WRITE_OUTPUTS_TO_FILE: bool = false;
+const WRITE_OUTPUTS_TO_FILE: bool = true;
 
 #[test]
 fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
@@ -22,6 +22,7 @@ fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
     let mut cropped_model = CroppedMpsModel::from(mps_with_selection);
     cropped_model.optimise_bounds().unwrap();
     cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
+    html_output.add_cropped_mps_model(&cropped_model);
 
     let mut basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
@@ -48,6 +49,8 @@ fn solve_basic_simplex_unbounded_two_iterations_from_mps_file_succeeds() {
     let mut cropped_model = CroppedMpsModel::from(mps_with_selection);
     cropped_model.optimise_bounds().unwrap();
     cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
+    html_output.add_cropped_mps_model(&cropped_model);
+
     let mut basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
 
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);

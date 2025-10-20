@@ -12,6 +12,7 @@ impl HtmlOutput {
         self.body.push_str("<hr>");
         self.body.push_str(format!("<h2>Target MPS model {}</h2>\n", cropped_mps_model.model.name).as_str());
         self.body.push_str("<p>Model was verified, cropped only to selections, redundant BOUNDS were removed and negative RHS were converted.</p>\n");
+        self.body.push_str(format!("<h4>Optimisation type: {}</h4>", cropped_mps_model.optimization_type).as_str());
         self.add_mps(&cropped_mps_model.model);
         self.body.push_str("</div>\n")
     }
