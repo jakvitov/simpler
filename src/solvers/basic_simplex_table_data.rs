@@ -3,6 +3,7 @@ use crate::parsers::mps::{BoundType, Constraints, CroppedMpsModel, MpsModel, Mps
 use crate::rationals::Rational;
 use indexmap::IndexMap;
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::utils::ApplicationError;
@@ -23,6 +24,12 @@ pub struct BasicSimplexTable {
 pub enum OptimizationType {
     MAX,
     MIN
+}
+
+impl Display for OptimizationType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl BasicSimplexTable {

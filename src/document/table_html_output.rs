@@ -10,6 +10,7 @@ impl HtmlOutput {
     /// Add header and data about a basic simplex table to the output
     pub fn add_parsed_basic_simplex_table(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<div class=\"parsed_basic_simplex_table\">\n");
+        self.body.push_str("<hr>");
         self.body.push_str("<h2>Parsed Simplex table</h2>\n");
         self.body.push_str("<p>Simplex table parser uses irrelevant bound optimisation.</p>\n");
         if basic_simplex_table.artificial_variable_index.is_some() {
