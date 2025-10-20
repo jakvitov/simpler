@@ -14,6 +14,8 @@ fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("basic_simplex_two_iterations_mps", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
+    html_output.add_parsed_mps(&parsed_mps);
+
     let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None, OptimizationType::MIN);
 
     mps_with_selection.verify_mps_model().unwrap();
@@ -22,7 +24,6 @@ fn solve_basic_simplex_two_iterations_from_mps_file_succeeds() {
     cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
 
     let mut basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
-    html_output.add_parsed_mps(&cropped_model.model);
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
     let res = solvers::solve_basic_simplex(&mut basic_simplex_table, &mut html_output);
 
@@ -39,6 +40,8 @@ fn solve_basic_simplex_unbounded_two_iterations_from_mps_file_succeeds() {
     let mps_file = fs::read_to_string(simpler::utils::tests::setup_path_to_mps("basic_unbounded_simplex_two_iterations_mps", CORRECT)).unwrap();
     let parsed_mps = parse_mps(&mps_file).unwrap();
     let mut html_output = HtmlOutput::with_application_header();
+    html_output.add_parsed_mps(&parsed_mps);
+
     let mps_with_selection = MpsModelWithSelectedVariants::new(parsed_mps, None, None, None, OptimizationType::MIN);
 
     mps_with_selection.verify_mps_model().unwrap();
@@ -47,7 +50,6 @@ fn solve_basic_simplex_unbounded_two_iterations_from_mps_file_succeeds() {
     cropped_model.convert_initially_unfeasible_rhs_constraints_and_bounds().unwrap();
     let mut basic_simplex_table = BasicSimplexTable::try_from(&cropped_model).unwrap();
 
-    html_output.add_parsed_mps(&cropped_model.model);
     html_output.add_parsed_basic_simplex_table(&basic_simplex_table);
     let res = solvers::solve_basic_simplex(&mut basic_simplex_table, &mut html_output);
 
