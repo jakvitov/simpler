@@ -138,6 +138,14 @@ impl HtmlOutput {
         self.body.push_str(format!("<p><strong>Optimal value {} is transformed to {}.</strong></p>", coefficient, coefficient.negate()).as_str());
     }
 
+    pub fn add_found_degenerate_column_cycle(&mut self, basic_simplex_table: &BasicSimplexTable) {
+        self.body.push_str("<hr>");
+        self.body.push_str("<h4>Cycle detected during </h4>\n");
+        self.body.push_str(format!("<p>Base has not changed between !</p>").as_str());
+        self.body.push_str("<p>In this case, it is recommended to switch to Bland’s rule. Is has not yet been implemented in Simpler.</p>");
+        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
+    }
+
 
     // END - Two-phase simplex
 }
