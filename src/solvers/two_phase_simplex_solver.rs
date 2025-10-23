@@ -1,7 +1,7 @@
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, Rational};
-use crate::solvers::basic_simplex_solver;
+use crate::solvers::{basic_simplex_solver, MAX_CYCLE_ITERATIONS};
 use crate::solvers::basic_simplex_solver::solve_basic_simplex_table;
 use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use crate::solvers::simplex_error::SimplexError;
@@ -11,7 +11,6 @@ use crate::solvers::SimplexSoverAlgorithm::TWO_PHASE_SIMPLEX;
   Solver, which solves simplex problem, given by simplex table with filled auxiliary variables, using
   two-phase simplex method.
  */
-
 pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(TWO_PHASE_SIMPLEX);
 
@@ -41,6 +40,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     html_output.add_starting_phase_one_dual_simplex_header();
     let mut iteration_counter = 1;
     let mut last_base = simplex_table.base_variable_names.clone();
+    let mut cycle_count:u8 = 0;
     loop {
         let pessimal_column = basic_simplex_solver::check_optimity(simplex_table);
         if pessimal_column.is_none() && simplex_table.objective_rhs == Rational::zero() {
@@ -68,12 +68,16 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         basic_simplex_solver::basic_simplex_gauss_elimination(simplex_table, &pivot, html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         iteration_counter += 1;
 
-        if simplex_table.base_variable_names == last_base {
+        if simplex_table.base_variable_names == last_base && cycle_count + 1 == MAX_CYCLE_ITERATIONS {
             html_output.add_found_degenerate_column_cycle(simplex_table);
             html_output.end_simplex_iteration();
             return Ok(None);
-        } else {
+        } else if simplex_table.base_variable_names == last_base {
+            cycle_count += 1;
+        }
+        else {
             last_base = simplex_table.base_variable_names.clone();
+            cycle_count = 0;
         }
 
         html_output.end_simplex_iteration();
@@ -124,6 +128,7 @@ fn make_objective_row_for_auxiliary_minimalization(basic_simplex_table: &mut Bas
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::{create_minimal_simplex_table_for_testing, create_optimal_simplex_table, create_simplex_table_with_artificial_variables};

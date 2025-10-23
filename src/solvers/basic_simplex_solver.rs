@@ -2,6 +2,7 @@ use super::basic_simplex_table_data::BasicSimplexTable;
 use super::simplex_error::SimplexError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
+use crate::solvers::MAX_CYCLE_ITERATIONS;
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
 
 
@@ -20,6 +21,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
     let mut last_base = simplex_table.base_variable_names.clone();
+    let mut cycle_count:u8 = 0;
     loop {
 
         let pessimal_column = check_optimity(simplex_table);
@@ -51,12 +53,16 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         html_output.end_simplex_iteration();
 
         //We cycle
-        if simplex_table.base_variable_names == last_base {
+        if simplex_table.base_variable_names == last_base && cycle_count + 1 == MAX_CYCLE_ITERATIONS {
             html_output.add_found_degenerate_column_cycle(simplex_table);
             html_output.end_simplex_iteration();
             return Ok(None);
-        } else {
+        } else if simplex_table.base_variable_names == last_base {
+            cycle_count += 1;
+        }
+        else {
             last_base = simplex_table.base_variable_names.clone();
+            cycle_count = 0;
         }
     }
 }
