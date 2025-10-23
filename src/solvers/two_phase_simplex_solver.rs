@@ -40,6 +40,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     //Phase I
     html_output.add_starting_phase_one_dual_simplex_header();
     let mut iteration_counter = 1;
+    let mut last_base = simplex_table.base_variable_names.clone();
     loop {
         let pessimal_column = basic_simplex_solver::check_optimity(simplex_table);
         if pessimal_column.is_none() && simplex_table.objective_rhs == Rational::zero() {
@@ -66,6 +67,12 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
 
         basic_simplex_solver::basic_simplex_gauss_elimination(simplex_table, &pivot, html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         iteration_counter += 1;
+
+        if simplex_table.base_variable_names == last_base {
+            html_output.add_found_degenerate_column_cycle(simplex_table);
+            html_output.end_simplex_iteration();
+            return Ok(None);
+        }
 
         html_output.end_simplex_iteration();
     }
