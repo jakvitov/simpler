@@ -1,12 +1,12 @@
 use super::simplex_error::SimplexError;
+use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::parsers::mps::{BoundType, Constraints, CroppedMpsModel, MpsModel, MpsModelWithSelectedVariants};
 use crate::rationals::Rational;
+use crate::utils::ApplicationError;
 use indexmap::IndexMap;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use crate::document::html_convertible_error::HtmlConvertibleError;
-use crate::utils::ApplicationError;
 
 ///Simplex table used for non-optimised simplex algorithms
 pub struct BasicSimplexTable {
@@ -315,7 +315,7 @@ mod tests {
     use crate::parsers::mps::CroppedMpsModel;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::create_simplex_table_with_artificial_variables;
-    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, MpsModelWithSelectedVariants, OptimizationType};
+    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 
     ///Shortened version of Rational::from_integer
     pub fn rfi(input: i128) -> Rational {
@@ -411,8 +411,8 @@ mod tests {
 
 #[cfg(test)]
 pub mod test_utils {
-    use crate::solvers::basic_simplex_table_data::tests::rfi;
-    use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
+    use crate::solvers::basic_simplex_table_data::tests::{rfi, rz};
+    use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
     use indexmap::IndexMap;
 
     /// Base x1 x2 s1 s2 RHS
@@ -476,6 +476,30 @@ pub mod test_utils {
         res.base_variable_names[1] = "A1".to_owned();
         res.artificial_variable_index = Some(4);
         res
+    }
+
+    pub fn create_cycling_simplex_table() -> BasicSimplexTable {
+        let mut simplex_table = BasicSimplexTable::empty(OptimizationType::MAX);
+        simplex_table.column_variable_names.insert("x1".to_owned(), 1);
+        simplex_table.column_variable_names.insert("x2".to_owned(), 2);
+        simplex_table.column_variable_names.insert("x3".to_owned(), 3);
+        simplex_table.column_variable_names.insert("S1".to_owned(), 4);
+        simplex_table.column_variable_names.insert("S2".to_owned(), 5);
+        simplex_table.column_variable_names.insert("S3".to_owned(), 6);
+
+        simplex_table.base_variable_names = vec!["S1".to_owned(), "S2".to_owned(), "S3".to_owned()];
+
+        simplex_table.rhs = vec![rz(), rz(), rfi(-1)];
+
+        simplex_table.rows = vec![vec![rfi(1), rfi(-2), rfi(-1), rfi(1), rz(), rz()],
+        vec![rfi(-2), rfi(1), rfi(-1), rz(), rfi(1), rz()],
+        vec![rfi(-1), rfi(-1), rfi(1), rz(), rz(), rfi(1)]];
+
+        simplex_table.objective_row = vec![rfi(1), rfi(-10), rfi(-10), rz(), rz(), rz()];
+        simplex_table.objective_rhs = rz();
+
+        simplex_table.artificial_variable_index = None;
+        simplex_table
     }
 }
 
