@@ -19,6 +19,7 @@ pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &
 pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
+    let mut last_base = simplex_table.base_variable_names.clone();
     loop {
 
         let pessimal_column = check_optimity(simplex_table);
@@ -31,9 +32,9 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache)?;
 
         //Check unbounded solution
-        let mut all_negative_or_none = true;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
-        if all_negative_or_none {
+        let mut negative_count = 0;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {negative_count +=1 ;}});
+        if negative_count == t_vec.len() {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
@@ -48,6 +49,14 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache)?;
         iteration_counter += 1;
         html_output.end_simplex_iteration();
+
+        //We cycle
+        if simplex_table.base_variable_names == last_base {
+            html_output.add_found_degenerate_column_cycle(simplex_table);
+            return Ok(None);
+        } else {
+            last_base = simplex_table.base_variable_names.clone();
+        }
     }
 }
 
