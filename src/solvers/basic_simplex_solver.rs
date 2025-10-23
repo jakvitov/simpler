@@ -33,7 +33,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
 
         //Check unbounded solution
         let mut negative_count = 0;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {negative_count +=1 ;}});
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_negative() {negative_count +=1 ;}});
         if negative_count == t_vec.len() {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();

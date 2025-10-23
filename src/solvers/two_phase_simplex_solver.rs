@@ -72,6 +72,8 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
             html_output.add_found_degenerate_column_cycle(simplex_table);
             html_output.end_simplex_iteration();
             return Ok(None);
+        } else {
+            last_base = simplex_table.base_variable_names.clone();
         }
 
         html_output.end_simplex_iteration();
