@@ -53,6 +53,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         //We cycle
         if simplex_table.base_variable_names == last_base {
             html_output.add_found_degenerate_column_cycle(simplex_table);
+            html_output.end_simplex_iteration();
             return Ok(None);
         } else {
             last_base = simplex_table.base_variable_names.clone();
