@@ -3,22 +3,39 @@ use super::simplex_error::SimplexError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
-
-
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use fxhash::FxHasher;
+use crate::document::html_convertible_error::HtmlConvertibleError;
+use crate::utils::ApplicationError;
+use crate::utils::env_parameters::ApplicationEnvParameter;
 
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
 /// This method returns resulting optimal value
 /// Since all errors are added to the
-pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
+pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
-    solve_basic_simplex_table(simplex_table, html_output)
+    Ok(solve_basic_simplex_table(simplex_table, html_output, None)?)
 }
 
 
-pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
-    let mut iteration_counter = 1;
+/// Solves table using simplex, but without header. Used also by other solvers for steps, that require primary simplex
+/// If iteration limit is not specified, default will be used
+pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput, iteration_limit: Option<u8> ) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
+    let mut iteration_counter:u8 = 1;
     let mut gcd_cache = GcdCache::init();
+
+    //We hash the bases and store how many times we met them.
+    //Hashing is used to prevent hash map storing all the vectors as keys
+    //FxHasher is deterministic in opposition to rusts DefaultHasher
+    let mut hasher = FxHasher::default();
+    simplex_table.base_variable_names.hash(&mut hasher);
+    let base_hash = hasher.finish();
+
+    let mut visited_bases: HashMap<u64, u8> = HashMap::new();
+    visited_bases.insert(base_hash, 1);
+
     loop {
 
         let pessimal_column = check_optimity(simplex_table);
@@ -28,12 +45,12 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         }
 
         html_output.start_simplex_iteration(iteration_counter);
-        let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache)?;
+        let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
 
         //Check unbounded solution
-        let mut all_negative_or_none = true;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
-        if all_negative_or_none {
+        let mut negative_count = 0;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_negative() {negative_count +=1 ;}});
+        if negative_count == t_vec.len() {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
@@ -45,10 +62,43 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
 
 
         // Row elimination with output
-        basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache)?;
-        iteration_counter += 1;
+        basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         html_output.end_simplex_iteration();
+
+        let (iteration_counter, overflowed) = iteration_counter.overflowing_add(1);
+        if overflowed {
+            return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
+        }
+        
+        //Check if base was met MAX_CYCLE_ITERATIONS
+        if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, iteration_limit, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
+            return Ok(None)
+        }
     }
+}
+
+/// Return true if check failed
+/// In case of check failing, message with cycle or iteration limit exceeded is added to html output
+pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64, u8>, iteration_counter: u8, iteration_limit: Option<u8>, simplex_table: &BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<bool, Box<NumericalError>> {
+    let hasher = FxHasher::default();
+    let base_hash = hasher.finish();
+    if let Some(visited_count) = visited_bases.get(&base_hash) {
+        if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
+            html_output.add_found_degenerate_column_cycle();
+            html_output.end_simplex_iteration();
+            return Ok(true);
+        } else {
+            visited_bases.insert(base_hash, visited_count + 1);
+        }
+    } else {
+        visited_bases.insert(base_hash, 1);
+    }
+
+    let limit = iteration_limit.unwrap_or(ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?);
+    if iteration_counter == limit {
+        html_output.maximum_iterations_reached(limit);
+    };
+    Ok(false)
 }
 
 /// Perform one simplex iteration with output to the HtmlOutput
@@ -151,7 +201,9 @@ mod tests {
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::{GcdCache, Rational};
     use crate::solvers::basic_simplex_solver::{basic_simplex_gauss_elimination, get_pivot, get_t_vector, solve_basic_simplex};
-    use crate::solvers::basic_simplex_table_data::test_utils::create_unbounded_simplex_table;
+    use crate::solvers::basic_simplex_table_data::test_utils::{create_cycling_simplex_table, create_unbounded_simplex_table};
+    use std::fs;
+    use std::hash::{Hash, Hasher};
 
     #[test]
     fn get_pivot_suceeds() {
@@ -225,4 +277,14 @@ mod tests {
         assert!(res.is_none());
     }
 
+    #[test]
+    fn check_simplex_with_cycle_fails() {
+        let mut simplex_table = create_cycling_simplex_table();
+        let mut html_output = HtmlOutput::with_application_header();
+        let res = solve_basic_simplex(&mut simplex_table, &mut html_output);
+        fs::write("check_simplex_with_cycle_fails.html",html_output.to_string());
+        assert!(res.is_ok());
+        assert!(res.unwrap().is_none());
+        assert!(html_output.to_string().contains("Cycle"));
+    }
 }

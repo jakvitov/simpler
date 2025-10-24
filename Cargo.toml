@@ -13,3 +13,4 @@ log = "0.4.27"
 chrono = "0.4.41"
 #Typst
 indexmap = "2.0"
+fxhash = "0.2.1"
