@@ -15,7 +15,7 @@ impl HtmlOutput {
     }
 
     /// Start simplex iteration by adding a header and appropriate div
-    pub fn start_simplex_iteration(&mut self, n: usize) {
+    pub fn start_simplex_iteration(&mut self, n: u8) {
         self.body.push_str("<div class=\"simplex-iteration\">");
         self.body.push_str(format!("<h3>Simplex iteration {n}</h3>\n").as_str());
     }
@@ -139,15 +139,19 @@ impl HtmlOutput {
     }
     // END - Two-phase simplex
 
-    pub fn add_found_degenerate_column_cycle(&mut self, basic_simplex_table: &BasicSimplexTable) {
+    pub fn add_found_degenerate_column_cycle(&mut self) {
         self.body.push_str("<hr>");
         self.body.push_str("<h4>Cycle detected during </h4>\n");
-        self.body.push_str(format!("<p>Base has not changed between !</p>").as_str());
+        self.body.push_str("<p>Base has not changed between !</p>");
         self.body.push_str("<p>In this case, it is recommended to switch to Bland’s rule. Is has not yet been implemented in Simpler.</p>");
-        self.create_html_table_from_basic_simplex_table(basic_simplex_table);
     }
 
-    pub fn maximum_iterations_reached(&mut self, basic_simplex_table: &BasicSimplexTable, iteration_limit: u8) {
+    pub fn maximum_iterations_reached(&mut self, iteration_limit: u8) {
+        self.body.push_str("<hr>");
+        self.body.push_str("<h4>Maximum iterations reached'</h4>\n");
+        self.body.push_str(format!("<p>Total iterations count {}</p>", iteration_limit).as_str());
+        self.body.push_str("<p>If you're using online version, switch to local one.</p>");
+        self.body.push_str(format!("<p>If you're using local version, you can tweak the iteration count by setting the {} ENV variable.</p>", iteration_limit).as_str());
         unimplemented!()
     }
 }
