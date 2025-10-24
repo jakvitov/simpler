@@ -7,22 +7,23 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use fxhash::FxHasher;
 use crate::document::html_convertible_error::HtmlConvertibleError;
+use crate::utils::ApplicationError;
 use crate::utils::env_parameters::ApplicationEnvParameter;
 
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
 /// This method returns resulting optimal value
 /// Since all errors are added to the
-pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
+pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
-    solve_basic_simplex_table(simplex_table, html_output, None)
+    Ok(solve_basic_simplex_table(simplex_table, html_output, None)?)
 }
 
 
 /// Solves table using simplex, but without header. Used also by other solvers for steps, that require primary simplex
 /// If iteration limit is not specified, default will be used
-pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput, iteration_limit: Option<usize> ) -> Result<Option<Rational>, Box<NumericalError>> {
-    let mut iteration_counter:usize = 1;
+pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput, iteration_limit: Option<u8> ) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
+    let mut iteration_counter:u8 = 1;
     let mut gcd_cache = GcdCache::init();
 
     //We hash the bases and store how many times we met them.
@@ -44,7 +45,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         }
 
         html_output.start_simplex_iteration(iteration_counter);
-        let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache)?;
+        let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
 
         //Check unbounded solution
         let mut negative_count = 0;
@@ -61,34 +62,44 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
 
 
         // Row elimination with output
-        basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache)?;
-        iteration_counter += 1;
+        basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         html_output.end_simplex_iteration();
 
-
-        //Check if base was met MAX_CYCLE_ITERATIONS
-        hasher = FxHasher::default();
-        let base_hash = hasher.finish();
-        if let Some(visited_count) = visited_bases.get(&base_hash) {
-            if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
-                html_output.add_found_degenerate_column_cycle(simplex_table);
-                html_output.end_simplex_iteration();
-                return Ok(None);
-            } else {
-                visited_bases.insert(base_hash, visited_count + 1);
-            }
-        } else {
-            visited_bases.insert(base_hash, 1);
+        let (iteration_counter, overflowed) = iteration_counter.overflowing_add(1);
+        if overflowed {
+            return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
-
-        let limit = ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?;
-        if u8::try_from(iteration_counter).map_err(|e| Box::new(NumericalError::from(e)))? == limit {
-            html_output.maximum_iterations_reached(simplex_table, limit);
-        };
+        
+        //Check if base was met MAX_CYCLE_ITERATIONS
+        if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, iteration_limit, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
+            return Ok(None)
+        }
     }
 }
 
+/// Return true if check failed
+/// In case of check failing, message with cycle or iteration limit exceeded is added to html output
+pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64, u8>, iteration_counter: u8, iteration_limit: Option<u8>, simplex_table: &BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<bool, Box<NumericalError>> {
+    let hasher = FxHasher::default();
+    let base_hash = hasher.finish();
+    if let Some(visited_count) = visited_bases.get(&base_hash) {
+        if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
+            html_output.add_found_degenerate_column_cycle();
+            html_output.end_simplex_iteration();
+            return Ok(true);
+        } else {
+            visited_bases.insert(base_hash, visited_count + 1);
+        }
+    } else {
+        visited_bases.insert(base_hash, 1);
+    }
 
+    let limit = iteration_limit.unwrap_or(ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?);
+    if iteration_counter == limit {
+        html_output.maximum_iterations_reached(limit);
+    };
+    Ok(false)
+}
 
 /// Perform one simplex iteration with output to the HtmlOutput
 pub(super) fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
