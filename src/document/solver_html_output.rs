@@ -137,6 +137,7 @@ impl HtmlOutput {
         self.body.push_str("<p>Since we transformed objective function by -1 for min to max conversion, we need to transform the objective value back!</p>");
         self.body.push_str(format!("<p><strong>Optimal value {} is transformed to {}.</strong></p>", coefficient, coefficient.negate()).as_str());
     }
+    // END - Two-phase simplex
 
     pub fn add_found_degenerate_column_cycle(&mut self, basic_simplex_table: &BasicSimplexTable) {
         self.body.push_str("<hr>");
@@ -146,6 +147,7 @@ impl HtmlOutput {
         self.create_html_table_from_basic_simplex_table(basic_simplex_table);
     }
 
-
-    // END - Two-phase simplex
+    pub fn maximum_iterations_reached(&mut self, basic_simplex_table: &BasicSimplexTable, iteration_limit: u8) {
+        unimplemented!()
+    }
 }
