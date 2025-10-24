@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use fxhash::FxHasher;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, Rational};
@@ -39,8 +42,14 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     //Phase I
     html_output.add_starting_phase_one_dual_simplex_header();
     let mut iteration_counter = 1;
-    let mut last_base = simplex_table.base_variable_names.clone();
-    let mut cycle_count:u8 = 0;
+
+    //Keep track of how many times we encoutered each base
+    let mut visited_bases: HashMap<u64, u8> = HashMap::new();
+    let mut hasher = FxHasher::default();
+    simplex_table.base_variable_names.hash(&mut hasher);
+    let mut last_base_hash = hasher.finish();
+    visited_bases.insert(last_base_hash, 1);
+
     loop {
         let pessimal_column = basic_simplex_solver::check_optimity(simplex_table);
         if pessimal_column.is_none() && simplex_table.objective_rhs == Rational::zero() {
@@ -68,16 +77,20 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         basic_simplex_solver::basic_simplex_gauss_elimination(simplex_table, &pivot, html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         iteration_counter += 1;
 
-        if simplex_table.base_variable_names == last_base && cycle_count + 1 == MAX_CYCLE_ITERATIONS {
-            html_output.add_found_degenerate_column_cycle(simplex_table);
-            html_output.end_simplex_iteration();
-            return Ok(None);
-        } else if simplex_table.base_variable_names == last_base {
-            cycle_count += 1;
-        }
-        else {
-            last_base = simplex_table.base_variable_names.clone();
-            cycle_count = 0;
+        //Check if base was met MAX_CYCLE_ITERATIONS
+        hasher = FxHasher::default();
+        let base_hash = hasher.finish();
+
+        if let Some(visited_count) = visited_bases.get(&base_hash) {
+            if visited_count + 1 > MAX_CYCLE_ITERATIONS {
+                html_output.add_found_degenerate_column_cycle(simplex_table);
+                html_output.end_simplex_iteration();
+                return Ok(None);
+            } else {
+                visited_bases.insert(base_hash, visited_count + 1);
+            }
+        } else {
+            visited_bases.insert(base_hash, 1);
         }
 
         html_output.end_simplex_iteration();

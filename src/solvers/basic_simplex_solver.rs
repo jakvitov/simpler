@@ -2,10 +2,11 @@ use super::basic_simplex_table_data::BasicSimplexTable;
 use super::simplex_error::SimplexError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
-use crate::solvers::MAX_CYCLE_ITERATIONS;
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
-
-
+use crate::solvers::MAX_CYCLE_ITERATIONS;
+use std::collections::HashMap;
+use std::hash::{DefaultHasher, Hash, Hasher};
+use fxhash::FxHasher;
 
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
@@ -17,11 +18,21 @@ pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &
 }
 
 
+/// Solves table using simplex, but without header. Used also by other solvers for steps, that require primary simplex
 pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     let mut iteration_counter = 1;
     let mut gcd_cache = GcdCache::init();
-    let mut last_base = simplex_table.base_variable_names.clone();
-    let mut cycle_count:u8 = 0;
+
+    //We hash the bases and store how many times we met them.
+    //Hashing is used to prevent hash map storing all the vectors as keys
+    //FxHasher is deterministic in opposition to rusts DefaultHasher
+    let mut hasher = FxHasher::default();
+    simplex_table.base_variable_names.hash(&mut hasher);
+    let base_hash = hasher.finish();
+
+    let mut visited_bases: HashMap<u64, u8> = HashMap::new();
+    visited_bases.insert(base_hash, 1);
+
     loop {
 
         let pessimal_column = check_optimity(simplex_table);
@@ -52,17 +63,21 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         iteration_counter += 1;
         html_output.end_simplex_iteration();
 
-        //We cycle
-        if simplex_table.base_variable_names == last_base && cycle_count + 1 == MAX_CYCLE_ITERATIONS {
-            html_output.add_found_degenerate_column_cycle(simplex_table);
-            html_output.end_simplex_iteration();
-            return Ok(None);
-        } else if simplex_table.base_variable_names == last_base {
-            cycle_count += 1;
-        }
-        else {
-            last_base = simplex_table.base_variable_names.clone();
-            cycle_count = 0;
+
+        //Check if base was met MAX_CYCLE_ITERATIONS
+        hasher = FxHasher::default();
+        let base_hash = hasher.finish();
+
+        if let Some(visited_count) = visited_bases.get(&base_hash) {
+            if visited_count + 1 > MAX_CYCLE_ITERATIONS {
+                html_output.add_found_degenerate_column_cycle(simplex_table);
+                html_output.end_simplex_iteration();
+                return Ok(None);
+            } else {
+                visited_bases.insert(base_hash, visited_count + 1);
+            }
+        } else {
+            visited_bases.insert(base_hash, 1);
         }
     }
 }
@@ -167,7 +182,10 @@ mod tests {
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::{GcdCache, Rational};
     use crate::solvers::basic_simplex_solver::{basic_simplex_gauss_elimination, get_pivot, get_t_vector, solve_basic_simplex};
-    use crate::solvers::basic_simplex_table_data::test_utils::create_unbounded_simplex_table;
+    use crate::solvers::basic_simplex_table_data::test_utils::{create_cycling_simplex_table, create_unbounded_simplex_table};
+    use std::fs;
+    use std::hash::{Hash, Hasher};
+    use fxhash::{hash, FxHasher};
 
     #[test]
     fn get_pivot_suceeds() {
@@ -241,4 +259,14 @@ mod tests {
         assert!(res.is_none());
     }
 
+    #[test]
+    fn check_simplex_with_cycle_fails() {
+        let mut simplex_table = create_cycling_simplex_table();
+        let mut html_output = HtmlOutput::with_application_header();
+        let res = solve_basic_simplex(&mut simplex_table, &mut html_output);
+        fs::write("check_simplex_with_cycle_fails.html",html_output.to_string());
+        assert!(res.is_ok());
+        assert!(res.unwrap().is_none());
+        assert!(html_output.to_string().contains("Cycle"));
+    }
 }
