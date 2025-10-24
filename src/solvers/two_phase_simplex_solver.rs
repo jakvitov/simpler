@@ -3,13 +3,13 @@ use std::hash::{Hash, Hasher};
 use fxhash::FxHasher;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::document::html_output::HtmlOutput;
-use crate::rationals::{GcdCache, Rational};
-use crate::solvers::{basic_simplex_solver, MAX_CYCLE_ITERATIONS};
+use crate::rationals::{GcdCache, NumericalError, Rational};
+use crate::solvers::{basic_simplex_solver};
 use crate::solvers::basic_simplex_solver::solve_basic_simplex_table;
 use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use crate::solvers::simplex_error::SimplexError;
 use crate::solvers::SimplexSoverAlgorithm::TWO_PHASE_SIMPLEX;
-
+use crate::utils::env_parameters::ApplicationEnvParameter;
 /*
   Solver, which solves simplex problem, given by simplex table with filled auxiliary variables, using
   two-phase simplex method.
@@ -47,7 +47,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     let mut visited_bases: HashMap<u64, u8> = HashMap::new();
     let mut hasher = FxHasher::default();
     simplex_table.base_variable_names.hash(&mut hasher);
-    let mut last_base_hash = hasher.finish();
+    let last_base_hash = hasher.finish();
     visited_bases.insert(last_base_hash, 1);
 
     loop {
@@ -81,8 +81,11 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         hasher = FxHasher::default();
         let base_hash = hasher.finish();
 
+        //Check if base was met MAX_CYCLE_ITERATIONS
+        hasher = FxHasher::default();
+        let base_hash = hasher.finish();
         if let Some(visited_count) = visited_bases.get(&base_hash) {
-            if visited_count + 1 > MAX_CYCLE_ITERATIONS {
+            if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x))).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
                 html_output.add_found_degenerate_column_cycle(simplex_table);
                 html_output.end_simplex_iteration();
                 return Ok(None);
@@ -93,7 +96,10 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
             visited_bases.insert(base_hash, 1);
         }
 
-        html_output.end_simplex_iteration();
+        let limit = ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x))).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
+        if u8::try_from(iteration_counter).map_err(|e| Box::new(NumericalError::from(e))).map_err(|e| e as Box<dyn HtmlConvertibleError>)? == limit {
+            html_output.maximum_iterations_reached(simplex_table, limit);
+        };
     }
     
     //Phase II
@@ -107,7 +113,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     }
 
 
-    let coefficient = solve_basic_simplex_table(simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
+    let coefficient = solve_basic_simplex_table(simplex_table, html_output, Some(iteration_counter)).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
     if let Some(coefficient) = coefficient {
         if simplex_table.optimization_type == OptimizationType::MIN {
             html_output.add_target_value_negation_for_min_simplex(&coefficient);

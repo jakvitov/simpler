@@ -3,10 +3,11 @@ use super::simplex_error::SimplexError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, NumericalError, Rational};
 use crate::solvers::SimplexSoverAlgorithm::BASIC_SIMPLEX;
-use crate::solvers::MAX_CYCLE_ITERATIONS;
 use std::collections::HashMap;
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::hash::{Hash, Hasher};
 use fxhash::FxHasher;
+use crate::document::html_convertible_error::HtmlConvertibleError;
+use crate::utils::env_parameters::ApplicationEnvParameter;
 
 /// Solve the given simplex table using the basic simplex algoritm
 /// Both simplex table and html output are edited
@@ -14,13 +15,14 @@ use fxhash::FxHasher;
 /// Since all errors are added to the
 pub fn solve_basic_simplex(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
     html_output.add_simplex_solver_header(BASIC_SIMPLEX);
-    solve_basic_simplex_table(simplex_table, html_output)
+    solve_basic_simplex_table(simplex_table, html_output, None)
 }
 
 
 /// Solves table using simplex, but without header. Used also by other solvers for steps, that require primary simplex
-pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<NumericalError>> {
-    let mut iteration_counter = 1;
+/// If iteration limit is not specified, default will be used
+pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, html_output: &mut HtmlOutput, iteration_limit: Option<usize> ) -> Result<Option<Rational>, Box<NumericalError>> {
+    let mut iteration_counter:usize = 1;
     let mut gcd_cache = GcdCache::init();
 
     //We hash the bases and store how many times we met them.
@@ -67,9 +69,8 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         //Check if base was met MAX_CYCLE_ITERATIONS
         hasher = FxHasher::default();
         let base_hash = hasher.finish();
-
         if let Some(visited_count) = visited_bases.get(&base_hash) {
-            if visited_count + 1 > MAX_CYCLE_ITERATIONS {
+            if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
                 html_output.add_found_degenerate_column_cycle(simplex_table);
                 html_output.end_simplex_iteration();
                 return Ok(None);
@@ -79,8 +80,15 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         } else {
             visited_bases.insert(base_hash, 1);
         }
+
+        let limit = ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?;
+        if u8::try_from(iteration_counter).map_err(|e| Box::new(NumericalError::from(e)))? == limit {
+            html_output.maximum_iterations_reached(simplex_table, limit);
+        };
     }
 }
+
+
 
 /// Perform one simplex iteration with output to the HtmlOutput
 pub(super) fn basic_simplex_gauss_elimination(simplex_table: &mut BasicSimplexTable, pivot: &(usize, usize),
@@ -185,7 +193,6 @@ mod tests {
     use crate::solvers::basic_simplex_table_data::test_utils::{create_cycling_simplex_table, create_unbounded_simplex_table};
     use std::fs;
     use std::hash::{Hash, Hasher};
-    use fxhash::{hash, FxHasher};
 
     #[test]
     fn get_pivot_suceeds() {

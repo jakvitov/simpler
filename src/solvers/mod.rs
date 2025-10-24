@@ -1,3 +1,4 @@
+use std::env;
 use std::fmt::{Display, Formatter};
 
 pub mod basic_simplex_table_data;
@@ -8,8 +9,6 @@ mod two_phase_simplex_solver;
 
 pub use basic_simplex_solver::solve_basic_simplex;
 pub use two_phase_simplex_solver::solve_two_phase_simplex;
-
-pub const MAX_CYCLE_ITERATIONS: u8 = 2;
 
 pub enum SimplexSoverAlgorithm {
     BASIC_SIMPLEX,
