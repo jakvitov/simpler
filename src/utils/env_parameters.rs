@@ -20,7 +20,7 @@ impl Display for ApplicationEnvParameter {
 
 impl ApplicationEnvParameter {
 
-    fn default(&self) -> String {
+    pub fn default(&self) -> String {
         match self {
             ApplicationEnvParameter::MaxIterationsLimit => 100.to_string(),
             ApplicationEnvParameter::MaxCycleIterations => 3.to_string(),

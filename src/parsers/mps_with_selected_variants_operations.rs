@@ -305,6 +305,6 @@ mod tests {
         env::set_var(ApplicationEnvParameter::MaxVariableLength.to_string(), "2");
         let too_long = "AHOJ".to_owned();
         assert!(!is_variable_name_legal(&too_long));
-        env::set_var(ApplicationEnvParameter::MaxVariableLength.to_string(), ApplicationEnvParameter::MaxVariableLength.get_or_default());
+        env::set_var(ApplicationEnvParameter::MaxVariableLength.to_string(), ApplicationEnvParameter::MaxVariableLength.default());
     }
 }
