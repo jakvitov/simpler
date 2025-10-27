@@ -127,7 +127,7 @@ fn is_variable_name_legal(variable_name: &String) -> bool {
            return false;
        }
     }
-    
+
     let mut all_numeric = true;
     if variable_name.to_lowercase().starts_with("s") || variable_name.to_lowercase().starts_with("a"){
         for i in variable_name[1..].chars() {
@@ -144,12 +144,13 @@ fn is_variable_name_legal(variable_name: &String) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use super::super::mps::test_utils::create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives;
     use crate::parsers::mps::{BoundType, MpsModelWithSelectedVariants};
     use crate::parsers::mps_with_selected_variants_operations::is_variable_name_legal;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::OptimizationType;
-
+    use crate::utils::env_parameters::ApplicationEnvParameter;
     // #[test]
     // fn convert_initially_unfeasible_rhs_constraints_and_bounds_succeeds() {
     //     let mut model = create_simple_mps_model_for_test_multiple_bounds_multiple_rhs_multiple_objectives();
@@ -297,7 +298,13 @@ mod tests {
         assert!(!is_variable_name_legal(&illegal2));
         assert!(!is_variable_name_legal(&illegal3));
         assert!(!is_variable_name_legal(&illegal4));
-
     }
 
+    #[test]
+    fn is_variable_name_legal_fails_for_too_long() {
+        env::set_var(ApplicationEnvParameter::MaxVariableLength.to_string(), "2");
+        let too_long = "AHOJ".to_owned();
+        assert!(!is_variable_name_legal(&too_long));
+        env::set_var(ApplicationEnvParameter::MaxVariableLength.to_string(), ApplicationEnvParameter::MaxVariableLength.get_or_default());
+    }
 }
