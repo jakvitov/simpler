@@ -70,7 +70,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
             return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
         
-        //Check if base was met MAX_CYCLE_ITERATIONS
+        //Check if base was met MaxCycleIterations
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, iteration_limit, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
             return Ok(None)
         }
@@ -83,7 +83,7 @@ pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64
     let hasher = FxHasher::default();
     let base_hash = hasher.finish();
     if let Some(visited_count) = visited_bases.get(&base_hash) {
-        if visited_count + 1 > ApplicationEnvParameter::MAX_CYCLE_ITERATIONS.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
+        if visited_count + 1 > ApplicationEnvParameter::MaxCycleIterations.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
             html_output.add_found_degenerate_column_cycle();
             html_output.end_simplex_iteration();
             return Ok(true);
@@ -94,7 +94,7 @@ pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64
         visited_bases.insert(base_hash, 1);
     }
 
-    let limit = iteration_limit.unwrap_or(ApplicationEnvParameter::MAX_ITERATIONS_LIMIT.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?);
+    let limit = iteration_limit.unwrap_or(ApplicationEnvParameter::MaxIterationsLimit.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?);
     if iteration_counter == limit {
         html_output.maximum_iterations_reached(limit);
     };
