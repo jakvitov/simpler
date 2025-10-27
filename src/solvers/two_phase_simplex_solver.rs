@@ -82,7 +82,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
             return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
 
-        //Check if base was met MAX_CYCLE_ITERATIONS
+        //Check if base was met MaxCycleIterations
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
             return Ok(None)
         }
