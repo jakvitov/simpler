@@ -33,6 +33,10 @@ impl ParserError {
     pub fn from_string_message(message: String, structure: &str) -> Self {
         ParserError { message: message, structure: String::from(structure)}
     }
+
+    pub fn from_string_structure_message(message: String, structure: String) -> Self {
+        ParserError { message, structure }
+    }
 }
 
 impl HtmlConvertibleError for ParserError {

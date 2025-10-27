@@ -48,7 +48,7 @@ impl MpsModelWithSelectedVariants {
         //Column variables don't have none existent rows and are legal
         for (variable_name, variable_values) in &self.model.columns.variables {
             if !is_variable_name_legal(variable_name) {
-                return Err(Box::new(ParserError::from_string_structure("Variable name is illegal. Letters A,a,S,s followed by numbers are reserved for slack, surplus and artificial variable.", format!("Failing variable name: {}.", variable_name))));
+                return Err(Box::new(ParserError::from_string_structure_message(format!("Variable name is illegal. Letters A,a,S,s followed by numbers are reserved for slack, surplus and artificial variable. Maximal variable length is {}", MaxVariableLength.get_or_default()), format!("Failing variable name: {}.", variable_name))));
             }
             for (row_name, _) in variable_values {
                 if !row_names_set.contains(row_name) {
