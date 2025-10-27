@@ -5,6 +5,9 @@ use crate::rationals::Rational;
 use crate::solvers::simplex_error::SimplexError;
 use indexmap::IndexMap;
 use std::collections::HashSet;
+use log::{debug, log, warn};
+use crate::utils::env_parameters::ApplicationEnvParameter;
+use crate::utils::env_parameters::ApplicationEnvParameter::MaxVariableLength;
 
 impl MpsModelWithSelectedVariants {
 
@@ -115,6 +118,16 @@ impl MpsModelWithSelectedVariants {
 /// Return true if variable name is legal
 /// Illegal variable names are S\d+, s\d+ , A\d+, a\d+
 fn is_variable_name_legal(variable_name: &String) -> bool {
+    let max_var_length = ApplicationEnvParameter::get_as_usize(&MaxVariableLength);
+    debug_assert!(max_var_length.is_some());
+    warn!("Max variable length could not be parsed as usize!");
+    if let Some(max_var_length) = max_var_length {
+       if variable_name.len() > max_var_length {
+           warn!("Variable name is too long!. Variable {variable_name}");
+           return false;
+       }
+    }
+    
     let mut all_numeric = true;
     if variable_name.to_lowercase().starts_with("s") || variable_name.to_lowercase().starts_with("a"){
         for i in variable_name[1..].chars() {

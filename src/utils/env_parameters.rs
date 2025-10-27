@@ -42,6 +42,12 @@ impl ApplicationEnvParameter {
             a
         }
     }
+
+    pub fn get_as_usize(&self) -> Option<usize> {
+        let param = self.get_or_default();
+        let pram_num = param.parse::<usize>().ok();
+        pram_num
+    }
 }
 
 #[cfg(test)]
