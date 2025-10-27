@@ -66,6 +66,7 @@ mod tests {
         env::set_var("MaxIterationsLimit", "101");
         let p = MaxIterationsLimit.get_or_default();
         assert_eq!(p, "101");
+        env::remove_var("MaxIterationsLimit");
     }
 
 }
