@@ -19,6 +19,8 @@ impl RationalMatrix {
         RationalMatrix{data}
     }
 
+    /// Create matrix from rows
+    /// Return Option::empty() in case of different row lengths
     pub fn from_rows(data: Vec<Vec<Rational>>) -> Option<RationalMatrix> {
         if data.is_empty() || data.len() == 1 {
             return Some(RationalMatrix { data })
@@ -42,10 +44,15 @@ impl RationalMatrix {
         &self.data[m][n]
     }
 
+    /// dim(rows,cols)
     pub fn dim(&self) -> (usize, usize) {
+        if self.data.is_empty() {
+            return (0, 0);
+        }
         (self.data.len(), self.data[0].len())
     }
 
+    ///Multiply given matrices, yield new result as newly allocated matrix
     pub fn mul(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
         if lhs.dim().1 != rhs.dim().0 {
             return Err(Box::new(NumericalError::new("Cannot multiply matrixes, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
@@ -62,6 +69,17 @@ impl RationalMatrix {
             }
         }
         Ok(res)
+    }
+
+    /// Return new matrix as transpose of slef
+    pub fn transpose(&self) -> RationalMatrix {
+        let mut res = Self::from_value(self.dim().1, self.dim().0, Rational::zero());
+        for i in 0..self.dim().0 {
+            for j in 0..self.dim().1 {
+                res.data[j][i] = self.data[i][j];
+            }
+        }
+        res
     }
 }
 
@@ -100,16 +118,23 @@ mod tests {
         let a = RationalMatrix::from_rows(rows);
         assert!(a.is_none());
     }
-   #[test]
-   fn vector_multiplication_succeeds() {
+
+    #[test]
+    fn dim_for_empty_matrix_succeeds() {
+        let a = RationalMatrix::from_value(0,0, Rational::zero());
+        assert_eq!(a.dim(), (0,0));
+    }
+
+    #[test]
+    fn vector_multiplication_succeeds() {
        let mut gcd_cache = GcdCache::init();
        let a = RationalMatrix::from_value(1,2, Rational::from_integer(2));
        let b = RationalMatrix::from_value(2,1, Rational::from_integer(1));
        assert_eq!(RationalMatrix::mul(&a,&b, &mut gcd_cache).expect("Error"), RationalMatrix::from_value(1,1, Rational::from_integer(4)));
-   }
+    }
 
-   #[test]
-   fn matrix_multiplication_succeeds() {
+    #[test]
+    fn matrix_multiplication_succeeds() {
        let mut gcd_cache = GcdCache::init();
        let mut a_rows = Vec::with_capacity(2);
        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2)]);
@@ -140,7 +165,7 @@ mod tests {
        let d = d.unwrap();
 
        assert_eq!(c, d);
-   }
+    }
 
     #[test]
     fn matrix_multiplication_fails_for_wrong_dimensions() {
@@ -161,6 +186,34 @@ mod tests {
 
         let c = RationalMatrix::mul(&a, &b, &mut gcd_cache);
         assert!(c.is_err());
-
     }
+
+    #[test]
+    fn matrix_transpose_succeeds_for_nonempty_matrix() {
+        let mut a_rows = Vec::with_capacity(2);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(4), Rational::from_integer(6)]);
+        a_rows.push(vec![Rational::from_integer(5), Rational::from_integer(3), Rational::from_integer(2)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+        let at = a.transpose();
+
+        let mut a_transposed_rows = Vec::with_capacity(2);
+        a_transposed_rows.push(vec![Rational::from_integer(1), Rational::from_integer(5)]);
+        a_transposed_rows.push(vec![Rational::from_integer(4), Rational::from_integer(3)]);
+        a_transposed_rows.push(vec![Rational::from_integer(6), Rational::from_integer(2)]);
+        let a_transposed = RationalMatrix::from_rows(a_transposed_rows);
+        assert!(a_transposed.is_some());
+        let a_transposed = a_transposed.unwrap();
+
+        assert_eq!(at, a_transposed);
+    }
+
+    #[test]
+    fn matrix_transpose_suceeds_for_empty_matrix() {
+        let empty_matrix = RationalMatrix::from_value(0,0, Rational::from_integer(1));
+        let b = empty_matrix.transpose();
+        assert_eq!(b,  RationalMatrix::from_value(0,0, Rational::from_integer(10)))
+    }
+
 }
