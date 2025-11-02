@@ -55,7 +55,7 @@ impl RationalMatrix {
     ///Multiply given matrices, yield new result as newly allocated matrix
     pub fn mul(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
         if lhs.dim().1 != rhs.dim().0 {
-            return Err(Box::new(NumericalError::new("Cannot multiply matrixes, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
+            return Err(Box::new(NumericalError::new("Cannot multiply matrices, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
         }
         let mut res = Self::from_value(lhs.dim().0, rhs.dim().1, Rational::zero());
         for lhs_row in 0..lhs.dim().0 {
@@ -66,6 +66,22 @@ impl RationalMatrix {
                     sum.add_mut(&mul_res, gcd_cache)?;
                 }
                 res.data[lhs_row][rhs_col] = sum;
+            }
+        }
+        Ok(res)
+    }
+
+    /// Return new matrix with addition of the lhs + rhs
+    /// Fails on incompatible dimensions or addition failure
+    pub fn add(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
+        if lhs.dim() != rhs.dim() {
+            return Err(Box::new(NumericalError::new("Cannot add matrices, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
+        }
+
+        let mut res = lhs.clone();
+        for i in 0..lhs.dim().0 {
+            for j in 0..lhs.dim().1 {
+                res.data[i][j].add_mut(rhs.get(i, j), gcd_cache)?;
             }
         }
         Ok(res)
@@ -111,6 +127,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::vec_init_then_push)]
     fn matrix_from_diff_length_rows_succeeds(){
         let mut rows = Vec::new();
         rows.push(vec![Rational::zero(), Rational::zero()]);
@@ -134,6 +151,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::vec_init_then_push)]
     fn matrix_multiplication_succeeds() {
        let mut gcd_cache = GcdCache::init();
        let mut a_rows = Vec::with_capacity(2);
@@ -168,6 +186,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::vec_init_then_push)]
     fn matrix_multiplication_fails_for_wrong_dimensions() {
         let mut gcd_cache = GcdCache::init();
         let mut a_rows = Vec::with_capacity(1);
@@ -189,6 +208,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::vec_init_then_push)]
     fn matrix_transpose_succeeds_for_nonempty_matrix() {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(4), Rational::from_integer(6)]);
@@ -214,6 +234,43 @@ mod tests {
         let empty_matrix = RationalMatrix::from_value(0,0, Rational::from_integer(1));
         let b = empty_matrix.transpose();
         assert_eq!(b,  RationalMatrix::from_value(0,0, Rational::from_integer(10)))
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn matrix_addition_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+
+        let mut b_rows = Vec::with_capacity(2);
+        b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        b_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(5)]);
+
+        let b = RationalMatrix::from_rows(b_rows);
+        assert!(b.is_some());
+        let b = b.unwrap();
+
+        let c = RationalMatrix::add(&b, &b, &mut gcd_cache);
+        assert!(c.is_ok());
+        let c = c.unwrap();
+
+        let mut d_rows = Vec::with_capacity(2);
+        d_rows.push(vec![Rational::from_integer(2), Rational::from_integer(4), Rational::from_integer(6)]);
+        d_rows.push(vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(10)]);
+
+        let d = RationalMatrix::from_rows(d_rows);
+        assert!(d.is_some());
+        let d = d.unwrap();
+
+        assert_eq!(c,d);
+    }
+
+    #[test]
+    fn matrix_addition_for_different_lengths_fails() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(2,2, Rational::from_integer(1));
+        let b = RationalMatrix::from_value(3,2, Rational::from_integer(3));
+        let c = RationalMatrix::add(&a, &b, &mut gcd_cache);
+        assert!(c.is_err());
     }
 
 }
