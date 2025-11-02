@@ -141,4 +141,26 @@ mod tests {
 
        assert_eq!(c, d);
    }
+
+    #[test]
+    fn matrix_multiplication_fails_for_wrong_dimensions() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a_rows = Vec::with_capacity(1);
+        a_rows.push(vec![Rational::from_integer(1)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let mut b_rows = Vec::with_capacity(2);
+        b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        b_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(5)]);
+
+        let b = RationalMatrix::from_rows(b_rows);
+        assert!(b.is_some());
+        let b = b.unwrap();
+
+        let c = RationalMatrix::mul(&a, &b, &mut gcd_cache);
+        assert!(c.is_err());
+
+    }
 }
