@@ -81,7 +81,7 @@ impl Rational {
 
     /// self + other = self
     /// Self is mutated and other is added to it
-    pub fn add_to(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+    pub fn add_mut(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
         self.numerator = numerator;
@@ -355,7 +355,7 @@ mod tests {
         let mut a = Rational::new(1, 2);
         let b = Rational::new(1, 7);
 
-        a.add_to(&b, &mut gcd_cache).unwrap();
+        a.add_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 9, denominator: 14});
     }
@@ -366,7 +366,7 @@ mod tests {
         let mut a = Rational::new(1, 2);
         let b = Rational::new(3, 2);
 
-        a.add_to(&b, &mut gcd_cache).unwrap();
+        a.add_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 2, denominator: 1});
     }
