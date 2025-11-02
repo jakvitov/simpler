@@ -26,10 +26,10 @@ impl BasicSimplexTable {
             let coefficient = (self.objective_row[pivot.1].divide(&self.rows[pivot.0][pivot.1], gcd_cache)?).negate();
             for (index, target_row_value) in self.objective_row.iter_mut().enumerate() {
                 let add_val = self.rows[pivot.0][index].multiply(&coefficient, gcd_cache)?;
-                target_row_value.add_to(&add_val, gcd_cache)?;
+                target_row_value.add_mut(&add_val, gcd_cache)?;
             }
 
-            self.objective_rhs.add_to(&coefficient.multiply(&self.rhs[pivot.0], gcd_cache)?, gcd_cache)?;
+            self.objective_rhs.add_mut(&coefficient.multiply(&self.rhs[pivot.0], gcd_cache)?, gcd_cache)?;
             return Ok(coefficient)
         }
 
@@ -39,11 +39,11 @@ impl BasicSimplexTable {
         let (target_row, pivot_row) = get_two_rows_mut(&mut self.rows, target_row_index, pivot.0);
         for (index, target_row_value) in target_row.iter_mut().enumerate() {
             let add_val = pivot_row[index].multiply(&coefficient, gcd_cache)?;
-            target_row_value.add_to(&add_val, gcd_cache)?;
+            target_row_value.add_mut(&add_val, gcd_cache)?;
         }
 
         let (target_rhs, pivot_rhs) = get_two_elements_mut(&mut self.rhs, target_row_index, pivot.0);
-        target_rhs.add_to(&coefficient.multiply(pivot_rhs, gcd_cache)?, gcd_cache)?;
+        target_rhs.add_mut(&coefficient.multiply(pivot_rhs, gcd_cache)?, gcd_cache)?;
         Ok(coefficient)
     }
 }
