@@ -1,6 +1,7 @@
 mod rational;
 mod numerical_error;
 mod gcd_cache;
+mod rational_matrix;
 
 pub use gcd_cache::GcdCache;
 
