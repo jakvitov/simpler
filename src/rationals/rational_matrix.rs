@@ -176,9 +176,11 @@ impl RationalMatrix {
             }
         }
 
-
-
-        Ok(None)
+        if augmented_matrix.submatrix((0, 0), (self.dim().0-1, self.dim().1-1))?.is_unit_matrix() {
+            Ok(Some(augmented_matrix.submatrix((self.dim().0, self.dim().1), (augmented_matrix.dim().0-1, augmented_matrix.dim().1 - 1))?))
+        } else {
+            Ok(None)
+        }
     }
 
 
