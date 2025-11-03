@@ -9,10 +9,10 @@ impl BasicSimplexTable {
    pub  fn normalize_pivot_row(&mut self, pivot: &(usize, usize), gcd_cache: &mut GcdCache) -> Result<Rational, Box<NumericalError>> {
         let coefficient = (&self.rows[pivot.0][pivot.1]).invert();
         for  i in &mut self.rows[pivot.0] {
-            i.multiply_by(&coefficient, gcd_cache)?;
+            i.multiply_mut(&coefficient, gcd_cache)?;
         }
 
-        self.rhs[pivot.0].multiply_by(&coefficient, gcd_cache)?;
+        self.rhs[pivot.0].multiply_mut(&coefficient, gcd_cache)?;
         Ok(coefficient)
     }
 
