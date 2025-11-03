@@ -53,6 +53,12 @@ impl Rational {
         Self::new(self.denominator, self.numerator)
     }
 
+    pub fn invert_mut(&mut self) {
+        let temp = self.denominator;
+        self.denominator = self.numerator;
+        self.numerator = temp;
+    }
+
     ///Reduce given rational
     /// 2/4 -> 1/2
     /// -2/4 -> -1/4
@@ -694,5 +700,12 @@ mod tests {
         let res2 = num2.to_mmdn_with_sign();
         assert_eq!(res, "\n<mo>-</mo>\n<mn>2</mn>\n");
         assert_eq!(res2, "\n<mo>-</mo>\n<mfrac><mn>1</mn><mn>5</mn></mfrac>\n");
+    }
+
+    #[test]
+    fn inverse_mut_suceeds() {
+        let mut num = Rational::new(2, 3);
+        num.invert_mut();
+        assert_eq!(num, Rational::new(2, 3));
     }
 }

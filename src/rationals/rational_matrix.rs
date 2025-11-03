@@ -103,9 +103,7 @@ impl RationalMatrix {
         let zero = Rational::zero();
         for i in 0..self.dim().0 {
             for j in 0..self.dim().1 {
-                if i == j && self.data[i][j] != one {
-                    return false;
-                } else if i != j && self.data[i][j] != zero {
+                if (i == j && self.data[i][j] != one) || (i != j && self.data[i][j] != zero) {
                     return false;
                 }
             }
@@ -121,8 +119,25 @@ impl RationalMatrix {
         if self.dim().0 != self.dim().1 {
             return Ok(None);
         }
-
+        if self.dim().0 == 1 {
+            return Ok(Some(RationalMatrix::from_value(1,1,self.data[0][0].invert())))
+        }
+        if self.dim().0 == 2 {
+            return Ok(Some(self.construct_inverse_matrix_for_two_by_two_matrix()));
+        }
         Ok(None)
+    }
+
+    fn construct_inverse_matrix_for_two_by_two_matrix(&self) -> RationalMatrix {
+        debug_assert_eq!(self.dim(), (2,2));
+        let mut res = self.clone();
+        let temp = res.data[1][1];
+        res.data[1][1] = res.data[0][0];
+        res.data[0][0] = temp;
+
+        res.data[0][1].invert_mut();
+        res.data[1][0].invert_mut();
+        res
     }
 }
 
@@ -324,6 +339,36 @@ mod tests {
         let a = a.unwrap();
 
         assert!(!a.is_unit_matrix());
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn inverse_matrix_for_two_by_two_matrix_succeeds() {
+        let mut a_rows = Vec::with_capacity(2);
+        a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(3)]);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(1)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let mut b_rows = Vec::with_capacity(2);
+        b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(-3)]);
+        b_rows.push(vec![Rational::from_integer(-1), Rational::from_integer(4)]);
+        let b = RationalMatrix::from_rows(b_rows);
+        assert!(b.is_some());
+        let b = b.unwrap();
+    }
+
+    #[test]
+    fn inverse_matrix_for_one_by_one_matrix_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
+        let b = a.inverse(&mut gcd_cache);
+        assert!(b.is_ok());
+        let b = b.unwrap();
+        assert!(b.is_some());
+        let b = b.unwrap();
+        assert_eq!(b.data[0][0], Rational::new(1,2));
     }
 
 }
