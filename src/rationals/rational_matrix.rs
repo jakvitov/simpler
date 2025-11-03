@@ -52,6 +52,24 @@ impl RationalMatrix {
         (self.data.len(), self.data[0].len())
     }
 
+    /// Return new RationalMatrix as copy submatrix of size dims
+    /// Start at start
+    /// Return error if dimensions are not compatible (dims < self.dim)
+    pub fn submatrix(&self, dims: (usize, usize), start: (usize, usize)) -> Result<RationalMatrix, Box<NumericalError>> {
+        if self.dim().0 <= (dims.0 + start.0) || self.dim().1 <= (dims.1 + start.1) {
+            return Err(Box::new(NumericalError::new("Incompatible dimenstions for submatrix. Must be smaller than original matrix.", format!("Original {}x{}. Submatrix bounds {}x{}.", self.dim().0, self.dim().1, dims.0 + start.0, dims.1 + start.1))));
+        }
+        let mut res = RationalMatrix::from_value(dims.0 + 1, dims.1 + 1, Rational::zero());
+
+        for i in 0..=dims.0 {
+            for j in 0..=dims.1 {
+                res.data[i][j] = self.data[start.0 + i][start.1 + j];
+            }
+        }
+
+        Ok(res)
+    }
+
     ///Multiply given matrices, yield new result as newly allocated matrix
     pub fn mul(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
         if lhs.dim().1 != rhs.dim().0 {
@@ -125,7 +143,49 @@ impl RationalMatrix {
         if self.dim().0 == 2 {
             return Ok(Some(self.construct_inverse_matrix_for_two_by_two_matrix()));
         }
+        self.gauss_jordan_inverse(gcd_cache)
+    }
+
+    fn gauss_jordan_inverse(&self, gcd_cache: &mut GcdCache) -> Result<Option<RationalMatrix>, Box<NumericalError>> {
+        let mut augmented_matrix = RationalMatrix::from_value(self.dim().0, self.dim().1 * 2, Rational::zero());
+        for i in 0..self.dim().0 {
+            for j in 0..self.dim().1 {
+                augmented_matrix.data[i][j] = self.data[i][j];
+            }
+            for j in (self.dim().1)..(self.dim().1 * 2) {
+                if i == j {
+                    augmented_matrix.data[i][j] = Rational::from_integer(1);
+                } else {
+                    augmented_matrix.data[i][j] = Rational::zero();
+                }
+            }
+        }
+
+        for i in 0..self.dim().0 {
+            if augmented_matrix.data[i][i] == Rational::zero() {
+                return Ok(None)
+            }
+            let coefficient = Rational::from_integer(1).divide(&augmented_matrix.data[i][i], gcd_cache)?;
+            augmented_matrix.data[i][i].multiply_mut(&coefficient, gcd_cache)?;
+
+            for j in 0..self.dim().0 {
+                if i != j {
+                    let coefficient = Rational::from_integer(1).divide(&augmented_matrix.data[j][i], gcd_cache)?;
+                    augmented_matrix.add_rows(i,j, coefficient, gcd_cache)?;
+                }
+            }
+        }
+
+
+
         Ok(None)
+    }
+
+
+
+    /// Add multiply * i to row j
+    fn add_rows(&mut self, i: usize, j: usize, multiply: Rational, gcd_cache: &GcdCache) -> Result<(), Box<NumericalError>> {
+        Ok(())
     }
 
     fn construct_inverse_matrix_for_two_by_two_matrix(&self) -> RationalMatrix {
@@ -369,6 +429,42 @@ mod tests {
         assert!(b.is_some());
         let b = b.unwrap();
         assert_eq!(b.data[0][0], Rational::new(1,2));
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn submatrix_succeeds() {
+        let mut a_rows = Vec::with_capacity(3);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
+        a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
+
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let b = a.submatrix((1,1), (1,1));
+        assert!(b.is_ok());
+        let b = b.unwrap();
+
+        assert_eq!(b.data[0], vec![Rational::from_integer(5), Rational::from_integer(6)]);
+        assert_eq!(b.data[1], vec![Rational::from_integer(8), Rational::from_integer(9)]);
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn submatrix_fails_for_wrong_dimensions() {
+        let mut a_rows = Vec::with_capacity(3);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
+        a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
+
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let b = a.submatrix((2,2), (1,1));
+        assert!(b.is_err());
     }
 
 }

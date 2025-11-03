@@ -119,7 +119,7 @@ impl Rational {
     }
     
     ///Mutate self as result of self * other
-    pub fn multiply_by(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+    pub fn multiply_mut(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         self.numerator = self.numerator * other.numerator;
         self.denominator = self.denominator * other.denominator;
         self.reduce(gcd_cache)?;
@@ -455,7 +455,7 @@ mod tests {
         let mut a = Rational::new(1, 7);
         let b = Rational::new(1, 1);
 
-        a.multiply_by(&b, &mut gcd_cache).unwrap();
+        a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 1, denominator: 7});
     }
@@ -466,7 +466,7 @@ mod tests {
         let mut a = Rational::new(6, 7);
         let b = Rational::new(33, 28);
 
-       a.multiply_by(&b, &mut gcd_cache).unwrap();
+       a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 99, denominator: 98});
     }
@@ -477,7 +477,7 @@ mod tests {
         let mut a = Rational::new(-6, -7);
         let b = Rational::new(-33, 28);
 
-        a.multiply_by(&b, &mut gcd_cache).unwrap();
+        a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: -99, denominator: 98});
     }
