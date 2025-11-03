@@ -97,6 +97,33 @@ impl RationalMatrix {
         }
         res
     }
+
+    pub fn is_unit_matrix(&self) -> bool {
+        let one = Rational::from_integer(1);
+        let zero = Rational::zero();
+        for i in 0..self.dim().0 {
+            for j in 0..self.dim().1 {
+                if i == j && self.data[i][j] != one {
+                    return false;
+                } else if i != j && self.data[i][j] != zero {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
+    ///Return new matrix as inverse of the current one
+    ///Return Ok(None) in case of singular matrix
+    ///Return Numerical error in case of numerical error during computation
+    pub fn inverse(&self, gcd_cache: &mut GcdCache) -> Result<Option<RationalMatrix>, Box<NumericalError>> {
+        if self.dim().0 != self.dim().1 {
+            return Ok(None);
+        }
+
+        Ok(None)
+    }
 }
 
 impl From<Vec<Vec<Rational>>> for RationalMatrix {
@@ -271,6 +298,32 @@ mod tests {
         let b = RationalMatrix::from_value(3,2, Rational::from_integer(3));
         let c = RationalMatrix::add(&a, &b, &mut gcd_cache);
         assert!(c.is_err());
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn is_unit_matrix_succeeds_for_unit_matrix() {
+        let mut a_rows = Vec::with_capacity(2);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
+        a_rows.push(vec![Rational::from_integer(0), Rational::from_integer(1), Rational::from_integer(0)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        assert!(a.is_unit_matrix());
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn is_unit_matrix_succeeds_for_non_unit_matrix() {
+        let mut a_rows = Vec::with_capacity(2);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(1), Rational::from_integer(0)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        assert!(!a.is_unit_matrix());
     }
 
 }
