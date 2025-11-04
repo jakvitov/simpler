@@ -54,8 +54,9 @@ impl RationalMatrix {
     }
 
     /// Return new RationalMatrix as copy submatrix of size dims
-    /// Start at start
-    /// Return error if dimensions are not compatible (dims < self.dim)
+    /// Start at start, dims show how many units are selected
+    /// If we start at (2,2) and select dims (1,1) items (2,2) until (3,3) are added
+    /// Return error if dimensions are not compatible (dims <= self.dim)
     pub fn submatrix(&self, dims: (usize, usize), start: (usize, usize)) -> Result<RationalMatrix, Box<NumericalError>> {
         if self.dim().0 <= (dims.0 + start.0) || self.dim().1 <= (dims.1 + start.1) {
             return Err(Box::new(NumericalError::new("Incompatible dimenstions for submatrix. Must be smaller than original matrix.", format!("Original {}x{}. Submatrix bounds {}x{}.", self.dim().0, self.dim().1, dims.0 + start.0, dims.1 + start.1))));
@@ -142,7 +143,12 @@ impl RationalMatrix {
             return Ok(Some(RationalMatrix::from_value(1,1,self.data[0][0].invert())))
         }
         if self.dim().0 == 2 {
-            return Ok(Some(self.construct_inverse_matrix_for_two_by_two_matrix()));
+            let res = self.construct_inverse_matrix_for_two_by_two_matrix();
+            let det = res.data[0][0].multiply(&res.data[1][1], gcd_cache)?.subtract(&res.data[0][1].multiply(&res.data[1][0], gcd_cache)?, gcd_cache)?;
+            if det == Rational::zero() {
+                return Ok(None);
+            }
+            return Ok(Some(res));
         }
         self.gauss_jordan_inverse(gcd_cache)
     }
