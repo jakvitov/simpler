@@ -53,6 +53,10 @@ impl Rational {
         Self::new(self.denominator, self.numerator)
     }
 
+    pub fn invert_mut(&mut self) {
+        std::mem::swap(&mut self.denominator, &mut self.numerator);
+    }
+
     ///Reduce given rational
     /// 2/4 -> 1/2
     /// -2/4 -> -1/4
@@ -81,7 +85,7 @@ impl Rational {
 
     /// self + other = self
     /// Self is mutated and other is added to it
-    pub fn add_to(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+    pub fn add_mut(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         let den_lcm = gcd_cache.lcm(self.denominator, other.denominator)?;
         let numerator = ((den_lcm/self.denominator)*self.numerator) + ((den_lcm/other.denominator)*other.numerator);
         self.numerator = numerator;
@@ -113,7 +117,7 @@ impl Rational {
     }
     
     ///Mutate self as result of self * other
-    pub fn multiply_by(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+    pub fn multiply_mut(&mut self, other: &Self, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
         self.numerator = self.numerator * other.numerator;
         self.denominator = self.denominator * other.denominator;
         self.reduce(gcd_cache)?;
@@ -355,7 +359,7 @@ mod tests {
         let mut a = Rational::new(1, 2);
         let b = Rational::new(1, 7);
 
-        a.add_to(&b, &mut gcd_cache).unwrap();
+        a.add_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 9, denominator: 14});
     }
@@ -366,7 +370,7 @@ mod tests {
         let mut a = Rational::new(1, 2);
         let b = Rational::new(3, 2);
 
-        a.add_to(&b, &mut gcd_cache).unwrap();
+        a.add_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 2, denominator: 1});
     }
@@ -449,7 +453,7 @@ mod tests {
         let mut a = Rational::new(1, 7);
         let b = Rational::new(1, 1);
 
-        a.multiply_by(&b, &mut gcd_cache).unwrap();
+        a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 1, denominator: 7});
     }
@@ -460,7 +464,7 @@ mod tests {
         let mut a = Rational::new(6, 7);
         let b = Rational::new(33, 28);
 
-       a.multiply_by(&b, &mut gcd_cache).unwrap();
+       a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: 99, denominator: 98});
     }
@@ -471,7 +475,7 @@ mod tests {
         let mut a = Rational::new(-6, -7);
         let b = Rational::new(-33, 28);
 
-        a.multiply_by(&b, &mut gcd_cache).unwrap();
+        a.multiply_mut(&b, &mut gcd_cache).unwrap();
 
         assert_eq!(a, Rational{numerator: -99, denominator: 98});
     }
@@ -694,5 +698,12 @@ mod tests {
         let res2 = num2.to_mmdn_with_sign();
         assert_eq!(res, "\n<mo>-</mo>\n<mn>2</mn>\n");
         assert_eq!(res2, "\n<mo>-</mo>\n<mfrac><mn>1</mn><mn>5</mn></mfrac>\n");
+    }
+
+    #[test]
+    fn inverse_mut_suceeds() {
+        let mut num = Rational::new(2, 3);
+        num.invert_mut();
+        assert_eq!(num, Rational::new(3, 2));
     }
 }
