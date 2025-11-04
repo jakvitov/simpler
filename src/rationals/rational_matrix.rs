@@ -140,6 +140,9 @@ impl RationalMatrix {
             return Ok(None);
         }
         if self.dim().0 == 1 {
+            if self.data[0][0] == Rational::zero() {
+                return Ok(None);
+            }
             return Ok(Some(RationalMatrix::from_value(1,1,self.data[0][0].invert())))
         }
         if self.dim().0 == 2 {
@@ -513,6 +516,16 @@ mod tests {
         assert!(b.is_some());
         let b = b.unwrap();
         assert_eq!(b.data[0][0], Rational::new(1,2));
+    }
+
+    #[test]
+    fn inverse_matrix_for_one_by_one_singular_matrix_fails() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(1,1, Rational::zero());
+        let b = a.inverse(&mut gcd_cache);
+        assert!(b.is_ok());
+        let b = b.unwrap();
+        assert!(b.is_none());
     }
 
     #[test]
