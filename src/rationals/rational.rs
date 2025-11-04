@@ -54,9 +54,7 @@ impl Rational {
     }
 
     pub fn invert_mut(&mut self) {
-        let temp = self.denominator;
-        self.denominator = self.numerator;
-        self.numerator = temp;
+        std::mem::swap(&mut self.denominator, &mut self.numerator);
     }
 
     ///Reduce given rational
@@ -706,6 +704,6 @@ mod tests {
     fn inverse_mut_suceeds() {
         let mut num = Rational::new(2, 3);
         num.invert_mut();
-        assert_eq!(num, Rational::new(2, 3));
+        assert_eq!(num, Rational::new(3, 2));
     }
 }
