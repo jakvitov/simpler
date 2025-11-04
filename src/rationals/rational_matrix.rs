@@ -1,4 +1,5 @@
 use std::iter;
+use crate::utils::collections::get_two_rows_mut;
 use super::GcdCache;
 use super::{NumericalError, Rational};
 
@@ -185,8 +186,16 @@ impl RationalMatrix {
 
 
 
-    /// Add multiply * i to row j
-    fn add_rows(&mut self, i: usize, j: usize, multiply: Rational, gcd_cache: &GcdCache) -> Result<(), Box<NumericalError>> {
+    /// Add coefficient * i to row j
+    fn add_rows(&mut self, i: usize, j: usize, coefficient: Rational, gcd_cache: &mut GcdCache) -> Result<(), Box<NumericalError>> {
+        if i >= self.dim().0 || j >= self.dim().0 {
+            return Err(Box::new(NumericalError::new("Row index out of matrix bounds.", format!("Matrix dimensions: {:?}, i:{}, j:{}", self.dim(), i, j))));
+        }
+
+        for k in 0..self.dim().1 {
+            let (j_row,i_row) = get_two_rows_mut(&mut self.data, j, i);
+            j_row[k].add_mut(&i_row[k].multiply(&coefficient, gcd_cache)?, gcd_cache)?;
+        }
         Ok(())
     }
 
@@ -467,6 +476,23 @@ mod tests {
 
         let b = a.submatrix((2,2), (1,1));
         assert!(b.is_err());
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn add_row_with_coefficient_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a_rows = Vec::with_capacity(3);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
+        a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
+
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let mut a = a.unwrap();
+
+        a.add_rows(0, 1, Rational::from_integer(2), &mut gcd_cache);
+        assert_eq!(a.data[1], vec![Rational::from_integer(6), Rational::from_integer(9), Rational::from_integer(12)]);
     }
 
 }
