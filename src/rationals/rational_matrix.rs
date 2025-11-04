@@ -495,4 +495,12 @@ mod tests {
         assert_eq!(a.data[1], vec![Rational::from_integer(6), Rational::from_integer(9), Rational::from_integer(12)]);
     }
 
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn add_rows_with_coefficient_fails_on_index_out_of_bounds() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
+        assert!(a.add_rows(2,2, Rational::from_integer(2), &mut gcd_cache).is_err());
+    }
+
 }
