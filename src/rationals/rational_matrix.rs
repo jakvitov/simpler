@@ -155,6 +155,7 @@ impl RationalMatrix {
 
     fn gauss_jordan_inverse(&self, gcd_cache: &mut GcdCache) -> Result<Option<RationalMatrix>, Box<NumericalError>> {
         let mut augmented_matrix = RationalMatrix::from_value(self.dim().0, self.dim().1 * 2, Rational::zero());
+        // Prepare augmented matrix in the right form
         for i in 0..self.dim().0 {
             for j in 0..self.dim().1 {
                 augmented_matrix.data[i][j] = self.data[i][j];
@@ -172,6 +173,7 @@ impl RationalMatrix {
             if augmented_matrix.data[i][i] == Rational::zero() {
                 return Ok(None)
             }
+            // Normalise the pivot to 1
             let coefficient = Rational::from_integer(1).divide(&augmented_matrix.data[i][i], gcd_cache)?;
             augmented_matrix.data[i][i].multiply_mut(&coefficient, gcd_cache)?;
 
@@ -183,8 +185,8 @@ impl RationalMatrix {
             }
         }
 
-        if augmented_matrix.submatrix((0, 0), (self.dim().0-1, self.dim().1-1))?.is_unit_matrix() {
-            Ok(Some(augmented_matrix.submatrix((self.dim().0, self.dim().1), (augmented_matrix.dim().0-1, augmented_matrix.dim().1 - 1))?))
+        if augmented_matrix.submatrix((0, 0), (self.dim().0, self.dim().1))?.is_unit_matrix() {
+            Ok(Some(augmented_matrix.submatrix((0, self.dim().1 + 1), (self.dim().0, self.dim().1))?))
         } else {
             Ok(None)
         }
@@ -212,8 +214,8 @@ impl RationalMatrix {
         res.data[1][1] = res.data[0][0];
         res.data[0][0] = temp;
 
-        res.data[0][1].invert_mut();
-        res.data[1][0].invert_mut();
+        res.data[0][1].negate_mut();
+        res.data[1][0].negate_mut();
         res
     }
 }
@@ -421,6 +423,7 @@ mod tests {
     #[test]
     #[allow(clippy::vec_init_then_push)]
     fn inverse_matrix_for_two_by_two_matrix_succeeds() {
+        let mut gcd_cache = GcdCache::init();
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(3)]);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(1)]);
@@ -428,13 +431,38 @@ mod tests {
         assert!(a.is_some());
         let a = a.unwrap();
 
+        let a_inv = a.inverse(&mut gcd_cache);
+        assert!(a_inv.is_ok());
+        let a_inv = a_inv.unwrap();
+        assert!(a_inv.is_some());
+        let a_inv = a_inv.unwrap();
+
         let mut b_rows = Vec::with_capacity(2);
         b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(-3)]);
         b_rows.push(vec![Rational::from_integer(-1), Rational::from_integer(4)]);
         let b = RationalMatrix::from_rows(b_rows);
         assert!(b.is_some());
         let b = b.unwrap();
+
+        assert_eq!(a_inv, b);
     }
+
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn inverse_matrix_for_two_by_two_singular_matrix_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a_rows = Vec::with_capacity(2);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0)]);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let b = a.inverse(&mut gcd_cache).unwrap();
+        assert!(b.is_none());
+    }
+
 
     #[test]
     fn inverse_matrix_for_one_by_one_matrix_succeeds() {
