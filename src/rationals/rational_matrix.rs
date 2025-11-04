@@ -173,7 +173,7 @@ impl RationalMatrix {
             augmented_matrix.data[i].iter_mut().try_for_each(|x| x.multiply_mut(&coefficient, gcd_cache))?;
 
             for j in 0..self.dim().0 {
-                if i != j {
+                if i != j && augmented_matrix.data[j][i] != Rational::zero() {
                     let coefficient = augmented_matrix.data[j][i].negate();
                     augmented_matrix.add_rows(i,j, coefficient, gcd_cache)?;
                 }
@@ -484,6 +484,22 @@ mod tests {
         assert_eq!(b.data[0], vec![Rational::new(-5, 12), Rational::new(1,4), Rational::new(1,3)]);
         assert_eq!(b.data[1], vec![Rational::new(7, 12), Rational::new(1,4), Rational::new(-2,3)]);
         assert_eq!(b.data[2], vec![Rational::new(1, 12), Rational::new(-1,4), Rational::new(1,3)]);
+    }
+
+    #[test]
+    #[allow(clippy::vec_init_then_push)]
+    fn inverse_matrix_by_gauss_jordan_elimination_fails_for_singular_matrix() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a_rows = Vec::with_capacity(3);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
+        a_rows.push(vec![Rational::from_integer(0), Rational::from_integer(0), Rational::from_integer(1)]);
+        a_rows.push(vec![Rational::from_integer(2), Rational::from_integer(0), Rational::from_integer(1)]);
+        let a = RationalMatrix::from_rows(a_rows);
+        assert!(a.is_some());
+        let a = a.unwrap();
+
+        let b = a.gauss_jordan_inverse(&mut gcd_cache).unwrap();
+        assert!(b.is_none());
     }
 
 
