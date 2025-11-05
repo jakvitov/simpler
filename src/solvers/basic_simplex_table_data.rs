@@ -424,7 +424,7 @@ pub mod test_utils {
         column_variable_names.insert("x1".to_string(), 0);
         column_variable_names.insert("x2".to_string(), 1);
         column_variable_names.insert("S1".to_string(), 2);
-        column_variable_names.insert("S2".to_string(), 2);
+        column_variable_names.insert("S2".to_string(), 3);
         BasicSimplexTable {
             base_variable_names: vec!["S1".to_owned(), "S2".to_owned()],
             column_variable_names:  column_variable_names,
