@@ -36,6 +36,10 @@ impl RationalMatrix {
         }
         Some(RationalMatrix {data})
     }
+    
+    pub fn empty() -> RationalMatrix {
+        RationalMatrix { data: vec![] }
+    }
 
     pub fn get_row(&self, i: usize) -> &Vec<Rational> {
         &self.data[i]
