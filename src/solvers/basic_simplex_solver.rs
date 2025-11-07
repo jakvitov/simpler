@@ -78,6 +78,7 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
 }
 
 /// Return true if check failed
+/// if iteration_limit is None, then it is obtained from the env parameter
 /// In case of check failing, message with cycle or iteration limit exceeded is added to html output
 pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64, u8>, iteration_counter: u8, iteration_limit: Option<u8>, simplex_table: &BasicSimplexTable, html_output: &mut HtmlOutput) -> Result<bool, Box<NumericalError>> {
     let hasher = FxHasher::default();

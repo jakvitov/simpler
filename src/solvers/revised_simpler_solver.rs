@@ -5,9 +5,20 @@ use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 use crate::solvers::SimplexSoverAlgorithm::REVISED_SIMPLEX;
 use crate::utils::ApplicationError;
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
+use fxhash::FxHasher;
+use crate::solvers::basic_simplex_solver::cycle_or_iterations_limit_exceeded;
 
 pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cache: &mut GcdCache, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(REVISED_SIMPLEX);
+
+    let mut iteration_counter:u8 = 1;
+    let mut visited_bases:HashMap<u64, u8> = HashMap::new();
+    let mut hasher = FxHasher::default();
+    initial_simplex_table.base_variable_names.hash(&mut hasher);
+    let base_hash = hasher.finish();
+    visited_bases.insert(base_hash, iteration_counter);
+
 
     //todo deal with these unholy heap copies of base variable names
     let mut base_variables: Vec<String> = initial_simplex_table.base_variable_names.clone();
@@ -30,10 +41,18 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     //Reduced costs for non-basic variables
     let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
-    debug_assert_eq!(red_costs.dim().1, 1usize);
+    debug_assert_eq!(red_costs.dim().0, 1usize);
+
+
+    while let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) {
 
 
 
+        //Check if base was met MaxCycleIterations
+        if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, initial_simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
+            return Ok(None)
+        }
+    }
 
     Ok(None)
 }
@@ -41,8 +60,8 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 /// Return index of the minimal negative element in reduced costs
 /// Return None if all are positive
 fn get_minimal_reduced_cost(red_costs: &RationalMatrix) -> Option<usize> {
-    debug_assert_eq!(red_costs.dim().1, 1usize);
-    debug_assert!(red_costs.dim().0 > 0usize);
+    debug_assert_eq!(red_costs.dim().0, 1usize);
+    debug_assert!(red_costs.dim().1 > 0usize);
 
     let mut minimal_index = 0usize;
     let mut minimal_set = false;
@@ -163,9 +182,9 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use crate::rationals::Rational;
+    use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector};
+    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost};
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
@@ -215,5 +234,19 @@ mod tests {
 
         assert_eq!(non_basic_variable_mapping.get(&0usize).unwrap(), &"x2".to_owned());
         assert_eq!(non_basic_variable_mapping.get(&1usize).unwrap(), &"S1".to_owned());
+    }
+
+    #[test]
+    fn get_minimal_reduced_cost_succeeds_for_existing_negative_rc() {
+        let rc = RationalMatrix::from_row(vec![Rational::from_integer(-1), Rational::from_integer(-2), Rational::zero(), Rational::from_integer(10)]);
+        let min_index = get_minimal_reduced_cost(&rc).expect("Should be able to find min.");
+        assert_eq!(min_index, 1usize);
+    }
+
+    #[test]
+    fn get_minimal_reduced_cost_succeeds_non_existing_negative_rc() {
+        let rc = RationalMatrix::from_row(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::zero(), Rational::from_integer(10)]);
+        let min_index = get_minimal_reduced_cost(&rc);
+        assert!(min_index.is_none());
     }
 }
