@@ -19,6 +19,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 
     let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variables).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+    //Reduced costs for non-basic variables
 
 
 
@@ -28,12 +29,12 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 
 /// Return pair of basic and non-basic cost vectors
 /// Return (c_b, c_nb)
-fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_variable_names: &Vec<String>) ->  Result<(Vec<Rational>, Vec<Rational>), Box<ApplicationError>> {
+fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_variable_names: &Vec<String>) ->  Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
     let mut basic_cost_vector: Vec<Rational> = Vec::with_capacity(basic_variable_names.len());
     let mut non_basic_cost_vector: Vec<Rational> = Vec::with_capacity(initial_simplex_table.rows.len() - basic_variable_names.len());
 
     let Some(first) = initial_simplex_table.rows.first() else {
-        return Ok((basic_cost_vector, non_basic_cost_vector));
+        return Ok((RationalMatrix::empty(), RationalMatrix::empty()));
     };
 
     let basic_variable_indexes = get_basic_variable_indexes(basic_variable_names, initial_simplex_table)?;
@@ -46,7 +47,7 @@ fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_
         }
     }
 
-    Ok((basic_cost_vector, non_basic_cost_vector))
+    Ok((RationalMatrix::from_row(basic_cost_vector), RationalMatrix::from_row(non_basic_cost_vector)))
 }
 
 /// Return (B,N) where N is the matrix equivalent to column in the initial matrix X, which are non-basic
@@ -137,7 +138,7 @@ mod tests {
         let simplex_table = create_minimal_simplex_table_for_testing();
         let (c_b, c_nb) = get_basis_split_cost_vector(&simplex_table, &vec!["x1".to_owned(), "S2".to_owned()]).expect("Basis vector should be correct");
 
-        assert_eq!(c_b, vec![Rational::from_integer(-1), Rational::zero()]);
-        assert_eq!(c_nb, vec![Rational::from_integer(-2), Rational::zero()]);
+        assert_eq!(*c_b.get_row(0), vec![Rational::from_integer(-1), Rational::zero()]);
+        assert_eq!(*c_nb.get_row(1), vec![Rational::from_integer(-2), Rational::zero()]);
     }
 }
