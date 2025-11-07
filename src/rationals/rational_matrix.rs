@@ -354,7 +354,7 @@ mod tests {
 
         assert_eq!(at.data[0], vec![Rational::from_integer(1), Rational::from_integer(5)]);
         assert_eq!(at.data[1], vec![Rational::from_integer(4), Rational::from_integer(3)]);
-        assert_eq!(at.data[0], vec![Rational::from_integer(6), Rational::from_integer(2)]);
+        assert_eq!(at.data[2], vec![Rational::from_integer(6), Rational::from_integer(2)]);
     }
 
     #[test]
@@ -534,7 +534,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::vec_init_then_push)]
     fn add_rows_with_coefficient_fails_on_index_out_of_bounds() {
         let mut gcd_cache = GcdCache::init();
         let mut a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
@@ -542,7 +541,8 @@ mod tests {
     }
 
     #[test]
-    fn subtract_matrixes_succeeds() {
+    #[allow(clippy::vec_init_then_push)]
+    fn subtract_matrices_succeeds() {
         let mut gcd_cache = GcdCache::init();
         let mut a_rows = Vec::with_capacity(3);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
@@ -550,6 +550,23 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
         let a = RationalMatrix::from_rows(a_rows).expect("Failed to create subtract matrix");
 
+        let b = RationalMatrix::from_value(3,3, Rational::from_integer(2));
+        let c = RationalMatrix::subtract(&a, &b, &mut gcd_cache).expect("Failed to subtract matrix");
+
+        assert_eq!(c.data[0], vec![Rational::from_integer(-1), Rational::zero(), Rational::from_integer(1)]);
+        assert_eq!(c.data[1], vec![Rational::from_integer(2), Rational::from_integer(3), Rational::from_integer(4)]);
+        assert_eq!(c.data[2], vec![Rational::from_integer(5), Rational::from_integer(6), Rational::from_integer(7)]);
+
+    }
+
+    #[test]
+    fn subtract_matrices_fails_for_different_dims() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
+        let b = RationalMatrix::from_value(3,3, Rational::from_integer(2));
+
+        let c = RationalMatrix::subtract(&a, &b, &mut gcd_cache);
+        assert!(c.is_err());
     }
 
 }
