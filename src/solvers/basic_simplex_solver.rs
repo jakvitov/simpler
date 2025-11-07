@@ -48,9 +48,9 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         let mut t_vec = get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
 
         //Check unbounded solution
-        let mut negative_count = 0;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_negative() {negative_count +=1 ;}});
-        if negative_count == t_vec.len() {
+        let mut negative_or_none_count = 0usize;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_negative() {negative_or_none_count +=1 ;} else if element.is_none() {negative_or_none_count+=1; }});
+        if negative_or_none_count == t_vec.len() {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
@@ -136,7 +136,7 @@ pub(super) fn get_pivot(t_vec: &Vec<Option<Rational>>, pessimal_column: &(usize,
 
     for (index, value) in t_vec.iter().enumerate() {
         if let Some(value) = value {
-            if (min_value.is_some() && *min_value.unwrap() > *value && *value >= Rational::zero()) || min_value.is_none() {
+            if (min_value.is_some() && *min_value.unwrap() > *value && value.is_positive()) || min_value.is_none() {
                 min_value = Some(value);
                 min_index = index;
             }
@@ -180,11 +180,7 @@ pub(super) fn check_optimity(simplex_table: &BasicSimplexTable) ->  Option<(usiz
         }
     }
 
-    if let Some(pe) = pessimal_element {
-        Some((pe.0, pe.1.clone()))
-    } else {
-        None
-    }
+    pessimal_element.map(|pe| (pe.0, *pe.1))
 }
 
 fn check_basic_simplex_compatibility(simplex_table: &BasicSimplexTable) -> Result<(), Box<SimplexError>> {

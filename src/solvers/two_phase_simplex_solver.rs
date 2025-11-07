@@ -63,9 +63,9 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         
         html_output.start_simplex_iteration(iteration_counter);
         let t_vec = basic_simplex_solver::get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
-        let mut all_negative_or_none = true;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
-        if  all_negative_or_none {
+        let mut negative_or_none_count = 0usize;
+        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {negative_or_none_count += 1;} else if element.is_none() {negative_or_none_count += 1}});
+        if  negative_or_none_count == t_vec.len() {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
             return Ok(None);
