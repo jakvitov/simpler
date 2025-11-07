@@ -9,6 +9,12 @@ use std::hash::{Hash, Hasher};
 use fxhash::FxHasher;
 use crate::solvers::basic_simplex_solver::cycle_or_iterations_limit_exceeded;
 
+#[derive(Debug, PartialEq, Eq)]
+enum VariableType {
+    Basic,
+    NonBasic
+}
+
 pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cache: &mut GcdCache, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(REVISED_SIMPLEX);
 
@@ -55,6 +61,28 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     }
 
     Ok(None)
+}
+
+/// Translate relative index among basic/non-basic variables to global index in simplex table
+/// mappings - (basic_variable_index_mapping, non_basic_variable_index_mapping)
+fn translate_relative_variable_index_to_global(i: usize, variable_type: VariableType, mappings: (&HashMap<usize, String>, &HashMap<usize, String>), initial_simplex_table: &BasicSimplexTable) -> Result<usize, Box<ApplicationError>> {
+    let name = if variable_type == VariableType::Basic {
+        let Some(name) = mappings.0.get(&i) else {
+          return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
+        };
+        name
+    } else {
+        let Some(name) = mappings.1.get(&i) else {
+            return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
+        };
+        name
+    };
+
+    let Some(index) = initial_simplex_table.column_variable_names.get(name) else {
+        return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its simplex table index.", format!("Variable: type - {:?}, name - {name}", variable_type))));
+    };
+
+    Ok(*index)
 }
 
 /// Return index of the minimal negative element in reduced costs
@@ -181,10 +209,10 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost};
+    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost, translate_relative_variable_index_to_global, VariableType};
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
@@ -248,5 +276,35 @@ mod tests {
         let rc = RationalMatrix::from_row(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::zero(), Rational::from_integer(10)]);
         let min_index = get_minimal_reduced_cost(&rc);
         assert!(min_index.is_none());
+    }
+
+    #[test]
+    fn translate_relative_variable_index_to_global_succeeds_for_basic_variable() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let mut basic_variable_index_mapping = HashMap::new();
+        let mut non_basic_variable_index_mapping = HashMap::new();
+        basic_variable_index_mapping.insert(1usize, "x1".to_owned());
+        let res = translate_relative_variable_index_to_global(1, VariableType::Basic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), &simplex_table).expect("Should be able to translate.");
+        assert_eq!(res, 0usize);
+    }
+
+    #[test]
+    fn translate_relative_variable_index_to_global_succeeds_for_non_basic_variable() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let mut basic_variable_index_mapping = HashMap::new();
+        let mut non_basic_variable_index_mapping = HashMap::new();
+        non_basic_variable_index_mapping.insert(1usize, "x1".to_owned());
+        let res = translate_relative_variable_index_to_global(1, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), &simplex_table).expect("Should be able to translate.");
+        assert_eq!(res, 0usize);
+    }
+
+    #[test]
+    fn translate_relative_variable_index_to_global_fails_for_non_existent_variable_name() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let mut basic_variable_index_mapping = HashMap::new();
+        let mut non_basic_variable_index_mapping = HashMap::new();
+        non_basic_variable_index_mapping.insert(1usize, "non_existent_variable_name".to_owned());
+        let res = translate_relative_variable_index_to_global(1, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), &simplex_table);
+        assert!(res.is_err());
     }
 }
