@@ -7,6 +7,7 @@ use crate::utils::ApplicationError;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use fxhash::FxHasher;
+use simple_logger::init;
 use crate::solvers::basic_simplex_solver::cycle_or_iterations_limit_exceeded;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -52,6 +53,8 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 
     while let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) {
 
+        let global_min_rc_index = translate_relative_variable_index_to_global(minimal_rc_index, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+
 
 
         //Check if base was met MaxCycleIterations
@@ -61,6 +64,18 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     }
 
     Ok(None)
+}
+
+/// Return column j from original simplex table as RationalMatrix
+fn get_variable_column_from_simplex_table(j: usize, initial_simplex_table: &BasicSimplexTable) -> Result<RationalMatrix, Box<ApplicationError>> {
+    let mut res_row:Vec<Rational> = Vec::with_capacity(initial_simplex_table.rows.len());
+    for i in 0..initial_simplex_table.rows.len() {
+        if j > initial_simplex_table.rows[i].len() {
+            return Err(Box::new(ApplicationError::from_string_details("Cannot get column vector from intial simplex table.", format!("Variable index: {j}"))));
+        }
+        res_row.push(initial_simplex_table.rows[i][j]);
+    }
+    Ok(RationalMatrix::from_row(res_row).transpose())
 }
 
 /// Translate relative index among basic/non-basic variables to global index in simplex table
@@ -212,7 +227,7 @@ mod tests {
     use std::collections::{HashMap, HashSet};
     use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost, translate_relative_variable_index_to_global, VariableType};
+    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, VariableType};
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
@@ -306,5 +321,14 @@ mod tests {
         non_basic_variable_index_mapping.insert(1usize, "non_existent_variable_name".to_owned());
         let res = translate_relative_variable_index_to_global(1, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), &simplex_table);
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn get_variable_column_from_simplex_table_succeeds() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let res = get_variable_column_from_simplex_table(1, &simplex_table).expect("Should be able to find variable.");
+        assert_eq!(res.dim(), (simplex_table.rows.len(), 1));
+        assert_eq!(*res.get(0,0), Rational::from_integer(2));
+        assert_eq!(*res.get(1,0), Rational::from_integer(1));
     }
 }
