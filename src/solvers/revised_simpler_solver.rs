@@ -30,16 +30,16 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 /// Return pair of basic and non-basic cost vectors
 /// Return (c_b, c_nb)
 fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_variable_names: &Vec<String>) ->  Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
-    let mut basic_cost_vector: Vec<Rational> = Vec::with_capacity(basic_variable_names.len());
-    let mut non_basic_cost_vector: Vec<Rational> = Vec::with_capacity(initial_simplex_table.rows.len() - basic_variable_names.len());
-
     let Some(first) = initial_simplex_table.rows.first() else {
         return Ok((RationalMatrix::empty(), RationalMatrix::empty()));
     };
 
+    let mut basic_cost_vector: Vec<Rational> = Vec::with_capacity(basic_variable_names.len());
+    let mut non_basic_cost_vector: Vec<Rational> = Vec::with_capacity(first.len() - basic_variable_names.len());
+
     let basic_variable_indexes = get_basic_variable_indexes(basic_variable_names, initial_simplex_table)?;
 
-    for i in 0..first.len() {
+    for i in 0..initial_simplex_table.objective_row.len() {
         if basic_variable_indexes.contains(&i) {
             basic_cost_vector.push(initial_simplex_table.objective_row[i]);
         } else {
@@ -98,7 +98,7 @@ fn get_basis_matrix_split(basic_variables: &Vec<String>, initial_simplex_table: 
 
 /// Return hash set containing the indexes of the basic variables
 fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_table: &BasicSimplexTable) -> Result<HashSet<usize>, Box<ApplicationError>> {
-    let mut basic_variable_indexes:HashSet<usize> = HashSet::new();
+    let mut basic_variable_indexes:HashSet<usize> = HashSet::with_capacity(basic_variables.len());
     for basic_variable_name in  basic_variables {
         let basic_variable_index = initial_simplex_table.column_variable_names.get(basic_variable_name);
         let Some(basic_variable_index) =  basic_variable_index else {
@@ -133,12 +133,12 @@ mod tests {
         assert_eq!(*non_basis_matrix.get(1,1), Rational::from_integer(0));
     }
 
-    //#[test]
+    #[test]
     fn get_basis_split_cost_vector_succeeds() {
         let simplex_table = create_minimal_simplex_table_for_testing();
         let (c_b, c_nb) = get_basis_split_cost_vector(&simplex_table, &vec!["x1".to_owned(), "S2".to_owned()]).expect("Basis vector should be correct");
 
         assert_eq!(*c_b.get_row(0), vec![Rational::from_integer(-1), Rational::zero()]);
-        assert_eq!(*c_nb.get_row(1), vec![Rational::from_integer(-2), Rational::zero()]);
+        assert_eq!(*c_nb.get_row(0), vec![Rational::from_integer(-2), Rational::zero()]);
     }
 }
