@@ -4,22 +4,33 @@ use crate::rationals::{GcdCache, Rational, RationalMatrix};
 use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 use crate::solvers::SimplexSoverAlgorithm::REVISED_SIMPLEX;
 use crate::utils::ApplicationError;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cache: &mut GcdCache, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(REVISED_SIMPLEX);
 
+    //todo deal with these unholy heap copies of base variable names
     let mut base_variables: Vec<String> = initial_simplex_table.base_variable_names.clone();
-    let (basis_matrix, non_base_matrix) = get_basis_matrix_split(&base_variables, initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-    let basis_inverse = basis_matrix.inverse(gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+    // Base variable indexes in the original simplex table
+    let mut base_variable_indexes = get_basic_variable_indexes(&base_variables, &initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+    // Mapping from relative indexes in the base and non-base cropped structures, where indexes of basic and non basic variables are different
+    let (basic_variable_index_mapping, non_basic_variable_index_mapping) = get_basic_non_basic_index_to_var_index_mapping(initial_simplex_table, &base_variable_indexes);
 
-    if basis_inverse.is_none() {
+    let (basis_matrix, non_base_matrix) = get_basis_matrix_split(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+
+    let Some(basis_inverse) = basis_matrix.inverse(gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)? else {
         return Err(Box::new(ApplicationError::from_string_details("Singular basis matrix encountered.", format!("Basis matrix: {:?}", basis_matrix))));
-    }
+    };
 
-    let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variables).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+    let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+    //todo can any of these operations be mut, so that we don't need allocate new matrices again?
+    let pi = RationalMatrix::mul(&c_b.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+    let pi_n = RationalMatrix::mul(&pi, &non_base_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
     //Reduced costs for non-basic variables
+    let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+
+    debug_assert_eq!(red_costs.dim().1, 1usize);
 
 
 
@@ -27,17 +38,59 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     Ok(None)
 }
 
+/// Return index of the minimal negative element in reduced costs
+/// Return None if all are positive
+fn get_minimal_reduced_cost(red_costs: &RationalMatrix) -> Option<usize> {
+    debug_assert_eq!(red_costs.dim().1, 1usize);
+    debug_assert!(red_costs.dim().0 > 0usize);
+
+    let mut minimal_index = 0usize;
+    let mut minimal_set = false;
+    for (i, val) in red_costs.get_row(0).iter().enumerate() {
+        if val.is_negative() && *val < red_costs.get_row(0)[minimal_index]{
+            minimal_index = i;
+            minimal_set = true;
+        }
+    }
+
+    if minimal_set {
+        Some(minimal_index)
+    } else {
+        None
+    }
+}
+
+/// Return Hash maps, that maps non_basic and basic variable mapping index to var_name
+/// Example: Non-basic variable 0 -> x1
+/// return (Basic variable map, non_basic_variable_map)
+fn get_basic_non_basic_index_to_var_index_mapping(initial_simplex_table: &BasicSimplexTable, basic_variable_indexes: &HashSet<usize>) -> (HashMap<usize, String>, HashMap<usize, String>) {
+    let mut basic_variables: HashMap<usize, String> = HashMap::new();
+    let mut non_basic_variables: HashMap<usize, String> = HashMap::new();
+    let mut basic_variable_index = 0usize;
+    let mut non_basic_variable_index = 0usize;
+
+    for i in 0..initial_simplex_table.objective_row.len() {
+        if basic_variable_indexes.contains(&i) {
+            basic_variables.insert(basic_variable_index, initial_simplex_table.column_variable_names.keys()[i].clone());
+            basic_variable_index += 1;
+        } else {
+            non_basic_variables.insert(non_basic_variable_index, initial_simplex_table.column_variable_names.keys()[i].clone());
+            non_basic_variable_index += 1;
+        }
+    }
+
+    (basic_variables, non_basic_variables)
+}
+
 /// Return pair of basic and non-basic cost vectors
 /// Return (c_b, c_nb)
-fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_variable_names: &Vec<String>) ->  Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
+fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_variable_indexes: &HashSet<usize>) ->  Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
     let Some(first) = initial_simplex_table.rows.first() else {
         return Ok((RationalMatrix::empty(), RationalMatrix::empty()));
     };
 
-    let mut basic_cost_vector: Vec<Rational> = Vec::with_capacity(basic_variable_names.len());
-    let mut non_basic_cost_vector: Vec<Rational> = Vec::with_capacity(first.len() - basic_variable_names.len());
-
-    let basic_variable_indexes = get_basic_variable_indexes(basic_variable_names, initial_simplex_table)?;
+    let mut basic_cost_vector: Vec<Rational> = Vec::with_capacity(basic_variable_indexes.len());
+    let mut non_basic_cost_vector: Vec<Rational> = Vec::with_capacity(first.len() - basic_variable_indexes.len());
 
     for i in 0..initial_simplex_table.objective_row.len() {
         if basic_variable_indexes.contains(&i) {
@@ -53,26 +106,24 @@ fn get_basis_split_cost_vector(initial_simplex_table: &BasicSimplexTable, basic_
 /// Return (B,N) where N is the matrix equivalent to column in the initial matrix X, which are non-basic
 /// B is basis matrix associated with the current basic variables
 /// A = (B|N)
-fn get_basis_matrix_split(basic_variables: &Vec<String>, initial_simplex_table: &BasicSimplexTable) -> Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
+fn get_basis_matrix_split(initial_simplex_table: &BasicSimplexTable, basic_variable_indexes: &HashSet<usize>) -> Result<(RationalMatrix, RationalMatrix), Box<ApplicationError>> {
 
     let Some(first_initial_simplex_table_row) = initial_simplex_table.rows.first() else {
         return Ok((RationalMatrix::empty(), RationalMatrix::empty()));
     };
 
-    let mut b_matrix_rows: Vec<Vec<Rational>> = Vec::with_capacity(basic_variables.len());
-    let mut n_matrix_rows: Vec<Vec<Rational>> = Vec::with_capacity(initial_simplex_table.rows.len() - basic_variables.len());
-
-    let basic_variable_indexes = get_basic_variable_indexes(basic_variables, initial_simplex_table)?;
+    let mut b_matrix_rows: Vec<Vec<Rational>> = Vec::with_capacity(basic_variable_indexes.len());
+    let mut n_matrix_rows: Vec<Vec<Rational>> = Vec::with_capacity(first_initial_simplex_table_row.len() - basic_variable_indexes.len());
 
     for j in 0..first_initial_simplex_table_row.len() {
-        let mut row = Vec::with_capacity(basic_variables.len());
+        let mut row = Vec::with_capacity(basic_variable_indexes.len());
         if basic_variable_indexes.contains(&j) {
-            for i in 0..basic_variables.len() {
+            for i in 0..basic_variable_indexes.len() {
                 row.push(initial_simplex_table.rows[i][j])
             }
             b_matrix_rows.push(row);
         } else {
-            for i in 0..basic_variables.len() {
+            for i in 0..basic_variable_indexes.len() {
                 row.push(initial_simplex_table.rows[i][j])
             }
             n_matrix_rows.push(row);
@@ -111,14 +162,18 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use crate::rationals::Rational;
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basis_matrix_split, get_basis_split_cost_vector};
+    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector};
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
         let simplex_table = create_minimal_simplex_table_for_testing();
-        let (basis_matrix, non_basis_matrix) = get_basis_matrix_split(&vec!["x1".to_owned(), "S2".to_owned()], &simplex_table).expect("Failed to split basis matrix.");
+        let mut basic_variable_indexes = HashSet::new();
+        basic_variable_indexes.insert(0usize);  //x1
+        basic_variable_indexes.insert(3usize);  //S2
+        let (basis_matrix, non_basis_matrix) = get_basis_matrix_split(&simplex_table, &basic_variable_indexes).expect("Failed to split basis matrix.");
 
         assert_eq!(basis_matrix.dim(), (2,2));
         assert_eq!(*basis_matrix.get(0,0), Rational::from_integer(1));
@@ -136,9 +191,29 @@ mod tests {
     #[test]
     fn get_basis_split_cost_vector_succeeds() {
         let simplex_table = create_minimal_simplex_table_for_testing();
-        let (c_b, c_nb) = get_basis_split_cost_vector(&simplex_table, &vec!["x1".to_owned(), "S2".to_owned()]).expect("Basis vector should be correct");
+        let mut basic_variable_indexes = HashSet::new();
+        basic_variable_indexes.insert(0usize); //x1
+        basic_variable_indexes.insert(3usize); //S2
+        let (c_b, c_nb) = get_basis_split_cost_vector(&simplex_table, &basic_variable_indexes).expect("Basis vector should be correct");
 
         assert_eq!(*c_b.get_row(0), vec![Rational::from_integer(-1), Rational::zero()]);
         assert_eq!(*c_nb.get_row(0), vec![Rational::from_integer(-2), Rational::zero()]);
+    }
+
+    #[test]
+    fn get_basic_non_basic_index_to_var_index_mapping_succeeds() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let mut basic_variable_indexes = HashSet::new();
+        basic_variable_indexes.insert(0); //x1
+        basic_variable_indexes.insert(3); //S2
+        let (basic_variable_mapping, non_basic_variable_mapping) = get_basic_non_basic_index_to_var_index_mapping(&simplex_table, &basic_variable_indexes);
+        assert_eq!(basic_variable_mapping.len(), 2);
+        assert_eq!(non_basic_variable_mapping.len(), 2);
+
+        assert_eq!(basic_variable_mapping.get(&0usize).unwrap(), &"x1".to_owned());
+        assert_eq!(basic_variable_mapping.get(&1usize).unwrap(), &"S2".to_owned());
+
+        assert_eq!(non_basic_variable_mapping.get(&0usize).unwrap(), &"x2".to_owned());
+        assert_eq!(non_basic_variable_mapping.get(&1usize).unwrap(), &"S1".to_owned());
     }
 }
