@@ -1,4 +1,5 @@
 use std::iter;
+use crate::utils::ApplicationError;
 use crate::utils::collections::get_two_rows_mut;
 use super::GcdCache;
 use super::{NumericalError, Rational};
@@ -36,7 +37,15 @@ impl RationalMatrix {
         }
         Some(RationalMatrix {data})
     }
-    
+
+    pub fn from_row(data: Vec<Rational>) -> RationalMatrix {
+        if data.is_empty() {
+            RationalMatrix::empty()
+        } else {
+            RationalMatrix{data: vec![data]}
+        }
+    }
+
     pub fn empty() -> RationalMatrix {
         RationalMatrix { data: vec![] }
     }
@@ -109,6 +118,23 @@ impl RationalMatrix {
             }
         }
         Ok(res)
+    }
+
+    /// Return matrix subtraction lhs - rhs
+    /// Return error on incompatible dimensions
+    pub fn subtract(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
+        if lhs.dim() != rhs.dim() {
+            Err(Box::new(NumericalError::new("Incompatible dimensions for subtraction", format!("LHS: {:?}, RHS: {:?}", lhs.dim(), rhs.dim()))))
+        } else {
+            let mut res = lhs.clone();
+            for i in 0.. lhs.dim().0 {
+                for j in 0.. lhs.dim().1 {
+                    res.data[i][j] = lhs.data[i][j].subtract(&rhs.data[i][j], gcd_cache)?;
+                }
+            }
+
+            Ok(res)
+        }
     }
 
     /// Return new matrix as transpose of slef
@@ -266,7 +292,7 @@ mod tests {
 
     #[test]
     fn dim_for_empty_matrix_succeeds() {
-        let a = RationalMatrix::from_value(0,0, Rational::zero());
+        let a = RationalMatrix::empty();
         assert_eq!(a.dim(), (0,0));
     }
 
@@ -285,32 +311,18 @@ mod tests {
        let mut a_rows = Vec::with_capacity(2);
        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2)]);
        a_rows.push(vec![Rational::from_integer(2), Rational::from_integer(3)]);
-       let a = RationalMatrix::from_rows(a_rows);
-       assert!(a.is_some());
-       let a = a.unwrap();
+       let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
        let mut b_rows = Vec::with_capacity(2);
        b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
        b_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(5)]);
 
-       let b = RationalMatrix::from_rows(b_rows);
-       assert!(b.is_some());
-       let b = b.unwrap();
+       let b = RationalMatrix::from_rows(b_rows).expect("Error in creating matrix");
 
-       let c = RationalMatrix::mul(&a, &b, &mut gcd_cache);
-       assert!(c.is_ok());
+       let c = RationalMatrix::mul(&a, &b, &mut gcd_cache).expect("Failed to multiply matrices");
 
-       let c = c.unwrap();
-
-       let mut d_rows = Vec::with_capacity(2);
-       d_rows.push(vec![Rational::from_integer(7), Rational::from_integer(6), Rational::from_integer(13)]);
-       d_rows.push(vec![Rational::from_integer(11), Rational::from_integer(10), Rational::from_integer(21)]);
-
-       let d = RationalMatrix::from_rows(d_rows);
-       assert!(d.is_some());
-       let d = d.unwrap();
-
-       assert_eq!(c, d);
+       assert_eq!(c.data[0], vec![Rational::from_integer(7), Rational::from_integer(6), Rational::from_integer(13)]);
+       assert_eq!(c.data[1], vec![Rational::from_integer(11), Rational::from_integer(10), Rational::from_integer(21)])
     }
 
     #[test]
@@ -319,17 +331,13 @@ mod tests {
         let mut gcd_cache = GcdCache::init();
         let mut a_rows = Vec::with_capacity(1);
         a_rows.push(vec![Rational::from_integer(1)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
         let mut b_rows = Vec::with_capacity(2);
         b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
         b_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(5)]);
 
-        let b = RationalMatrix::from_rows(b_rows);
-        assert!(b.is_some());
-        let b = b.unwrap();
+        let b = RationalMatrix::from_rows(b_rows).expect("Failed to create matrix");
 
         let c = RationalMatrix::mul(&a, &b, &mut gcd_cache);
         assert!(c.is_err());
@@ -341,25 +349,17 @@ mod tests {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(4), Rational::from_integer(6)]);
         a_rows.push(vec![Rational::from_integer(5), Rational::from_integer(3), Rational::from_integer(2)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
         let at = a.transpose();
 
-        let mut a_transposed_rows = Vec::with_capacity(2);
-        a_transposed_rows.push(vec![Rational::from_integer(1), Rational::from_integer(5)]);
-        a_transposed_rows.push(vec![Rational::from_integer(4), Rational::from_integer(3)]);
-        a_transposed_rows.push(vec![Rational::from_integer(6), Rational::from_integer(2)]);
-        let a_transposed = RationalMatrix::from_rows(a_transposed_rows);
-        assert!(a_transposed.is_some());
-        let a_transposed = a_transposed.unwrap();
-
-        assert_eq!(at, a_transposed);
+        assert_eq!(at.data[0], vec![Rational::from_integer(1), Rational::from_integer(5)]);
+        assert_eq!(at.data[1], vec![Rational::from_integer(4), Rational::from_integer(3)]);
+        assert_eq!(at.data[0], vec![Rational::from_integer(6), Rational::from_integer(2)]);
     }
 
     #[test]
     fn matrix_transpose_suceeds_for_empty_matrix() {
-        let empty_matrix = RationalMatrix::from_value(0,0, Rational::from_integer(1));
+        let empty_matrix = RationalMatrix::empty();
         let b = empty_matrix.transpose();
         assert_eq!(b,  RationalMatrix::from_value(0,0, Rational::from_integer(10)))
     }
@@ -373,23 +373,11 @@ mod tests {
         b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
         b_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(5)]);
 
-        let b = RationalMatrix::from_rows(b_rows);
-        assert!(b.is_some());
-        let b = b.unwrap();
+        let b = RationalMatrix::from_rows(b_rows).expect("Error in creating matrix");
+        let c = RationalMatrix::add(&b, &b, &mut gcd_cache).expect("Failed to add matrix");;
 
-        let c = RationalMatrix::add(&b, &b, &mut gcd_cache);
-        assert!(c.is_ok());
-        let c = c.unwrap();
-
-        let mut d_rows = Vec::with_capacity(2);
-        d_rows.push(vec![Rational::from_integer(2), Rational::from_integer(4), Rational::from_integer(6)]);
-        d_rows.push(vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(10)]);
-
-        let d = RationalMatrix::from_rows(d_rows);
-        assert!(d.is_some());
-        let d = d.unwrap();
-
-        assert_eq!(c,d);
+        assert_eq!(c.data[0], vec![Rational::from_integer(2), Rational::from_integer(4), Rational::from_integer(6)]);
+        assert_eq!(c.data[1], vec![Rational::from_integer(6), Rational::from_integer(4), Rational::from_integer(10)])
     }
 
     #[test]
@@ -407,9 +395,7 @@ mod tests {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
         a_rows.push(vec![Rational::from_integer(0), Rational::from_integer(1), Rational::from_integer(0)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
         assert!(a.is_unit_matrix());
     }
@@ -420,9 +406,7 @@ mod tests {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(1), Rational::from_integer(0)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
         assert!(!a.is_unit_matrix());
     }
@@ -434,24 +418,13 @@ mod tests {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(3)]);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(1)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
-        let a_inv = a.inverse(&mut gcd_cache);
-        assert!(a_inv.is_ok());
-        let a_inv = a_inv.unwrap();
-        assert!(a_inv.is_some());
-        let a_inv = a_inv.unwrap();
+        let a_inv = a.inverse(&mut gcd_cache).expect("Failed to invert matrix").expect("Matrix should be singular, but inverse returned it as such.");
 
-        let mut b_rows = Vec::with_capacity(2);
-        b_rows.push(vec![Rational::from_integer(1), Rational::from_integer(-3)]);
-        b_rows.push(vec![Rational::from_integer(-1), Rational::from_integer(4)]);
-        let b = RationalMatrix::from_rows(b_rows);
-        assert!(b.is_some());
-        let b = b.unwrap();
+        assert_eq!(a_inv.data[0], vec![Rational::from_integer(1), Rational::from_integer(-3)]);
+        assert_eq!(a_inv.data[1], vec![Rational::from_integer(-1), Rational::from_integer(4)]);
 
-        assert_eq!(a_inv, b);
     }
 
 
@@ -462,13 +435,9 @@ mod tests {
         let mut a_rows = Vec::with_capacity(2);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0)]);
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
-        let b = a.construct_inverse_matrix_for_two_by_two_matrix(&mut gcd_cache);
-        assert!(b.is_ok());
-        let b = b.unwrap();
+        let b = a.construct_inverse_matrix_for_two_by_two_matrix(&mut gcd_cache).expect("Error in inverting matrix");
         assert!(b.is_none());
     }
 
@@ -481,13 +450,9 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(3), Rational::from_integer(2), Rational::from_integer(1)]);
         a_rows.push(vec![Rational::from_integer(2), Rational::from_integer(1), Rational::from_integer(3)]);
 
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
-        let b = a.gauss_jordan_inverse(&mut gcd_cache).unwrap();
-        assert!(b.is_some());
-        let b = b.unwrap();
+        let b = a.gauss_jordan_inverse(&mut gcd_cache).expect("Error in inverting matrix").expect("Inverse matrix returned singular, it should not.");
         assert_eq!(b.data[0], vec![Rational::new(-5, 12), Rational::new(1,4), Rational::new(1,3)]);
         assert_eq!(b.data[1], vec![Rational::new(7, 12), Rational::new(1,4), Rational::new(-2,3)]);
         assert_eq!(b.data[2], vec![Rational::new(1, 12), Rational::new(-1,4), Rational::new(1,3)]);
@@ -501,11 +466,9 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(0), Rational::from_integer(0)]);
         a_rows.push(vec![Rational::from_integer(0), Rational::from_integer(0), Rational::from_integer(1)]);
         a_rows.push(vec![Rational::from_integer(2), Rational::from_integer(0), Rational::from_integer(1)]);
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
-        let b = a.gauss_jordan_inverse(&mut gcd_cache).unwrap();
+        let b = a.gauss_jordan_inverse(&mut gcd_cache).expect("Error in inverting matrix");
         assert!(b.is_none());
     }
 
@@ -514,11 +477,7 @@ mod tests {
     fn inverse_matrix_for_one_by_one_matrix_succeeds() {
         let mut gcd_cache = GcdCache::init();
         let a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
-        let b = a.inverse(&mut gcd_cache);
-        assert!(b.is_ok());
-        let b = b.unwrap();
-        assert!(b.is_some());
-        let b = b.unwrap();
+        let b = a.inverse(&mut gcd_cache).expect("Failed to invert matrix").expect("Matrix inversion returned singular, it should not.");
         assert_eq!(b.data[0][0], Rational::new(1,2));
     }
 
@@ -526,9 +485,7 @@ mod tests {
     fn inverse_matrix_for_one_by_one_singular_matrix_fails() {
         let mut gcd_cache = GcdCache::init();
         let a = RationalMatrix::from_value(1,1, Rational::zero());
-        let b = a.inverse(&mut gcd_cache);
-        assert!(b.is_ok());
-        let b = b.unwrap();
+        let b = a.inverse(&mut gcd_cache).expect("Failed to invert matrix");
         assert!(b.is_none());
     }
 
@@ -540,13 +497,8 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
         a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
 
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
-
-        let b = a.submatrix((1,1), (1,1));
-        assert!(b.is_ok());
-        let b = b.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
+        let b = a.submatrix((1,1), (1,1)).expect("Failed to create submatrix");
 
         assert_eq!(b.data[0], vec![Rational::from_integer(5), Rational::from_integer(6)]);
         assert_eq!(b.data[1], vec![Rational::from_integer(8), Rational::from_integer(9)]);
@@ -560,9 +512,7 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
         a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
 
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let a = a.unwrap();
+        let a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
         let b = a.submatrix((2,2), (1,1));
         assert!(b.is_err());
@@ -577,9 +527,7 @@ mod tests {
         a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
         a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
 
-        let a = RationalMatrix::from_rows(a_rows);
-        assert!(a.is_some());
-        let mut a = a.unwrap();
+        let mut a = RationalMatrix::from_rows(a_rows).expect("Error in creating matrix");
 
         a.add_rows(0, 1, Rational::from_integer(2), &mut gcd_cache);
         assert_eq!(a.data[1], vec![Rational::from_integer(6), Rational::from_integer(9), Rational::from_integer(12)]);
@@ -591,6 +539,17 @@ mod tests {
         let mut gcd_cache = GcdCache::init();
         let mut a = RationalMatrix::from_value(1,1, Rational::from_integer(2));
         assert!(a.add_rows(2,2, Rational::from_integer(2), &mut gcd_cache).is_err());
+    }
+
+    #[test]
+    fn subtract_matrixes_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+        let mut a_rows = Vec::with_capacity(3);
+        a_rows.push(vec![Rational::from_integer(1), Rational::from_integer(2), Rational::from_integer(3)]);
+        a_rows.push(vec![Rational::from_integer(4), Rational::from_integer(5), Rational::from_integer(6)]);
+        a_rows.push(vec![Rational::from_integer(7), Rational::from_integer(8), Rational::from_integer(9)]);
+        let a = RationalMatrix::from_rows(a_rows).expect("Failed to create subtract matrix");
+
     }
 
 }
