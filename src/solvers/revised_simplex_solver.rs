@@ -72,7 +72,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         let t_vec = get_t_vec(&d_b, &rhs, gcd_cache)?;
         let leaving_index_opt = get_leaving_variable_from(&t_vec);
         let Some(leaving_index) = leaving_index_opt else {
-            //todo handle unbounded solution
+            html_output.rev_simpl_output_unbounded_solution(&t_vec);
             html_output.end_simplex_iteration();
             return Ok(None)
         };
