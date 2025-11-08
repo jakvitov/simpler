@@ -15,12 +15,12 @@ impl HtmlOutput {
         self.end_aligned_matrix_container();
     }
 
-    pub fn rev_simpl_output_reduced_cost_computation(&mut self, c_b: &RationalMatrix, c_nb: &RationalMatrix, basis_inverse: &RationalMatrix, pi: &RationalMatrix, N: &RationalMatrix, red_costs: &RationalMatrix) {
-        self.body.push_str(format!("<h3>Reduced cost computation</h3>\n").as_str());
+    pub fn rev_simpl_output_reduced_cost_computation(&mut self, c_b: &RationalMatrix, c_nb: &RationalMatrix, basis_inverse: &RationalMatrix, pi: &RationalMatrix, N: &RationalMatrix, red_costs: &RationalMatrix, iteration: u8) {
+        self.body.push_str("<h3>Reduced cost computation</h3>\n");
 
         //PI computation
         self.start_aligned_matrix_container();
-        self.body.push_str("<math><mi>π</mi><mo>=</mo><msubsup><mo>c</mo><mn>B</mn><mn>T</mn></msubsup><msubsup><mo>B</mo><mn>s</mn><mn>-1</mn></msubsup><mo>=</mo>\n");
+        self.body.push_str(format!("<math><mi>π</mi><mo>=</mo><msubsup><mo>c</mo><mn>B</mn><mn>T</mn></msubsup><msubsup><mo>B</mo><mn>{iteration}</mn><mn>-1</mn></msubsup><mo>=</mo>\n").as_str());
         self.body.push_str(&HtmlOutput::matrix_as_html_string(&c_b.transpose(), None));
         self.body.push_str(&HtmlOutput::matrix_as_html_string(basis_inverse, None));
         self.body.push_str("<math><mo>=</mo></math>\n");
@@ -31,11 +31,23 @@ impl HtmlOutput {
         self.start_aligned_matrix_container();
         self.body.push_str("<math><mi>red_costs</mi><mo>=</mo><msubsup><mo>c</mo><mn>NB</mn><mn></mn></msubsup><mo>-</mo><mi>π</mi><mi>N</mi><mo>=</mo></math>\n");
         self.body.push_str(&HtmlOutput::matrix_as_html_string(&c_nb, None));
-        self.body.push_str("<mo>-</mo>\n");
+        self.body.push_str("<math><mo>-</mo></math>\n");
         self.body.push_str(&HtmlOutput::matrix_as_html_string(&pi, None));
         self.body.push_str(&HtmlOutput::matrix_as_html_string(&N, None));
-        self.body.push_str("<mo>=</mo>\n");
+        self.body.push_str("<math><mo>=</mo></math>\n");
         self.body.push_str(&HtmlOutput::matrix_as_html_string(&red_costs, None));
+        self.end_aligned_matrix_container();
+    }
+
+    pub fn rev_simpl_output_rhs_computation(&mut self, basis_inverse: &RationalMatrix, b: &RationalMatrix, rhs: &RationalMatrix, iteration:u8) {
+        self.body.push_str("<h3>Current RHS computation</h3>\n");
+        //Rhs computation
+        self.start_aligned_matrix_container();
+        self.body.push_str(format!("<math><mi>RHS</mi><mo>=</mo><msubsup><mo>B</mo><mn>{iteration}</mn><mn>-1</mn></msubsup><mi></mi>b<mo>=</mo>").as_str());
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(basis_inverse, None));
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(b, None));
+        self.body.push_str("<math><mo>=</mo></math>\n");
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(rhs, None));
         self.end_aligned_matrix_container();
     }
 }
