@@ -50,12 +50,19 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         let pi_n = RationalMatrix::mul(&pi, &non_basis_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+        html_output.rev_simpl_output_reduced_cost_computation(&c_b, &c_nb, &basis_inverse, &pi, &non_basis_matrix, &red_costs, iteration_counter);
+
         let original_rhs = get_variable_column_from_simplex_table(ColumnType::Rhs, initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let rhs = RationalMatrix::mul(&basis_inverse, &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+        html_output.rev_simpl_output_rhs_computation(&basis_inverse, &original_rhs, &rhs, iteration_counter);
+
         let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) else {
-            //todo handle optimal solution found
-            break;
+            let z_opt = RationalMatrix::mul(&pi.transpose(), &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+            debug_assert_eq!(z_opt.dim(), (1,1));
+            html_output.rev_simpl_output_optimal_solution(&rhs, &base_variables, z_opt.get(0,0));
+            html_output.end_simplex_iteration();
+            return Ok(Some(*z_opt.get(0,0)))
         };
 
         let global_min_rc_index = translate_relative_variable_index_to_global(minimal_rc_index, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
@@ -296,7 +303,7 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 mod tests {
     use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basis_matrix_split, get_basis_split_cost_vector, get_leaving_variable_from, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, ColumnType, VariableType};
+    use crate::solvers::revised_simplex_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basis_matrix_split, get_basis_split_cost_vector, get_leaving_variable_from, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, ColumnType, VariableType};
     use std::collections::{HashMap, HashSet};
 
     #[test]
