@@ -77,10 +77,11 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         basic_simplex_solver::basic_simplex_gauss_elimination(simplex_table, &pivot, html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         html_output.end_simplex_iteration();
 
-        let (iteration_counter, overflowed) = iteration_counter.overflowing_add(1);
+        let (iteration_counter_res, overflowed) = iteration_counter.overflowing_add(1);
         if overflowed {
             return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
+        iteration_counter = iteration_counter_res;
 
         //Check if base was met MaxCycleIterations
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
