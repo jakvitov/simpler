@@ -1,19 +1,24 @@
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{GcdCache, Rational, RationalMatrix};
+use crate::solvers::basic_simplex_solver::cycle_or_iterations_limit_exceeded;
 use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 use crate::solvers::SimplexSoverAlgorithm::REVISED_SIMPLEX;
 use crate::utils::ApplicationError;
+use fxhash::FxHasher;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
-use fxhash::FxHasher;
-use simple_logger::init;
-use crate::solvers::basic_simplex_solver::cycle_or_iterations_limit_exceeded;
 
 #[derive(Debug, PartialEq, Eq)]
 enum VariableType {
     Basic,
     NonBasic
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum ColumnType {
+    Variable(usize),
+    Rhs
 }
 
 pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cache: &mut GcdCache, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
@@ -54,8 +59,18 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     while let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) {
 
         let global_min_rc_index = translate_relative_variable_index_to_global(minimal_rc_index, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let a_entering_col = get_variable_column_from_simplex_table(ColumnType::Variable(global_min_rc_index), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let d_b = RationalMatrix::mul(&a_entering_col, &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+        let original_rhs = get_variable_column_from_simplex_table(ColumnType::Rhs, initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let rhs = RationalMatrix::mul(&basis_inverse, &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
+        let t_vec = get_t_vec(&d_b, &rhs, gcd_cache)?;
+        let leaving_index_opt = get_leaving_variable_from(&t_vec);
+        let Some(leaving_index) = leaving_index_opt else {
+            //todo handle unbounded solution
+            return Ok(None)
+        };
 
         //Check if base was met MaxCycleIterations
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, initial_simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
@@ -66,14 +81,65 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     Ok(None)
 }
 
-/// Return column j from original simplex table as RationalMatrix
-fn get_variable_column_from_simplex_table(j: usize, initial_simplex_table: &BasicSimplexTable) -> Result<RationalMatrix, Box<ApplicationError>> {
-    let mut res_row:Vec<Rational> = Vec::with_capacity(initial_simplex_table.rows.len());
-    for i in 0..initial_simplex_table.rows.len() {
-        if j > initial_simplex_table.rows[i].len() {
-            return Err(Box::new(ApplicationError::from_string_details("Cannot get column vector from intial simplex table.", format!("Variable index: {j}"))));
+/// Return index in base of the leaving variable
+/// Return None if solution is unbounded
+fn get_leaving_variable_from(t_vec: &Vec<Option<Rational>>) -> Option<usize> {
+    let mut leaving_index = 0usize;
+    let mut leaving_value = Rational::zero();
+    let mut leaving_index_set = false;
+    for (i,val) in t_vec.iter().enumerate() {
+        if val.is_some() && val.unwrap().is_negative() {
+            if leaving_index_set && leaving_value > val.unwrap() {
+                leaving_index = i;
+                leaving_value = val.unwrap();
+                leaving_index_set = true;
+            } else if !leaving_index_set {
+                leaving_index = i;
+                leaving_value = val.unwrap();
+                leaving_index_set = true;
+            }
         }
-        res_row.push(initial_simplex_table.rows[i][j]);
+    }
+    if leaving_index_set {
+        Some(leaving_index)
+    } else {
+        None
+    }
+}
+
+fn get_t_vec(d_b: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<Vec<Option<Rational>>, Box<dyn HtmlConvertibleError>> {
+    debug_assert_eq!(d_b.dim(), rhs.dim());
+    debug_assert_eq!(d_b.dim().1, 1usize);
+    debug_assert_eq!(rhs.dim().1, 1usize);
+
+    let mut res: Vec<Option<Rational>> = Vec::with_capacity(d_b.dim().0);
+    for j in 0..rhs.dim().1 {
+        if *rhs.get(0,j) == Rational::zero() {
+            res.push(None);
+        } else {
+            res.push(Some(rhs.get(0,j).divide(d_b.get(0,j), gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?))
+        }
+    }
+    Ok(res)
+}
+
+/// Return column j from original simplex table as RationalMatrix
+/// If col_type is Variable, values from the variable matrix (A) is returned
+/// For Rhs - RHS is returned and index is ignored
+fn get_variable_column_from_simplex_table(col_type: ColumnType, initial_simplex_table: &BasicSimplexTable) -> Result<RationalMatrix, Box<ApplicationError>> {
+    let mut res_row:Vec<Rational> = Vec::with_capacity(initial_simplex_table.rows.len());
+    match col_type {
+        ColumnType::Variable(j) =>  {
+            for i in 0..initial_simplex_table.rows.len() {
+                if j > initial_simplex_table.rows[i].len() {
+                    return Err(Box::new(ApplicationError::from_string_details("Cannot get column vector from intial simplex table.", format!("Variable index: {j}"))));
+                }
+                res_row.push(initial_simplex_table.rows[i][j]);
+            }
+        },
+        ColumnType::Rhs => {
+            return Ok(RationalMatrix::from_row(initial_simplex_table.rhs.clone()).transpose());
+        }
     }
     Ok(RationalMatrix::from_row(res_row).transpose())
 }
@@ -81,16 +147,19 @@ fn get_variable_column_from_simplex_table(j: usize, initial_simplex_table: &Basi
 /// Translate relative index among basic/non-basic variables to global index in simplex table
 /// mappings - (basic_variable_index_mapping, non_basic_variable_index_mapping)
 fn translate_relative_variable_index_to_global(i: usize, variable_type: VariableType, mappings: (&HashMap<usize, String>, &HashMap<usize, String>), initial_simplex_table: &BasicSimplexTable) -> Result<usize, Box<ApplicationError>> {
-    let name = if variable_type == VariableType::Basic {
-        let Some(name) = mappings.0.get(&i) else {
-          return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
-        };
-        name
-    } else {
-        let Some(name) = mappings.1.get(&i) else {
-            return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
-        };
-        name
+    let name = match variable_type {
+        VariableType::Basic =>  {
+            let Some(name) = mappings.0.get(&i) else {
+              return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
+            };
+            name
+        },
+        VariableType::NonBasic => {
+            let Some(name) = mappings.1.get(&i) else {
+                return Err(Box::new(ApplicationError::from_string_details("Variable name was not able to be translated from its relative index.", format!("Variable: type - {:?}, relative index - {i}", variable_type))));
+            };
+            name
+        }
     };
 
     let Some(index) = initial_simplex_table.column_variable_names.get(name) else {
@@ -224,10 +293,10 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 
 #[cfg(test)]
 mod tests {
-    use std::collections::{HashMap, HashSet};
     use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basic_variable_indexes, get_basis_matrix_split, get_basis_split_cost_vector, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, VariableType};
+    use crate::solvers::revised_simpler_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basis_matrix_split, get_basis_split_cost_vector, get_leaving_variable_from, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, ColumnType, VariableType};
+    use std::collections::{HashMap, HashSet};
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
@@ -324,11 +393,44 @@ mod tests {
     }
 
     #[test]
-    fn get_variable_column_from_simplex_table_succeeds() {
+    fn get_variable_column_from_simplex_table_succeeds_for_non_rhs() {
         let simplex_table = create_minimal_simplex_table_for_testing();
-        let res = get_variable_column_from_simplex_table(1, &simplex_table).expect("Should be able to find variable.");
+        let res = get_variable_column_from_simplex_table(ColumnType::Variable(1), &simplex_table).expect("Should be able to find variable.");
         assert_eq!(res.dim(), (simplex_table.rows.len(), 1));
         assert_eq!(*res.get(0,0), Rational::from_integer(2));
         assert_eq!(*res.get(1,0), Rational::from_integer(1));
     }
+
+    #[test]
+    fn get_variable_column_from_simplex_table_succeeds_for_rhs() {
+        let simplex_table = create_minimal_simplex_table_for_testing();
+        let res = get_variable_column_from_simplex_table(ColumnType::Rhs, &simplex_table).expect("Should be able to find variable.");
+        assert_eq!(res.dim(), (simplex_table.rows.len(), 1));
+        assert_eq!(*res.get(0,0), Rational::from_integer(2));
+        assert_eq!(*res.get(1,0), Rational::from_integer(3));
+    }
+
+    #[test]
+    fn get_leaving_variable_from_t_vec_succeeds_for_bounded_solution() {
+        let t_vec = vec![Some(Rational::from_integer(1)), None, Some(Rational::from_integer(-2)), Some(Rational::from_integer(0)), Some(Rational::from_integer(-4))];
+        let res = get_leaving_variable_from(&t_vec);
+        assert_eq!(res, Some(4usize))
+    }
+
+    #[test]
+    fn get_leaving_variable_from_t_vec_succeeds_for_mixed_unbounded_solution() {
+        let t_vec = vec![Some(Rational::from_integer(1)), Some(Rational::from_integer(1)), None, Some(Rational::from_integer(1)), Some(Rational::from_integer(3))];
+        let res = get_leaving_variable_from(&t_vec);
+        assert_eq!(res, None)
+    }
+
+    #[test]
+    fn get_leaving_variable_from_t_vec_succeeds_for_all_none_unbounded_solution() {
+        let t_vec = vec![None, None, None, None,None];
+        let res = get_leaving_variable_from(&t_vec);
+        assert_eq!(res, None)
+    }
+
+
+
 }
