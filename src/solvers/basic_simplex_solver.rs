@@ -65,10 +65,11 @@ pub(super) fn solve_basic_simplex_table(simplex_table: &mut BasicSimplexTable, h
         basic_simplex_gauss_elimination(simplex_table, &pivot,  html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         html_output.end_simplex_iteration();
 
-        let (iteration_counter, overflowed) = iteration_counter.overflowing_add(1);
+        let (iteration_counter_res, overflowed) = iteration_counter.overflowing_add(1);
         if overflowed {
             return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
+        iteration_counter = iteration_counter_res;
         
         //Check if base was met MaxCycleIterations
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, iteration_limit, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
@@ -84,7 +85,7 @@ pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64
     let hasher = FxHasher::default();
     let base_hash = hasher.finish();
     if let Some(visited_count) = visited_bases.get(&base_hash) {
-        if visited_count + 1 > ApplicationEnvParameter::MaxCycleIterations.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
+        if *visited_count >= ApplicationEnvParameter::MaxCycleIterations.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))? {
             html_output.add_found_degenerate_column_cycle();
             html_output.end_simplex_iteration();
             return Ok(true);
@@ -96,7 +97,7 @@ pub(super) fn cycle_or_iterations_limit_exceeded(visited_bases: &mut HashMap<u64
     }
 
     let limit = iteration_limit.unwrap_or(ApplicationEnvParameter::MaxIterationsLimit.get_or_default().parse::<u8>().map_err(|x| Box::new(NumericalError::from(x)))?);
-    if iteration_counter == limit {
+    if iteration_counter >= limit {
         html_output.maximum_iterations_reached(limit);
     };
     Ok(false)

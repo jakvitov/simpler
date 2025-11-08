@@ -23,47 +23,39 @@ enum ColumnType {
 
 pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cache: &mut GcdCache, html_output: &mut HtmlOutput) -> Result<Option<Rational>, Box<dyn HtmlConvertibleError>> {
     html_output.add_simplex_solver_header(REVISED_SIMPLEX);
+    let mut base_variables: Vec<String> = initial_simplex_table.base_variable_names.clone();
 
+    
     let mut iteration_counter:u8 = 1;
     let mut visited_bases:HashMap<u64, u8> = HashMap::new();
     let mut hasher = FxHasher::default();
-    initial_simplex_table.base_variable_names.hash(&mut hasher);
+    base_variables.hash(&mut hasher);
     let base_hash = hasher.finish();
     visited_bases.insert(base_hash, iteration_counter);
 
+    loop {
+        let base_variable_indexes: HashSet<usize> = get_basic_variable_indexes(&base_variables, &initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let (basic_variable_index_mapping, non_basic_variable_index_mapping) = get_basic_non_basic_index_to_var_index_mapping(initial_simplex_table, &base_variable_indexes);
+        let (basis_matrix, non_basis_matrix) = get_basis_matrix_split(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let Some(basis_inverse) = basis_matrix.inverse(gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)? else {
+            return Err(Box::new(ApplicationError::from_string_details("Singular basis matrix encountered.", format!("Basis matrix: {:?}", basis_matrix))));
+        };
+        let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let pi = RationalMatrix::mul(&c_b.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let pi_n = RationalMatrix::mul(&pi, &non_basis_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
-    //todo deal with these unholy heap copies of base variable names
-    let mut base_variables: Vec<String> = initial_simplex_table.base_variable_names.clone();
-    // Base variable indexes in the original simplex table
-    let mut base_variable_indexes = get_basic_variable_indexes(&base_variables, &initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-    // Mapping from relative indexes in the base and non-base cropped structures, where indexes of basic and non basic variables are different
-    let (basic_variable_index_mapping, non_basic_variable_index_mapping) = get_basic_non_basic_index_to_var_index_mapping(initial_simplex_table, &base_variable_indexes);
+        let original_rhs = get_variable_column_from_simplex_table(ColumnType::Rhs, initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let rhs = RationalMatrix::mul(&basis_inverse, &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
-    let (basis_matrix, non_base_matrix) = get_basis_matrix_split(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-
-    let Some(basis_inverse) = basis_matrix.inverse(gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)? else {
-        return Err(Box::new(ApplicationError::from_string_details("Singular basis matrix encountered.", format!("Basis matrix: {:?}", basis_matrix))));
-    };
-
-    let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-
-    //todo can any of these operations be mut, so that we don't need allocate new matrices again?
-    let pi = RationalMatrix::mul(&c_b.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-    let pi_n = RationalMatrix::mul(&pi, &non_base_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-    //Reduced costs for non-basic variables
-    let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-
-    debug_assert_eq!(red_costs.dim().0, 1usize);
-
-
-    while let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) {
+        let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) else {
+            //todo handle optimal solution found 
+            break;
+        };
 
         let global_min_rc_index = translate_relative_variable_index_to_global(minimal_rc_index, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let a_entering_col = get_variable_column_from_simplex_table(ColumnType::Variable(global_min_rc_index), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let d_b = RationalMatrix::mul(&a_entering_col, &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-
-        let original_rhs = get_variable_column_from_simplex_table(ColumnType::Rhs, initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-        let rhs = RationalMatrix::mul(&basis_inverse, &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
         let t_vec = get_t_vec(&d_b, &rhs, gcd_cache)?;
         let leaving_index_opt = get_leaving_variable_from(&t_vec);
@@ -72,10 +64,19 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
             return Ok(None)
         };
 
-        //Check if base was met MaxCycleIterations
+        let entering_variable_name = initial_simplex_table.column_variable_names.keys()[global_min_rc_index].clone();
+        //Update base at the end
+        base_variables[leaving_index] = entering_variable_name;
+
         if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, initial_simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
             return Ok(None)
         }
+
+        let (iteration_counter_res, overflowed) = iteration_counter.overflowing_add(1);
+        if overflowed {
+            return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
+        }
+        iteration_counter = iteration_counter_res;
     }
 
     Ok(None)
@@ -88,16 +89,10 @@ fn get_leaving_variable_from(t_vec: &Vec<Option<Rational>>) -> Option<usize> {
     let mut leaving_value = Rational::zero();
     let mut leaving_index_set = false;
     for (i,val) in t_vec.iter().enumerate() {
-        if val.is_some() && val.unwrap().is_negative() {
-            if leaving_index_set && leaving_value > val.unwrap() {
-                leaving_index = i;
-                leaving_value = val.unwrap();
-                leaving_index_set = true;
-            } else if !leaving_index_set {
-                leaving_index = i;
-                leaving_value = val.unwrap();
-                leaving_index_set = true;
-            }
+        if (val.is_some() && val.unwrap().is_negative()) && ((leaving_index_set && leaving_value > val.unwrap()) || (!leaving_index_set)){
+            leaving_index = i;
+            leaving_value = val.unwrap();
+            leaving_index_set = true;
         }
     }
     if leaving_index_set {
@@ -430,7 +425,5 @@ mod tests {
         let res = get_leaving_variable_from(&t_vec);
         assert_eq!(res, None)
     }
-
-
 
 }
