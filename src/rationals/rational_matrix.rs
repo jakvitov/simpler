@@ -50,10 +50,12 @@ impl RationalMatrix {
         RationalMatrix { data: vec![] }
     }
 
+    /// Alert, pure indexing panic not handled
     pub fn get_row(&self, i: usize) -> &Vec<Rational> {
         &self.data[i]
     }
 
+    /// Alert, pure indexing panic not handled
     pub fn get(&self, m: usize, n: usize) -> &Rational {
         &self.data[m][n]
     }
@@ -104,11 +106,28 @@ impl RationalMatrix {
         Ok(res)
     }
 
+    /// Divide two matrices element wise
+    /// Return None if dimensions do not match
+    pub fn divide_elem_wise(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
+        if lhs.dim() != rhs.dim() {
+            return Err(Box::new(NumericalError::new("Cannot element wise divide matrices, incompatible dimensions.", format!("L: {}x{}. R: {}x{}.", lhs.dim().0, lhs.dim().1, rhs.dim().0, rhs.dim().1))));
+        }
+
+        let mut res = Self::from_value(lhs.dim().0, lhs.dim().1, Rational::zero());
+        for i in 0..lhs.data.len() {
+            for j in  0..lhs.data[i].len() {
+                res.data[i][j] = lhs.data[i][j].divide(&rhs.data[i][j], gcd_cache)?;
+            }
+        }
+
+        Ok(res)
+    }
+
     /// Return new matrix with addition of the lhs + rhs
     /// Fails on incompatible dimensions or addition failure
     pub fn add(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
         if lhs.dim() != rhs.dim() {
-            return Err(Box::new(NumericalError::new("Cannot add matrices, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
+            return Err(Box::new(NumericalError::new("Cannot add matrices, incompatible dimensions.", format!("L: {}x{}. R: {}x{}.", lhs.dim().0, lhs.dim().1, rhs.dim().0, rhs.dim().1))));
         }
 
         let mut res = lhs.clone();
@@ -566,6 +585,27 @@ mod tests {
         let b = RationalMatrix::from_value(3,3, Rational::from_integer(2));
 
         let c = RationalMatrix::subtract(&a, &b, &mut gcd_cache);
+        assert!(c.is_err());
+    }
+
+    #[test]
+    fn divide_elem_wise_succeeds() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(2,2, Rational::from_integer(5));
+        let b = RationalMatrix::from_value(2,2, Rational::from_integer(2));
+
+        let c = RationalMatrix::divide_elem_wise(&a, &b, &mut gcd_cache).expect("Should be able to divide");
+        assert_eq!(c.data[0], vec![Rational::new(2,5), Rational::new(2,5)]);
+        assert_eq!(c.data[1], vec![Rational::new(2,5), Rational::new(2,5)]);
+    }
+
+    #[test]
+    fn divide_elem_wise_fails_for_incompatible_dimensions() {
+        let mut gcd_cache = GcdCache::init();
+        let a = RationalMatrix::from_value(2,2, Rational::from_integer(5));
+        let b = RationalMatrix::from_value(2,3, Rational::from_integer(2));
+
+        let c = RationalMatrix::divide_elem_wise(&a, &b, &mut gcd_cache);
         assert!(c.is_err());
     }
 
