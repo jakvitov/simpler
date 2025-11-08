@@ -1,5 +1,6 @@
 use crate::document::html_output::HtmlOutput;
-use crate::rationals::RationalMatrix;
+use crate::rationals::{Rational, RationalMatrix};
+use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 
 impl HtmlOutput {
 
@@ -49,6 +50,20 @@ impl HtmlOutput {
         self.body.push_str("<math><mo>=</mo></math>\n");
         self.body.push_str(&HtmlOutput::matrix_as_html_string(rhs, None));
         self.end_aligned_matrix_container();
+    }
+
+    pub fn rev_simpl_output_optimal_solution(&mut self, rhs: &RationalMatrix, basis_variables: &Vec<String>, optimal_value: &Rational) {
+        self.body.push_str("<hr>");
+        self.body.push_str("<div class=\"optimal-solution\">");
+        self.body.push_str("<h3>Solution reached</h3>\n");
+        self.body.push_str("<h4>Optimal values:</h4>\n");
+        self.body.push_str("<ul>\n");
+        self.body.push_str(format!("<li>Optimal function value: <b>{}</b></li>\n", optimal_value).as_str());
+        for (index, value) in basis_variables.iter().enumerate() {
+            self.body.push_str(format!("<li>Variable {} optimal value {}</li>\n", value, rhs.get(index,0)).as_str());
+        }
+        self.body.push_str("</ul>\n");
+        self.body.push_str("</div>\n");
     }
 }
 

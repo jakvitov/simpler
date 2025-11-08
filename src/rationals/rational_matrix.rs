@@ -1,8 +1,7 @@
-use std::iter;
-use crate::utils::ApplicationError;
-use crate::utils::collections::get_two_rows_mut;
 use super::GcdCache;
 use super::{NumericalError, Rational};
+use crate::utils::collections::get_two_rows_mut;
+use std::iter;
 
 /// General matrix of rational numbers
 /// Implemented using dense vectors
@@ -280,8 +279,8 @@ impl From<Vec<Vec<Rational>>> for RationalMatrix {
 
 #[cfg(test)]
 mod tests {
-    use crate::rationals::{GcdCache, Rational};
     use crate::rationals::rational_matrix::RationalMatrix;
+    use crate::rationals::{GcdCache, Rational};
 
     #[test]
     fn matrix_from_value_succeeds() {

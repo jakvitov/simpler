@@ -6,7 +6,7 @@ pub mod simplex_error;
 mod basic_simplex_solver;
 mod basic_simplex_table_operations;
 mod two_phase_simplex_solver;
-mod revised_simpler_solver;
+mod revised_simplex_solver;
 
 pub use basic_simplex_solver::solve_basic_simplex;
 pub use two_phase_simplex_solver::solve_two_phase_simplex;
