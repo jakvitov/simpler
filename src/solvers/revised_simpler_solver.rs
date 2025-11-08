@@ -25,7 +25,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     html_output.add_simplex_solver_header(REVISED_SIMPLEX);
     let mut base_variables: Vec<String> = initial_simplex_table.base_variable_names.clone();
 
-    
+
     let mut iteration_counter:u8 = 1;
     let mut visited_bases:HashMap<u64, u8> = HashMap::new();
     let mut hasher = FxHasher::default();
@@ -34,6 +34,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
     visited_bases.insert(base_hash, iteration_counter);
 
     loop {
+        html_output.start_simplex_iteration(iteration_counter);
         let base_variable_indexes: HashSet<usize> = get_basic_variable_indexes(&base_variables, &initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let (basic_variable_index_mapping, non_basic_variable_index_mapping) = get_basic_non_basic_index_to_var_index_mapping(initial_simplex_table, &base_variable_indexes);
         let (basis_matrix, non_basis_matrix) = get_basis_matrix_split(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
@@ -41,6 +42,10 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
             return Err(Box::new(ApplicationError::from_string_details("Singular basis matrix encountered.", format!("Basis matrix: {:?}", basis_matrix))));
         };
         let (c_b, c_nb) = get_basis_split_cost_vector(initial_simplex_table, &base_variable_indexes).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+
+        html_output.rev_simpl_output_input_matrices_and_base(&basis_matrix, &basis_inverse, &base_variables, &c_b, &c_nb, &non_basis_matrix, iteration_counter);
+
+        //Compute required fields
         let pi = RationalMatrix::mul(&c_b.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let pi_n = RationalMatrix::mul(&pi, &non_basis_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
@@ -49,7 +54,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         let rhs = RationalMatrix::mul(&basis_inverse, &original_rhs, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
         let Some(minimal_rc_index) = get_minimal_reduced_cost(&red_costs) else {
-            //todo handle optimal solution found 
+            //todo handle optimal solution found
             break;
         };
 
@@ -61,6 +66,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         let leaving_index_opt = get_leaving_variable_from(&t_vec);
         let Some(leaving_index) = leaving_index_opt else {
             //todo handle unbounded solution
+            html_output.end_simplex_iteration();
             return Ok(None)
         };
 
