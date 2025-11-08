@@ -50,6 +50,15 @@ impl HtmlOutput {
 .simplex-table-with-t-vec table {
   flex: 0 0 auto; /* Don't grow/shrink, use natural size */
 }
+
+.matrix-aligned-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
 ")
     }
 

@@ -158,6 +158,17 @@ impl Rational {
         res
     }
 
+    pub fn to_mmdn_with_sign_for_neg(&self) -> String {
+        let mut res = String::new();
+        if self.is_positive() {
+            res.push_str(self.to_mmdn().as_str());
+        } else {
+            res.push_str("\n<mo>-</mo>");
+            //After we add - we must negate the rational for the string
+            res.push_str(self.negate().to_mmdn().as_str());
+        }
+        res
+    }
     fn to_mmdn(&self) -> String {
         if self.denominator == 1 {
             format!("\n<mn>{}</mn>\n", self.numerator)
@@ -696,6 +707,26 @@ mod tests {
         let num2 = Rational::new(-1, 5);
         let res = num1.to_mmdn_with_sign();
         let res2 = num2.to_mmdn_with_sign();
+        assert_eq!(res, "\n<mo>-</mo>\n<mn>2</mn>\n");
+        assert_eq!(res2, "\n<mo>-</mo>\n<mfrac><mn>1</mn><mn>5</mn></mfrac>\n");
+    }
+
+    #[test]
+    fn to_mmdn_with_sign_for_neg_succeeds_for_positive_numbers() {
+        let num1 = Rational::new(2, 1);
+        let num2 = Rational::new(1, 5);
+        let res = num1.to_mmdn_with_sign_for_neg();
+        assert_eq!(res, "\n<mn>2</mn>\n");
+        let res2 = num2.to_mmdn_with_sign_for_neg();
+        assert_eq!(res2, "\n<mfrac><mn>1</mn><mn>5</mn></mfrac>\n");
+    }
+
+    #[test]
+    fn to_mmdn_with_sign_for_neg_suceeds_for_negative_numbers() {
+        let num1 = Rational::new(-2, 1);
+        let num2 = Rational::new(-1, 5);
+        let res = num1.to_mmdn_with_sign_for_neg();
+        let res2 = num2.to_mmdn_with_sign_for_neg();
         assert_eq!(res, "\n<mo>-</mo>\n<mn>2</mn>\n");
         assert_eq!(res2, "\n<mo>-</mo>\n<mfrac><mn>1</mn><mn>5</mn></mfrac>\n");
     }
