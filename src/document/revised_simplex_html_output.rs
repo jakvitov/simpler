@@ -51,6 +51,8 @@ impl HtmlOutput {
         self.body.push_str(&HtmlOutput::matrix_as_html_string(rhs, None));
         self.end_aligned_matrix_container();
     }
+    
+    
 
     pub fn rev_simpl_output_optimal_solution(&mut self, rhs: &RationalMatrix, basis_variables: &Vec<String>, optimal_value: &Rational) {
         self.body.push_str("<hr>");
@@ -64,6 +66,13 @@ impl HtmlOutput {
         }
         self.body.push_str("</ul>\n");
         self.body.push_str("</div>\n");
+    }
+
+    pub fn rev_simpl_output_unbounded_solution(&mut self, t_vec: &Vec<Option<Rational>>) {
+        self.body.push_str("<hr>");
+        self.body.push_str("<h4>Unbounded solution found</h4>\n");
+        self.body.push_str(format!("<p>Unbounded solution found during pivot calculation. All t-vector values are negative or undefined!</p>").as_str());
+        self.add_vector_with_header_as_vertical_table_with_given_length(t_vec, t_vec.len(), "t");
     }
 }
 
