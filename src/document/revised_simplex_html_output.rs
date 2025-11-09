@@ -76,6 +76,12 @@ impl HtmlOutput {
 
     }
 
+    pub fn rev_simpl_output_leaving_entering_variable(&mut self, leaving_variable: (&String, usize), entering_variable: (&String, usize)) {
+        self.body.push_str("<h3>Finishing iteration with base update</h3>\n");
+        self.body.push_str("\n");
+        self.body.push_str(format!("<p>Leaving variable {}, index {}. Entering variable {}, index {}.</p>\n", leaving_variable.0, leaving_variable.1, entering_variable.0, entering_variable.1).as_str());
+    }
+
     pub fn rev_simpl_output_optimal_solution(&mut self, rhs: &RationalMatrix, basis_variables: &Vec<String>, optimal_value: &Rational) {
         self.body.push_str("<hr>");
         self.body.push_str("<div class=\"optimal-solution\">");

@@ -81,6 +81,9 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         };
 
         let entering_variable_name = initial_simplex_table.column_variable_names.keys()[global_min_rc_index].clone();
+
+        html_output.rev_simpl_output_leaving_entering_variable((&base_variables[leaving_index], leaving_index), (&initial_simplex_table.column_variable_names.keys()[global_min_rc_index], global_min_rc_index));
+
         //Update base at the end
         base_variables[leaving_index] = entering_variable_name;
 
