@@ -70,6 +70,9 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         let d_b = RationalMatrix::mul(&a_entering_col, &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
         let t_vec = get_t_vec(&d_b, &rhs, gcd_cache)?;
+
+        html_output.rev_simpl_output_t_vec_computation(minimal_rc_index, global_min_rc_index, &a_entering_col, &basis_inverse, &d_b, &rhs, &t_vec, iteration_counter);
+
         let leaving_index_opt = get_leaving_variable_from(&t_vec);
         let Some(leaving_index) = leaving_index_opt else {
             html_output.rev_simpl_output_unbounded_solution(&t_vec);
