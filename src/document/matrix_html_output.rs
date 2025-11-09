@@ -1,5 +1,5 @@
 use crate::document::html_output::HtmlOutput;
-use crate::rationals::RationalMatrix;
+use crate::rationals::{Rational, RationalMatrix};
 
 impl HtmlOutput {
 
@@ -40,6 +40,26 @@ impl HtmlOutput {
         res.push_str("<mo>[</mo><mtable>\n");
         for i in a {
             res.push_str(format!("<mtr>\n<mtd>{}</mtd></mtr>\n", i).as_str());
+        }
+
+        res.push_str("</mtable><mo>]</mo>\n");
+        res.push_str("</mrow></math>\n");
+        res
+    }
+
+    pub(super) fn t_vec_as_matrix(t_vec: &Vec<Option<Rational>>, input_name: Option<&String>) -> String{
+        let mut res = String::from("<math><mrow>\n");
+        if let Some(name) = input_name {
+            res.push_str(format!("{name}<mo>=</mo>").as_str());
+        }
+
+        res.push_str("<mo>[</mo><mtable>\n");
+        for i in t_vec {
+            if let Some(val) = i {
+                res.push_str(format!("<mtr>\n<mtd>{val}</mtd></mtr>\n").as_str());
+            } else {
+                res.push_str("<mtr>\n<mtd>UNDEFINED</mtd></mtr>\n");
+            }
         }
 
         res.push_str("</mtable><mo>]</mo>\n");

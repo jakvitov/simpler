@@ -1,10 +1,10 @@
 use crate::document::html_output::HtmlOutput;
 use crate::rationals::{Rational, RationalMatrix};
-use crate::solvers::basic_simplex_table_data::BasicSimplexTable;
 
 impl HtmlOutput {
 
     pub fn rev_simpl_output_input_matrices_and_base(&mut self, base: &RationalMatrix, inv_base: &RationalMatrix, base_variables: &Vec<String>, c_b: &RationalMatrix, c_nb: &RationalMatrix, N: &RationalMatrix, iteration: u8) {
+        self.body.push_str("<hr>");
         self.body.push_str(format!("<h3>Used input matrices for iteration {iteration}</h3>\n").as_str());
         self.start_aligned_matrix_container();
         self.body.push_str(&HtmlOutput::vector_as_html_string(base_variables, Some(&HtmlOutput::create_mmdn_matrix_name("X", Some("B"), None))));
@@ -51,8 +51,30 @@ impl HtmlOutput {
         self.body.push_str(&HtmlOutput::matrix_as_html_string(rhs, None));
         self.end_aligned_matrix_container();
     }
-    
-    
+
+    pub fn rev_simpl_output_t_vec_computation(&mut self, min_rc_index_local: usize, min_rc_index_global:usize, a_j: &RationalMatrix, basis_inverse: &RationalMatrix, d: &RationalMatrix, rhs: &RationalMatrix, t_vec: &Vec<Option<Rational>>, iteration: u8) {
+        self.body.push_str("<h3>Current t-vector computation</h3>\n");
+        self.body.push_str(format!("<p>Minimal reduced cost index in computed vector {min_rc_index_local}, in simplex table (j): {min_rc_index_global}.</p>").as_str());
+        //d computation
+        self.start_aligned_matrix_container();
+        self.body.push_str(format!("<math><mi>d</mi><mo>=</mo><msubsup><mo>A</mo><mn>:j</mn><mn></mn></msubsup><msubsup><mo>B</mo><mn>{iteration}</mn><mn>-1</mn></msubsup><mo>=</mo></math>").as_str());
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(a_j, None));
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(basis_inverse, None));
+        self.body.push_str("<math><mo>=</mo></math>");
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(d, None));
+        self.end_aligned_matrix_container();
+
+        //t-computation
+        self.start_aligned_matrix_container();
+        self.body.push_str("<math><mi>t</mi><mo>=</mo><mi>d</mi><mo>/</mo><mi>RHS</mi><mo>=</mo></math>");
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(d, None));
+        self.body.push_str("<math><mo>/</mo></math>");
+        self.body.push_str(&HtmlOutput::matrix_as_html_string(rhs, None));
+        self.body.push_str("<math><mo>=</mo></math>");
+        self.body.push_str(&HtmlOutput::t_vec_as_matrix(t_vec, Some(&"<mi>t</mi>".to_owned())));
+        self.end_aligned_matrix_container();
+
+    }
 
     pub fn rev_simpl_output_optimal_solution(&mut self, rhs: &RationalMatrix, basis_variables: &Vec<String>, optimal_value: &Rational) {
         self.body.push_str("<hr>");
@@ -72,7 +94,7 @@ impl HtmlOutput {
         self.body.push_str("<hr>");
         self.body.push_str("<h4>Unbounded solution found</h4>\n");
         self.body.push_str(format!("<p>Unbounded solution found during pivot calculation. All t-vector values are negative or undefined!</p>").as_str());
-        self.add_vector_with_header_as_vertical_table_with_given_length(t_vec, t_vec.len(), "t");
+        self.body.push_str(&HtmlOutput::t_vec_as_matrix(t_vec, Some(&"<mi>t</mi>".to_owned())));
     }
 }
 
