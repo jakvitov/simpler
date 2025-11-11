@@ -4,16 +4,16 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '../../backend/src/**'
-      - '../../tests/**'
-      - '../../backend/Cargo.toml'
-      - '../../backend/Cargo.lock'
+      - 'backend/src/**'
+      - 'tests/**'
+      - 'backend/Cargo.toml'
+      - 'backend/Cargo.lock'
   pull_request:
     paths:
-      - '../../backend/src/**'
-      - '../../tests/**'
-      - '../../backend/Cargo.toml'
-      - '../../backend/Cargo.lock'
+      - 'backend/src/**'
+      - 'tests/**'
+      - 'backend/Cargo.toml'
+      - 'backend/Cargo.lock'
 
 env:
   CARGO_TERM_COLOR: always
