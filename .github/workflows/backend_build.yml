@@ -5,13 +5,13 @@ on:
     branches: [ "main" ]
     paths:
       - 'backend/src/**'
-      - 'tests/**'
+      - 'backend/tests/**'
       - 'backend/Cargo.toml'
       - 'backend/Cargo.lock'
   pull_request:
     paths:
       - 'backend/src/**'
-      - 'tests/**'
+      - 'backend/tests/**'
       - 'backend/Cargo.toml'
       - 'backend/Cargo.lock'
 
