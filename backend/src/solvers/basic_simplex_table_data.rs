@@ -7,6 +7,7 @@ use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use serde::{Deserialize, Serialize};
 
 ///Simplex table used for non-optimised simplex algorithms
 pub struct BasicSimplexTable {
@@ -20,7 +21,7 @@ pub struct BasicSimplexTable {
     pub(crate) artificial_variable_index: Option<usize>
 }
 
-#[derive(Debug, Copy, Eq, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, Copy, Eq, PartialEq, Clone)]
 pub enum OptimizationType {
     MAX,
     MIN

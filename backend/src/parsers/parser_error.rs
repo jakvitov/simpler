@@ -2,8 +2,9 @@ use crate::document::html_convertible_error::HtmlConvertibleError;
 use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 pub struct ParserError {
     message: String,
     structure: String
