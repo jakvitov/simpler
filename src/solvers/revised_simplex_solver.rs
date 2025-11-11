@@ -46,7 +46,7 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
         html_output.rev_simpl_output_input_matrices_and_base(&basis_matrix, &basis_inverse, &base_variables, &c_b, &c_nb, &non_basis_matrix, iteration_counter);
 
         //Compute required fields
-        let pi = RationalMatrix::mul(&c_b.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let pi = RationalMatrix::mul(&c_b, &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let pi_n = RationalMatrix::mul(&pi, &non_basis_matrix, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let red_costs = RationalMatrix::subtract(&c_nb, &pi_n,gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
 
@@ -67,11 +67,11 @@ pub fn solve_revised_simplex(initial_simplex_table: &BasicSimplexTable, gcd_cach
 
         let global_min_rc_index = translate_relative_variable_index_to_global(minimal_rc_index, VariableType::NonBasic, (&basic_variable_index_mapping, &non_basic_variable_index_mapping), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
         let a_entering_col = get_variable_column_from_simplex_table(ColumnType::Variable(global_min_rc_index), initial_simplex_table).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
-        let d_b = RationalMatrix::mul(&a_entering_col, &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?;
+        let d_b_t = RationalMatrix::mul(&a_entering_col.transpose(), &basis_inverse, gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?.transpose();
 
-        let t_vec = get_t_vec(&d_b, &rhs, gcd_cache)?;
+        let t_vec = get_t_vec(&d_b_t, &rhs, gcd_cache)?;
 
-        html_output.rev_simpl_output_t_vec_computation(minimal_rc_index, global_min_rc_index, &a_entering_col, &basis_inverse, &d_b, &rhs, &t_vec, iteration_counter);
+        html_output.rev_simpl_output_t_vec_computation(minimal_rc_index, global_min_rc_index, &a_entering_col, &basis_inverse, &d_b_t, &rhs, &t_vec, iteration_counter);
 
         let leaving_index_opt = get_leaving_variable_from(&t_vec);
         let Some(leaving_index) = leaving_index_opt else {
@@ -108,7 +108,7 @@ fn get_leaving_variable_from(t_vec: &Vec<Option<Rational>>) -> Option<usize> {
     let mut leaving_value = Rational::zero();
     let mut leaving_index_set = false;
     for (i,val) in t_vec.iter().enumerate() {
-        if (val.is_some() && val.unwrap().is_negative()) && ((leaving_index_set && leaving_value > val.unwrap()) || (!leaving_index_set)){
+        if (val.is_some() && val.unwrap().is_positive()) && ((leaving_index_set && leaving_value > val.unwrap()) || (!leaving_index_set)){
             leaving_index = i;
             leaving_value = val.unwrap();
             leaving_index_set = true;
@@ -127,11 +127,11 @@ fn get_t_vec(d_b: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCach
     debug_assert_eq!(rhs.dim().1, 1usize);
 
     let mut res: Vec<Option<Rational>> = Vec::with_capacity(d_b.dim().0);
-    for j in 0..rhs.dim().1 {
-        if *rhs.get(0,j) == Rational::zero() {
+    for j in 0..rhs.dim().0 {
+        if *rhs.get(j,0) == Rational::zero() {
             res.push(None);
         } else {
-            res.push(Some(rhs.get(0,j).divide(d_b.get(0,j), gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?))
+            res.push(Some(rhs.get(j,0).divide(d_b.get(j,0), gcd_cache).map_err(|x| x as Box<dyn HtmlConvertibleError>)?))
         }
     }
     Ok(res)
@@ -309,8 +309,11 @@ fn get_basic_variable_indexes(basic_variables: &Vec<String>, initial_simplex_tab
 mod tests {
     use crate::rationals::{Rational, RationalMatrix};
     use crate::solvers::basic_simplex_table_data::test_utils::create_minimal_simplex_table_for_testing;
-    use crate::solvers::revised_simplex_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basis_matrix_split, get_basis_split_cost_vector, get_leaving_variable_from, get_minimal_reduced_cost, get_variable_column_from_simplex_table, translate_relative_variable_index_to_global, ColumnType, VariableType};
+    use crate::solvers::revised_simplex_solver::{get_basic_non_basic_index_to_var_index_mapping, get_basis_matrix_split, get_basis_split_cost_vector, get_leaving_variable_from, get_minimal_reduced_cost, get_variable_column_from_simplex_table, solve_revised_simplex, translate_relative_variable_index_to_global, ColumnType, VariableType};
     use std::collections::{HashMap, HashSet};
+    use crate::rationals::GcdCache;
+    use crate::document::html_output::HtmlOutput;
+    use crate::solvers::solve_basic_simplex;
 
     #[test]
     fn get_basis_matrix_split_succeeds() {
@@ -426,14 +429,14 @@ mod tests {
 
     #[test]
     fn get_leaving_variable_from_t_vec_succeeds_for_bounded_solution() {
-        let t_vec = vec![Some(Rational::from_integer(1)), None, Some(Rational::from_integer(-2)), Some(Rational::from_integer(0)), Some(Rational::from_integer(-4))];
+        let t_vec = vec![Some(Rational::from_integer(4)), None, Some(Rational::from_integer(-2)), Some(Rational::from_integer(0)), Some(Rational::from_integer(1))];
         let res = get_leaving_variable_from(&t_vec);
         assert_eq!(res, Some(4usize))
     }
 
     #[test]
     fn get_leaving_variable_from_t_vec_succeeds_for_mixed_unbounded_solution() {
-        let t_vec = vec![Some(Rational::from_integer(1)), Some(Rational::from_integer(1)), None, Some(Rational::from_integer(1)), Some(Rational::from_integer(3))];
+        let t_vec = vec![Some(Rational::from_integer(-1)), Some(Rational::from_integer(-1)), None, Some(Rational::from_integer(-1)), None];
         let res = get_leaving_variable_from(&t_vec);
         assert_eq!(res, None)
     }
@@ -443,6 +446,15 @@ mod tests {
         let t_vec = vec![None, None, None, None,None];
         let res = get_leaving_variable_from(&t_vec);
         assert_eq!(res, None)
+    }
+
+    #[test]
+    fn check_revised_simplex_solve_succeeds() {
+        let mut simplex_table = create_minimal_simplex_table_for_testing();
+        let mut html_output = HtmlOutput::with_application_header();
+        let mut gcd_cache = GcdCache::init();
+        let res = solve_revised_simplex(&mut simplex_table, &mut gcd_cache, &mut html_output).expect("Should be able to solve.");
+        assert_eq!(res.unwrap(), Rational::from_integer(2));
     }
 
 }

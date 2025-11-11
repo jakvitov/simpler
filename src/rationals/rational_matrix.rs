@@ -89,7 +89,7 @@ impl RationalMatrix {
     ///Multiply given matrices, yield new result as newly allocated matrix
     pub fn mul(lhs: &RationalMatrix, rhs: &RationalMatrix, gcd_cache: &mut GcdCache) -> Result<RationalMatrix, Box<NumericalError>> {
         if lhs.dim().1 != rhs.dim().0 {
-            return Err(Box::new(NumericalError::new("Cannot multiply matrices, incompatible dimensions.", format!("R: {}x{}. L: {}x{}.", rhs.dim().0, rhs.dim().1, lhs.dim().0, lhs.dim().1))));
+            return Err(Box::new(NumericalError::new("Cannot multiply matrices, incompatible dimensions.", format!("L: {}x{}. R: {}x{}.", lhs.dim().0, lhs.dim().1, rhs.dim().0, rhs.dim().1))));
         }
         let mut res = Self::from_value(lhs.dim().0, rhs.dim().1, Rational::zero());
         for lhs_row in 0..lhs.dim().0 {
