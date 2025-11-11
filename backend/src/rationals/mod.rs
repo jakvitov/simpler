@@ -8,3 +8,5 @@ pub use gcd_cache::GcdCache;
 pub use rational::Rational;
 
 pub use numerical_error::NumericalError;
+
+pub use rational_matrix::RationalMatrix;

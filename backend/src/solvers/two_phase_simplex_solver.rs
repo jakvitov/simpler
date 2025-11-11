@@ -1,16 +1,15 @@
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use fxhash::FxHasher;
 use crate::document::html_convertible_error::HtmlConvertibleError;
 use crate::document::html_output::HtmlOutput;
-use crate::rationals::{GcdCache, NumericalError, Rational};
-use crate::solvers::{basic_simplex_solver};
+use crate::rationals::{GcdCache, Rational};
 use crate::solvers::basic_simplex_solver::{cycle_or_iterations_limit_exceeded, solve_basic_simplex_table};
 use crate::solvers::basic_simplex_table_data::{BasicSimplexTable, OptimizationType};
 use crate::solvers::simplex_error::SimplexError;
 use crate::solvers::SimplexSoverAlgorithm::TWO_PHASE_SIMPLEX;
+use crate::solvers::basic_simplex_solver;
 use crate::utils::ApplicationError;
-use crate::utils::env_parameters::ApplicationEnvParameter;
+use fxhash::FxHasher;
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 /*
   Solver, which solves simplex problem, given by simplex table with filled auxiliary variables, using
   two-phase simplex method.
@@ -64,7 +63,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         html_output.start_simplex_iteration(iteration_counter);
         let t_vec = basic_simplex_solver::get_t_vector(simplex_table, &pessimal_column.unwrap(), &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         let mut all_negative_or_none = true;
-        t_vec.iter().for_each(|element| {if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false;}});
+        t_vec.iter().for_each(|element| if element.is_some() && element.unwrap().is_positive() {all_negative_or_none = false});
         if  all_negative_or_none {
             html_output.add_unbouded_solution_with_t_vec(simplex_table, &t_vec);
             html_output.end_simplex_iteration();
@@ -77,13 +76,14 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
         basic_simplex_solver::basic_simplex_gauss_elimination(simplex_table, &pivot, html_output, &mut gcd_cache).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
         html_output.end_simplex_iteration();
 
-        let (iteration_counter, overflowed) = iteration_counter.overflowing_add(1);
+        let (iteration_counter_res, overflowed) = iteration_counter.overflowing_add(1);
         if overflowed {
             return Err(Box::new(ApplicationError::from_string_details("Iteration counter overflow. Number of iterations too high.", format!("Highest iteration counter {}", u8::MAX))))
         }
+        iteration_counter = iteration_counter_res;
 
         //Check if base was met MaxCycleIterations
-        if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, simplex_table, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
+        if cycle_or_iterations_limit_exceeded(&mut visited_bases, iteration_counter, None, html_output).map_err(|e| e as Box<dyn HtmlConvertibleError>)? {
             return Ok(None)
         }
 
@@ -100,7 +100,7 @@ pub fn solve_two_phase_simplex(simplex_table: &mut BasicSimplexTable, html_outpu
     }
 
 
-    let coefficient = solve_basic_simplex_table(simplex_table, html_output, Some(iteration_counter)).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
+    let coefficient = solve_basic_simplex_table(simplex_table, html_output, Some(iteration_counter), None).map_err(|e| e as Box<dyn HtmlConvertibleError>)?;
     if let Some(coefficient) = coefficient {
         if simplex_table.optimization_type == OptimizationType::MIN {
             html_output.add_target_value_negation_for_min_simplex(&coefficient);
@@ -134,10 +134,9 @@ fn make_objective_row_for_auxiliary_minimalization(basic_simplex_table: &mut Bas
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use crate::document::html_output::HtmlOutput;
     use crate::rationals::Rational;
-    use crate::solvers::basic_simplex_table_data::test_utils::{create_minimal_simplex_table_for_testing, create_optimal_simplex_table, create_simplex_table_with_artificial_variables};
+    use crate::solvers::basic_simplex_table_data::test_utils::{create_minimal_simplex_table_for_testing, create_simplex_table_with_artificial_variables};
     use crate::solvers::two_phase_simplex_solver::{find_row_where_artificial_variable_is_non_zero, make_objective_row_for_auxiliary_minimalization, solve_two_phase_simplex};
 
     #[test]
