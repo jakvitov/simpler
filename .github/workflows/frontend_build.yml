@@ -1,4 +1,4 @@
-name: Frontend TypeScript build
+name: Frontend build
 
 on:
   push:
