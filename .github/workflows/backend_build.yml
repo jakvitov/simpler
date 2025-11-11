@@ -1,0 +1,35 @@
+name: Backend build
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/src/**'
+      - 'backend/tests/**'
+      - 'backend/Cargo.toml'
+      - 'backend/Cargo.lock'
+  pull_request:
+    paths:
+      - 'backend/src/**'
+      - 'backend/tests/**'
+      - 'backend/Cargo.toml'
+      - 'backend/Cargo.lock'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build
+    - name: Run tests
+      run: cargo test --verbose

@@ -280,7 +280,7 @@ mod tests {
         let mut simplex_table = create_cycling_simplex_table();
         let mut html_output = HtmlOutput::with_application_header();
         let res = solve_basic_simplex(&mut simplex_table, &mut html_output);
-        fs::write("check_simplex_with_cycle_fails.html",html_output.to_string());
+        fs::write("../../../check_simplex_with_cycle_fails.html", html_output.to_string());
         assert!(res.is_ok());
         assert!(res.unwrap().is_none());
         assert!(html_output.to_string().contains("Cycle"));
