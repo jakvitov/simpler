@@ -14,3 +14,7 @@ chrono = "0.4.41"
 #Typst
 indexmap = "2.0"
 fxhash = "0.2.1"
+#Server
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
