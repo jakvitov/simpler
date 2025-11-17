@@ -11,3 +11,11 @@ pub async fn health_check() -> (StatusCode, Json<HealthResponse>) {
         })
     )
 }
+
+pub async fn panic() -> (StatusCode, Json<()>) {
+    if cfg!(debug_assertions) {
+        panic!("My panic");
+    } else {
+        (StatusCode::NOT_IMPLEMENTED, Json(()))
+    }
+}
