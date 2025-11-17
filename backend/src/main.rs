@@ -5,6 +5,7 @@ use axum::routing::{get, post, put};
 use tower_http::catch_panic::CatchPanicLayer;
 use axum::Router;
 use log::info;
+use tower_http::trace::TraceLayer;
 
 mod parsers;
 mod rationals;

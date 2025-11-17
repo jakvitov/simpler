@@ -19,4 +19,4 @@ fxhash = "0.2.1"
 axum = "0.8.7"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
-tower-http = { version = "0.6.6", features = ["catch-panic"] }
+tower-http = { version = "0.6.6", features = ["catch-panic", "trace"] }

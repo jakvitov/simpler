@@ -1,10 +1,10 @@
 use crate::dto::MpsVerificationResult;
+use axum::body::Body;
 use axum::http::{Response, StatusCode};
+use axum::response::IntoResponse;
 use axum::Json;
 use log::error;
 use std::any::Any;
-use axum::body::Body;
-use axum::response::IntoResponse;
 
 /// Custom panic handler
 /// Used, so that the server does not crash on panics
