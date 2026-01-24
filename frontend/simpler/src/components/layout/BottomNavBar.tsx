@@ -10,7 +10,6 @@ function BottomNavBar() {
     useEffect(() => {
         const loadHealthCheck = async() => {
             try {
-                console.log("Fetchinig healthcheck")
                 const data = await fetchHealthCheck();
                 setVersion(data.version)
                 setHealth(data.status)
@@ -22,6 +21,13 @@ function BottomNavBar() {
             }
         }
         loadHealthCheck()
+
+        const intervalID = setInterval(() => {
+            loadHealthCheck()
+        }, 60000)
+
+        //Cleanup interval when component unmounts
+        return () => clearInterval(intervalID)
     }, [])
 
 
