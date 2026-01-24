@@ -5,11 +5,11 @@ body,h1, h2, h3, .btn, .form-control, .nav, .navbar {
 }
 
 h2 {
-    font-size: 30px;
+    font-size: 25px;
 }
 
 h3 {
-    font-size: 25px;
+    font-size: 20px;
 }
 
 /* Override Bootstrap's contextual text colors */
