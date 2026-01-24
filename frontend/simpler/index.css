@@ -12,6 +12,10 @@ h3 {
     font-size: 20px;
 }
 
+.page-content {
+    padding-bottom: 40px;
+}
+
 /* Override Bootstrap's contextual text colors */
 .text-muted,
 .text-primary,

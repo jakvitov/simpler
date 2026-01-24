@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 
+
+/**
+ * AI generated MPS input field with syntax highlighting
+ * TODO: Rewrite manually
+ */
 interface MPSInputProps {
     value?: string;
     onChange?: (value: string) => void;
@@ -120,7 +125,7 @@ function MPSInput({
                     lineHeight: '1.5',
                     border: '0px',
                     padding: '0.375rem 0.75rem',
-                    resize: 'vertical',
+                    resize: 'none',
                     caretColor: 'black',
                     zIndex: 2,
                     WebkitTextFillColor: 'transparent',
@@ -158,7 +163,7 @@ ENDATA`);
             <MPSInput
                 value={code}
                 onChange={setCode}
-                rows={15}
+                rows={20}
             />
         </div>
     );

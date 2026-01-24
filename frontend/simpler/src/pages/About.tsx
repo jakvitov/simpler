@@ -6,8 +6,10 @@ import MainHeader from "../components/ui/MainHeader.tsx";
 function About() {
     return (
         <>
-            <MainHeader />
-            <MainNavBar />
+            <div className={"page-content"}>
+                <MainHeader />
+                <MainNavBar />
+            </div>
             <AboutBottomNavBar />
             <BottomNavBar />
         </>

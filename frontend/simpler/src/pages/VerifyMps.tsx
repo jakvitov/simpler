@@ -7,10 +7,12 @@ import MpsVerificationInput from "../components/layout/mps/MpsVerificationInput.
 function VerifyMps() {
     return (
     <>
-        <MainHeader />
-        <MainNavBar />
-        <PageContentHeader value="MPS verification"></PageContentHeader>
-        <MpsVerificationInput />
+        <div className={"page-content"}>
+            <MainHeader />
+            <MainNavBar />
+            <PageContentHeader value="MPS verification"></PageContentHeader>
+            <MpsVerificationInput />
+        </div>
         <BottomNavBar />
     </>
     )

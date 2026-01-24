@@ -7,9 +7,11 @@ import BottomNavBar from "../components/layout/BottomNavBar.tsx";
 function Home() {
     return (
         <>
-            <MainHeader />
-            <MainNavBar />
-            <Manual />
+            <div className={"page-content"}>
+                <MainHeader />
+                <MainNavBar />
+                <Manual />
+            </div>
             <AboutBottomNavBar />
             <BottomNavBar />
         </>
