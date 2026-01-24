@@ -1,11 +1,13 @@
 ./backend/target
 ./.idea
+.env*
+
 
 ./frontendsimpler/node_modules
 ./frontend/simpler/dist
 ./frontend/simpler/dist-ssr
 ./frontend/simpler/*.local
-./frontend/simpler/.env.development
+
 
 
 
