@@ -149,7 +149,7 @@ impl HtmlOutput {
 
     /// Create vertical table from given vector, if the given length is bigger than the vector size,
     /// stretch the table adding empty rows to match the length.
-    /// Header is not considered as part of the length
+    /// MainHeader is not considered as part of the length
     fn create_overflowing_table_from_vector(&self, values: &Vec<Option<Rational>>, header: &str, length: usize) -> String {
         let mut res = String::new();
         res.push_str("<table>\n");

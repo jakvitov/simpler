@@ -1,0 +1,22 @@
+body,h1, .btn, .form-control, .nav, .navbar {
+    font-family: 'Inter', sans-serif !important;
+    color: black !important;
+    font-weight: 300;
+}
+
+/* Override Bootstrap's contextual text colors */
+.text-muted,
+.text-primary,
+.text-secondary,
+.text-success,
+.text-danger,
+.text-warning,
+.text-info,
+.text-light,
+.text-dark {
+    color: #000 !important;
+}
+
+a {
+    color: #000 !important;
+}
