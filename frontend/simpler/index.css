@@ -1,7 +1,15 @@
-body,h1, .btn, .form-control, .nav, .navbar {
+body,h1, h2, h3, .btn, .form-control, .nav, .navbar {
     font-family: 'Inter', sans-serif !important;
     color: black !important;
     font-weight: 350;
+}
+
+h2 {
+    font-size: 30px;
+}
+
+h3 {
+    font-size: 25px;
 }
 
 /* Override Bootstrap's contextual text colors */
