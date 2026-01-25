@@ -47,9 +47,13 @@ function MpsVerificationResults() {
                 </div>
                 <BottomNavBar />
             </>)
+        } else {
+            alert("Application error occured. Unknown verification status encountered " + verificationResult.status)
+            navigate("/verify-mps")
         }
 
     } else {
+        alert("Error encountered. Session storage was changed and no result could be loaded.")
         navigate("/verify-mps")
     }
 }
