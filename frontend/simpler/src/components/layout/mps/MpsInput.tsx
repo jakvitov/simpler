@@ -12,7 +12,7 @@ interface MPSInputProps {
     rows?: number;
 }
 
-function MPSInput({
+export default function MPSInput({
                       value = '',
                       onChange,
                       placeholder = 'Enter MPS code...',
@@ -130,40 +130,6 @@ function MPSInput({
                     zIndex: 2,
                     WebkitTextFillColor: 'transparent',
                 }}
-            />
-        </div>
-    );
-}
-
-// Demo component
-export default function Demo() {
-    const [code, setCode] = useState(`NAME          EXAMPLE
-ROWS
- N  OBJ
- L  C1
- G  C2
-COLUMNS
-    X1        OBJ       -1
-    X1        C1        1
-    X1        C2        2
-    X2        OBJ       -2
-    X2        C1        1
-    X2        C2        1
-RHS
-    RHS1      C1        4
-    RHS1      C2        3
-BOUNDS
- LO BND1      X1        0
- UP BND1      X1        10
- FR BND1      X2
-ENDATA`);
-
-    return (
-        <div style={{maxWidth: '800px', margin: '0 auto' }}>
-            <MPSInput
-                value={code}
-                onChange={setCode}
-                rows={20}
             />
         </div>
     );
