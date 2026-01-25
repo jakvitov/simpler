@@ -3,6 +3,7 @@ import Home from "./pages/Home.tsx";
 import About from "./pages/About.tsx";
 import VerifyMps from "./pages/VerifyMps.tsx";
 import MpsVerificationResults from "./pages/MpsVerificationResults.tsx";
+import SolveLp from "./pages/SolveLp.tsx";
 
 function App() {
     return (
@@ -11,6 +12,7 @@ function App() {
             <Route path="/about" element={<About/>} />
             <Route path="/verify-mps" element={<VerifyMps/>} />
             <Route path="/mps-verification-results/:key" element={<MpsVerificationResults />} />
+            <Route path="/solve-lp" element={<SolveLp/>} />
         </Routes>
     )
 }
