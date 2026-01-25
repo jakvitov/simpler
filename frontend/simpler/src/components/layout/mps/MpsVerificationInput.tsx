@@ -8,12 +8,15 @@ import {useNavigate} from "react-router-dom";
 import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/sessionStorageConstants.ts";
 import type {MpsVerificationResponse} from "../../../api/verification/verificationTypes.ts";
 
+type MpsVerificationInputProps = {
+    initialText?: string
+}
 
-function MpsVerificationInput() {
+function MpsVerificationInput(props: MpsVerificationInputProps) {
 
     const INPUT_MESSAGE = 'Enter your MPS code here...'
 
-    const [mpsCode, setMpsCode] = useState(INPUT_MESSAGE);
+    const [mpsCode, setMpsCode] = useState((props.initialText === null || props.initialText === undefined) ? INPUT_MESSAGE : props.initialText);
     const navigate = useNavigate();
 
     const submitVerifyMps = () => {

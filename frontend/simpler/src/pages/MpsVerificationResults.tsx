@@ -5,6 +5,7 @@ import BottomNavBar from "../components/layout/BottomNavBar.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../utils/sessionStorageConstants.ts";
 import type {MpsVerificationResponse} from "../api/verification/verificationTypes.ts";
+import MpsVerificationInput from "../components/layout/mps/MpsVerificationInput.tsx";
 
 function MpsVerificationResults() {
 
@@ -29,7 +30,8 @@ function MpsVerificationResults() {
                 <div className={"page-content"}>
                     <MainHeader />
                     <MainNavBar />
-                    <PageContentHeader value="MPS verification successfull"></PageContentHeader>
+                    <PageContentHeader value="MPS verified ✅"></PageContentHeader>
+                    <MpsVerificationInput initialText={mpsData} />
                 </div>
                 <BottomNavBar />
             </>)
