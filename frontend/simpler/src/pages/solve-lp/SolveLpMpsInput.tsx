@@ -6,12 +6,14 @@ import SolverAlgorithmRadial from "../../components/layout/solve/SolverAlgorithm
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
 import {useState} from "react";
-import type {SolverMethods} from "../../api/solver/solveLpTypes.ts";
+import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 
 function SolveLpMpsInput() {
 
     const [mpsInput, setMpsInput] = useState("Enter your MPS code here...")
     const [solverMethod, setSolverMethod] = useState<SolverMethods>("BASIC_SIMPLEX")
+    const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
+
 
     return (
         <>
@@ -21,8 +23,10 @@ function SolveLpMpsInput() {
             <Container>
                 <SolverInputType />
                 <SolverAlgorithmRadial
-                    onSelected={setSolverMethod}
-                    currentSelected={solverMethod}
+                    onSelectedSolverMethod={setSolverMethod}
+                    currentSelectedSolverMethod={solverMethod}
+                    onSelectedOptimisationTarget={setOptimisationTarget}
+                    currentSelectedOptimisationTarget={optimisationTarget}
                 />
                 <MPSInput
                     value={mpsInput}

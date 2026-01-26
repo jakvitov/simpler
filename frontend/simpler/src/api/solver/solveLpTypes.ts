@@ -4,3 +4,7 @@ export type SolverMethods =
     | "MULTIPLICATIVE"
     | "REVISED"
     | "BOUNDS_OPTIMISATION";
+
+export type OptimisationTarget =
+    | "MAX"
+    | "MIN"
