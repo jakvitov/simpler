@@ -1,4 +1,4 @@
-body,h1, h2, h3, .btn, .form-control, .nav, .navbar {
+body,h1, h2, h3, .btn, .form-control, .nav, .navbar, .navbar-text {
     font-family: 'Inter', sans-serif !important;
     color: black !important;
     font-weight: 350;
@@ -31,4 +31,9 @@ h3 {
 
 a {
     color: #000 !important;
+}
+
+.form-check-input:checked {
+    background-color: #6c757d; /* Bootstrap grey */
+    border-color: #6c757d;
 }

@@ -24,7 +24,7 @@ function BottomNavBar() {
 
         const intervalID = setInterval(() => {
             loadHealthCheck()
-        }, 60000)
+        }, 5000)
 
         //Cleanup interval when component unmounts
         return () => clearInterval(intervalID)
