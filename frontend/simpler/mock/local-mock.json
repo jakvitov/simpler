@@ -4,7 +4,7 @@
   "name": "Local mock",
   "endpointPrefix": "",
   "latency": 0,
-  "port": 3001,
+  "port": 3000,
   "hostname": "",
   "folders": [],
   "routes": [
@@ -42,7 +42,7 @@
     {
       "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb",
       "type": "http",
-      "documentation": "Successfull MPS verification",
+      "documentation": "MPS verification mock",
       "method": "post",
       "endpoint": "be/simpler/mps/verify",
       "responses": [
@@ -60,10 +60,10 @@
           "rules": [
             {
               "target": "body",
-              "modifier": "",
-              "value": "*success*",
+              "modifier": "data",
+              "value": "success",
               "invert": false,
-              "operator": "regex"
+              "operator": "equals"
             }
           ],
           "rulesOperator": "AND",
@@ -72,21 +72,9 @@
           "default": true,
           "crudKey": "id",
           "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
-      "uuid": "8ec9d752-f708-4b04-898a-b31317dc0d42",
-      "type": "http",
-      "documentation": "Failing MPS verification",
-      "method": "post",
-      "endpoint": "be/simpler/mps/verify",
-      "responses": [
+        },
         {
-          "uuid": "4e9e8c70-9a74-441a-aa15-84f19070bd01",
+          "uuid": "cba429ee-06f6-4842-9ff4-08362c359ac8",
           "body": "{\n    \"status\": \"VERIFICATION_FAILED\",\n    \"errors\": [\"Reason1\", \"Reason 2\", \"Reason 3\", \"Reason4\"]\n}",
           "latency": 0,
           "statusCode": 200,
@@ -96,11 +84,19 @@
           "filePath": "",
           "databucketID": "",
           "sendFileAsBody": false,
-          "rules": [],
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "data",
+              "value": "fail",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": true,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         }
@@ -118,10 +114,6 @@
     {
       "type": "route",
       "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb"
-    },
-    {
-      "type": "route",
-      "uuid": "8ec9d752-f708-4b04-898a-b31317dc0d42"
     }
   ],
   "proxyMode": false,
