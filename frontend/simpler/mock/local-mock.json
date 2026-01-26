@@ -1,0 +1,172 @@
+{
+  "uuid": "61dc587d-731e-49ad-b7a5-b858aeb1b1ce",
+  "lastMigration": 33,
+  "name": "Local mock",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "0edb4908-220e-4177-8fbb-e5095c02ffb7",
+      "type": "http",
+      "documentation": "Passing healthcheck with version",
+      "method": "get",
+      "endpoint": "be/simpler/health",
+      "responses": [
+        {
+          "uuid": "4a8f77f6-f17a-4a7b-b92f-ddbab327dd86",
+          "body": "{\n  \"status\": \"OK\",\n  \"version\": \"1.0.0-mock\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb",
+      "type": "http",
+      "documentation": "Successfull MPS verification",
+      "method": "post",
+      "endpoint": "be/simpler/mps/verify",
+      "responses": [
+        {
+          "uuid": "1cd65d08-a615-45e4-8b75-5795bcbd6c99",
+          "body": "{\n  \"status\": \"OK\",\n  \"errors\": []\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "",
+              "value": "*success*",
+              "invert": false,
+              "operator": "regex"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "8ec9d752-f708-4b04-898a-b31317dc0d42",
+      "type": "http",
+      "documentation": "Failing MPS verification",
+      "method": "post",
+      "endpoint": "be/simpler/mps/verify",
+      "responses": [
+        {
+          "uuid": "4e9e8c70-9a74-441a-aa15-84f19070bd01",
+          "body": "{\n    \"status\": \"VERIFICATION_FAILED\",\n    \"errors\": [\"Reason1\", \"Reason 2\", \"Reason 3\", \"Reason4\"]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "0edb4908-220e-4177-8fbb-e5095c02ffb7"
+    },
+    {
+      "type": "route",
+      "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb"
+    },
+    {
+      "type": "route",
+      "uuid": "8ec9d752-f708-4b04-898a-b31317dc0d42"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}
