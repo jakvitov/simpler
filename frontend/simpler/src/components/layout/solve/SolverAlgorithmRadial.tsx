@@ -18,7 +18,7 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
 
                 {/* Left group: Solver algorithms */}
                 <div className="d-flex align-items-center">
-                    <NavbarText className="me-4">Solver algorithm</NavbarText>
+                    <NavbarText className="ms-3 me-4">Solver algorithm</NavbarText>
 
                     <input
                         checked={props.currentSelectedSolverMethod === "BASIC_SIMPLEX"}
