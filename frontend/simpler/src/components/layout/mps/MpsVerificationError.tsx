@@ -4,7 +4,7 @@ type MpsVerificationErrorProps = {
     errors: string[]
 }
 
-function formMpsVerificationErrorText(props: MpsVerificationErrorProps): Element {
+function formMpsVerificationErrorText(props: MpsVerificationErrorProps): string {
     let res = "Encountered problems during MPS verification: \n"
     for (let i = 0; i < props.errors.length; i++) {
         if (i === res.length - 1) {
@@ -16,7 +16,7 @@ function formMpsVerificationErrorText(props: MpsVerificationErrorProps): Element
     return res
 }
 
-function MpsVerificationError(props: MpsVerificationErrorProps): Element {
+function MpsVerificationError(props: MpsVerificationErrorProps) {
     return (<Container><Container className={"mt-3 mb-4"} style={{
         padding: '0.375rem 0.75rem',
         backgroundColor: '#F5F5F5',

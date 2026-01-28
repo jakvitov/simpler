@@ -8,3 +8,14 @@ export type SolverMethods =
 export type OptimisationTarget =
     | "MAX"
     | "MIN"
+
+export type SolveSimplexResultType =
+    | "SOLVED"
+    | "UNBOUNDED"
+    | "ERROR"
+
+export default interface SolveLpRequest {
+    data: string,
+    optimisationTarget: OptimisationTarget
+    solverMethod: SolverMethods
+}

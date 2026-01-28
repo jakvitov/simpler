@@ -104,6 +104,37 @@
       "responseMode": null,
       "streamingMode": null,
       "streamingInterval": 0
+    },
+    {
+      "uuid": "083c3798-45ba-4e4c-85ed-caa13f3f62fa",
+      "type": "http",
+      "documentation": "",
+      "method": "post",
+      "endpoint": "be/simpler/solve-lp/basic",
+      "responses": [
+        {
+          "uuid": "bd5155a3-a741-4569-986e-a35cff5761a4",
+          "body": "{\n  \"data\": \"input MPS\",\n  \"status\": \"SOLVED\",\n   \"optimisationTarget\": \"MAX\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     }
   ],
   "rootChildren": [
@@ -114,6 +145,10 @@
     {
       "type": "route",
       "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb"
+    },
+    {
+      "type": "route",
+      "uuid": "083c3798-45ba-4e4c-85ed-caa13f3f62fa"
     }
   ],
   "proxyMode": false,

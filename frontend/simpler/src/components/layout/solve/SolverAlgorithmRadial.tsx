@@ -12,8 +12,6 @@ type SolverAlgorithmRadialProps = {
 
 function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
 
-    //console.log(typeof(props.onSelected))
-
     return (
         <div style={{ backgroundColor: '#D9D9D9'}}>
             <Navbar className="pt-3 pb-3 d-flex justify-content-between align-items-center">
@@ -109,7 +107,6 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
                         MAX
                     </label>
                 </div>
-
             </Navbar>
         </div>
     )

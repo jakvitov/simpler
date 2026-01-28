@@ -1,0 +1,7 @@
+
+export const MPS_VERIF_SS_PREFIX = 'MPS-VERIF-RES-'
+export const MPS_DATA_SS_PREFIX = 'MPS-DATA-'
+
+
+export const SOLVE_LP_DATA_PREFIX = 'LP-SOLUTION-'
+export const SOLVE_LP_SOLUTION_PREFIX = 'LP-DATA-'

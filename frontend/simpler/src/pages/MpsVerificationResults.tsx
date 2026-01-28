@@ -3,30 +3,32 @@ import MainNavBar from "../components/layout/MainNavBar.tsx";
 import PageContentHeader from "../components/ui/PageContentHeader.tsx";
 import BottomNavBar from "../components/layout/BottomNavBar.tsx";
 import {useNavigate, useParams} from "react-router-dom";
-import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../utils/sessionStorageConstants.ts";
+import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../api/verification/verificationTypes.ts";
 import MpsVerificationInput from "../components/layout/mps/MpsVerificationInput.tsx";
 import MpsVerificationError from "../components/layout/mps/MpsVerificationError.tsx";
+import {get} from "idb-keyval";
+import {useEffect, useState} from "react";
 
 function MpsVerificationResults() {
 
     const { key } = useParams<{ key: string }>();
     const navigate = useNavigate();
 
+    const [mpsData, setMpsData] = useState<string|null>(null)
+    const [mpsVerificationResult, setMpsVerificationResult] = useState<MpsVerificationResponse|null>(null)
 
-    if (sessionStorage.getItem(MPS_VERIF_SS_PREFIX + key) != null) {
+    useEffect(() => {
+        get(MPS_DATA_SS_PREFIX + key).then(setMpsData)
+        get(MPS_VERIF_SS_PREFIX + key).then((i) => JSON.parse(i)  as MpsVerificationResponse).then(setMpsVerificationResult)
+    }, [])
 
-        const mpsData: string|null = sessionStorage.getItem(MPS_DATA_SS_PREFIX + key)
+    if (mpsData !== null && mpsData !== undefined) {
 
-        const mpsVerificationRaw = sessionStorage.getItem(MPS_VERIF_SS_PREFIX + key);
-
-        const verificationResult: MpsVerificationResponse | null =
-            mpsVerificationRaw ? (JSON.parse(mpsVerificationRaw) as MpsVerificationResponse) : null;
-
-        if (mpsData === null || verificationResult === null) {
+        if (mpsVerificationResult === null) {
             navigate("/verify-mps")
         }
-        else if (verificationResult.status === "OK") {
+        else if (mpsVerificationResult.status === "OK") {
             return (<>
                 <div className={"page-content"}>
                     <MainHeader />
@@ -36,19 +38,19 @@ function MpsVerificationResults() {
                 </div>
                 <BottomNavBar />
             </>)
-        } else if (verificationResult.status === "VERIFICATION_FAILED") {
+        } else if (mpsVerificationResult.status === "VERIFICATION_FAILED") {
             return (<>
                 <div className={"page-content"}>
                     <MainHeader />
                     <MainNavBar />
                     <PageContentHeader value="MPS verification failed ⚠️"></PageContentHeader>
-                    <MpsVerificationError errors={verificationResult.errors} />
+                    <MpsVerificationError errors={mpsVerificationResult.errors} />
                     <MpsVerificationInput initialText={mpsData} />
                 </div>
                 <BottomNavBar />
             </>)
         } else {
-            alert("Application error occured. Unknown verification status encountered " + verificationResult.status)
+            alert("Application error occured. Unknown verification status encountered " + mpsVerificationResult.status)
             navigate("/verify-mps")
         }
 

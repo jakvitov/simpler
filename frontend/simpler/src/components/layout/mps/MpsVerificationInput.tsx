@@ -1,12 +1,13 @@
 import {Container} from "react-bootstrap";
 import {useState} from "react";
 import MPSInput from "./MpsInput.tsx";
-import ConfirmButton from "./ConfirmButton.tsx";
+import ConfirmButton from "../../ui/ConfirmButton.tsx";
 import {verifyMpsCall} from "../../../api/verification/verificationApi.ts";
 import {hashStringSHA256} from "../../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
-import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/sessionStorageConstants.ts";
+import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../../../api/verification/verificationTypes.ts";
+import { get, set } from 'idb-keyval';
 
 type MpsVerificationInputProps = {
     initialText?: string
@@ -29,12 +30,13 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
         const verifyMps = async() => {
             try {
                 let dataHash = await hashStringSHA256(mpsCode)
-                if (sessionStorage.getItem(MPS_VERIF_SS_PREFIX + dataHash) == null ) {
+
+                if (await get(MPS_VERIF_SS_PREFIX + dataHash) == null ) {
                     const verificationResponse: MpsVerificationResponse  = await verifyMpsCall({data: mpsCode})
-                    sessionStorage.setItem(MPS_VERIF_SS_PREFIX + dataHash, JSON.stringify(verificationResponse))
+                    await set(MPS_VERIF_SS_PREFIX + dataHash, JSON.stringify(verificationResponse))
                 }
-                if (sessionStorage.getItem(MPS_DATA_SS_PREFIX + dataHash) == null) {
-                    sessionStorage.setItem(MPS_DATA_SS_PREFIX + dataHash, mpsCode)
+                if (await get(MPS_DATA_SS_PREFIX + dataHash) == null) {
+                    await set(MPS_DATA_SS_PREFIX + dataHash, mpsCode)
                 }
                 navigate(`/mps-verification-results/${dataHash}`)
             }
