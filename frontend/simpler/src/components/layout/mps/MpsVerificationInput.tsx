@@ -38,7 +38,7 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
                 if (await get(MPS_DATA_SS_PREFIX + dataHash) == null) {
                     await set(MPS_DATA_SS_PREFIX + dataHash, mpsCode)
                 }
-                navigate(`/mps-verification-results/${dataHash}`)
+                navigate(`/verify-mps/results/${dataHash}`)
             }
             catch (error) {
                 console.log("Error during MPS verification: ", error)
