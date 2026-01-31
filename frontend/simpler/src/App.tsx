@@ -6,12 +6,14 @@ import MpsVerificationResults from "./pages/MpsVerificationResults.tsx";
 import SolveLpMpsInput from "./pages/solve-lp/SolveLpMpsInput.tsx";
 import SolveLpInteractiveInput from "./pages/solve-lp/SolveLpInteractiveInput.tsx";
 import SolveLpLayout from "./pages/solve-lp/SolveLpLayout.tsx";
+import Settings from "./pages/Settings.tsx";
 
 function App() {
     return (
         <Routes>
             <Route path="/" element={<Home/>}/>
             <Route path="/about" element={<About/>} />
+            <Route path="/settings" element={<Settings/>}/>
             <Route path="/verify-mps" element={<VerifyMps/>} />
             <Route path="/mps-verification-results/:key" element={<MpsVerificationResults />} />
             <Route path="/solve-lp" element={<SolveLpLayout/>}>

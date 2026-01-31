@@ -14,9 +14,16 @@ function MainNavBar () {
             <Nav.Link
                 as={Link}
                 to="/solve-lp"
-                className="w-50 text-center"
+                className="w-50 text-center border-end"
             >
                 Solve LP
+            </Nav.Link>
+            <Nav.Link
+                as={Link}
+                to="/settings"
+                className="w-50 text-center"
+            >
+                Settings
             </Nav.Link>
         </Nav>
     </Navbar>)
