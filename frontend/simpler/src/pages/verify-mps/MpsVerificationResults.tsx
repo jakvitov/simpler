@@ -20,7 +20,7 @@ function MpsVerificationResults() {
 
     useEffect(() => {
         get(MPS_DATA_SS_PREFIX + key).then(setMpsData)
-        get(MPS_VERIF_SS_PREFIX + key).then((i) => JSON.parse(i)  as MpsVerificationResponse).then(setMpsVerificationResult)
+        get(MPS_VERIF_SS_PREFIX + key).then((i) => JSON.parse(i) as MpsVerificationResponse).then(setMpsVerificationResult)
     }, [])
 
     if (mpsVerificationResult === null || mpsData === null) {

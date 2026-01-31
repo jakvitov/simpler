@@ -8,6 +8,7 @@ import SolveLpInteractiveInput from "./pages/solve-lp/SolveLpInteractiveInput.ts
 import SolveLpLayout from "./pages/solve-lp/SolveLpLayout.tsx";
 import Settings from "./pages/Settings.tsx";
 import VerifyMpsLayout from "./pages/verify-mps/VerifyMpsLayout.tsx";
+import SolveLpResultsBasicSimplex from "./pages/solve-lp/results/SolveLpResultsBasicSimplex.tsx";
 
 function App() {
     return (
@@ -25,6 +26,8 @@ function App() {
                 <Route index element={<SolveLpMpsInput/>}/>
                 <Route path="mps" element={<SolveLpMpsInput/>}/>
                 <Route path="interactive" element={<SolveLpInteractiveInput/>}/>
+
+                <Route path="results/basic-simplex/:key" element={<SolveLpResultsBasicSimplex/>}></Route>
             </Route>
         </Routes>
     )

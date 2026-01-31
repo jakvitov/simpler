@@ -17,5 +17,4 @@ export type SolveSimplexResultType =
 export default interface SolveLpRequest {
     data: string,
     optimisationTarget: OptimisationTarget
-    solverMethod: SolverMethods
 }

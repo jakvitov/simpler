@@ -10,8 +10,11 @@ import ConfirmButton from "../../components/ui/ConfirmButton.tsx";
 import type SolveLpRequest from "../../api/solver/solveLpTypes.ts";
 import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
-import {set} from "idb-keyval";
-import {SOLVE_LP_DATA_PREFIX, SOLVE_LP_SOLUTION_PREFIX} from "../../utils/storageConstants.ts";
+import {get, set} from "idb-keyval";
+import {
+    SOLVE_LP_DATA_PREFIX,
+    SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
+} from "../../utils/storageConstants.ts";
 import {hashStringSHA256} from "../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
 
@@ -27,9 +30,16 @@ function SolveLpMpsInput() {
         try {
             const requestHash =  await hashStringSHA256(JSON.stringify(request))
             const response = await fetchSolveBasicSimplex(request)
-            await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
-            await set(SOLVE_LP_SOLUTION_PREFIX + requestHash, JSON.stringify(response))
-            navigate("/solution/" + requestHash)
+
+            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
+                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
+            }
+
+            if (await get(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash) === undefined) {
+                await set(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
+            }
+
+            navigate(`/solve-lp/results/basic-simplex/${requestHash}`)
         } catch (error) {
             console.error(error)
         }
@@ -40,7 +50,6 @@ function SolveLpMpsInput() {
         const request: SolveLpRequest = {
             data: mpsInput,
             optimisationTarget: optimisationTarget,
-            solverMethod: solverMethod
         }
 
         switch (solverMethod) {
