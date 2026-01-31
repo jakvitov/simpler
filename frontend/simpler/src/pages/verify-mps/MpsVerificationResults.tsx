@@ -23,41 +23,36 @@ function MpsVerificationResults() {
         get(MPS_VERIF_SS_PREFIX + key).then((i) => JSON.parse(i)  as MpsVerificationResponse).then(setMpsVerificationResult)
     }, [])
 
-    if (mpsData !== null && mpsData !== undefined) {
-
-        if (mpsVerificationResult === null) {
-            navigate("/verify-mps")
-        }
-        else if (mpsVerificationResult.status === "OK") {
-            return (<>
-                <div className={"page-content"}>
-                    <MainHeader />
-                    <MainNavBar />
-                    <PageContentHeader value="MPS verified ✅"></PageContentHeader>
-                    <MpsVerificationInput initialText={mpsData} />
-                </div>
-                <BottomNavBar />
-            </>)
-        } else if (mpsVerificationResult.status === "VERIFICATION_FAILED") {
-            return (<>
-                <div className={"page-content"}>
-                    <MainHeader />
-                    <MainNavBar />
-                    <PageContentHeader value="MPS verification failed ⚠️"></PageContentHeader>
-                    <MpsVerificationError errors={mpsVerificationResult.errors} />
-                    <MpsVerificationInput initialText={mpsData} />
-                </div>
-                <BottomNavBar />
-            </>)
-        } else {
-            alert("Application error occured. Unknown verification status encountered " + mpsVerificationResult.status)
-            navigate("/verify-mps")
-        }
-
-    } else {
-        alert("Error encountered. Session storage was changed and no result could be loaded.")
+    if (mpsVerificationResult === null || mpsData === null) {
         navigate("/verify-mps")
     }
+    else if (mpsVerificationResult.status === "OK") {
+        return (<>
+            <div className={"page-content"}>
+                <MainHeader />
+                <MainNavBar />
+                <PageContentHeader value="MPS verified ✅"></PageContentHeader>
+                <MpsVerificationInput initialText={mpsData} />
+            </div>
+            <BottomNavBar />
+        </>)
+    } else if (mpsVerificationResult.status === "VERIFICATION_FAILED") {
+        return (<>
+            <div className={"page-content"}>
+                <MainHeader />
+                <MainNavBar />
+                <PageContentHeader value="MPS verification failed ⚠️"></PageContentHeader>
+                <MpsVerificationError errors={mpsVerificationResult.errors} />
+                <MpsVerificationInput initialText={mpsData} />
+            </div>
+            <BottomNavBar />
+        </>)
+    } else {
+        alert("Application error occured. Unknown verification status encountered " + mpsVerificationResult.status)
+        navigate("/verify-mps")
+    }
+
+
 }
 
 export default MpsVerificationResults

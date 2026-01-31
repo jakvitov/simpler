@@ -1,7 +1,8 @@
 import MainHeader from "../components/ui/MainHeader.tsx";
 import MainNavBar from "../components/layout/MainNavBar.tsx";
 import BottomNavBar from "../components/layout/BottomNavBar.tsx";
-import SettingsBar from "../components/layout/SettingsBar.tsx";
+import SettingsBar from "../components/layout/settings/SettingsBar.tsx";
+import AboutBottomNavBar from "../components/ui/AboutBottomNavBar.tsx";
 
 function Settings() {
     return (<>
@@ -10,6 +11,7 @@ function Settings() {
             <MainNavBar />
             <SettingsBar/>
         </div>
+        <AboutBottomNavBar />
         <BottomNavBar />
     </>)
 }
