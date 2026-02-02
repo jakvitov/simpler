@@ -3,10 +3,10 @@
 .env*
 
 
-./frontendsimpler/node_modules
-./frontend/simpler/dist
-./frontend/simpler/dist-ssr
-./frontend/simpler/*.local
+./frontend/node_modules
+./frontend/dist
+./frontend/dist-ssr
+./frontend/*.local
 
 
 
