@@ -1,0 +1,46 @@
+{
+  "lines": [
+    {
+      "variableValues": [
+        {
+          "variableName": "x1",
+          "value": {
+            "numerator": 12,
+            "denominator": 5,
+            "sign": "P"
+          }
+        },
+        {
+          "variableName": "x1",
+          "value": {
+            "numerator": 12,
+            "denominator": 5,
+            "sign": "N"
+          }
+        }
+      ],
+      "inequalitySign": "GE",
+      "rhs": {
+        "numerator": 12,
+        "denominator": 5,
+        "sign": "N"
+      }
+    }
+  ],
+
+  "bounds": [
+    {
+      "variableName": "x1",
+      "upperbound": {
+        "numerator": 5,
+        "denominator": 2,
+        "sign": "N"
+      },
+      "lowerbound": {
+        "numerator": 5,
+        "denominator": 2,
+        "sign": "N"
+      }
+    }
+  ]
+}

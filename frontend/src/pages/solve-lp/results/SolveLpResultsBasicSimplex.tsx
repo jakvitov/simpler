@@ -8,6 +8,8 @@ import MainHeader from "../../../components/ui/MainHeader.tsx";
 import MainNavBar from "../../../components/layout/MainNavBar.tsx";
 import PageContentHeader from "../../../components/ui/PageContentHeader.tsx";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
+import LpDefinition from "../../../components/layout/solution/LpDefinition.tsx";
+import {Container} from "react-bootstrap";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -24,13 +26,16 @@ function SolveLpResultsBasicSimplex() {
 
     } else {
 
+        console.log("Loaded ")
+
         return (<>
             <div className={"page-content"}>
                 <MainHeader />
                 <MainNavBar />
                 <PageContentHeader value="Basic simplex LP solution"></PageContentHeader>
-                <pre> Request {JSON.stringify(solverInput)}</pre>
-                <pre>Response {JSON.stringify(solverResults)}</pre>
+                <Container style={{ backgroundColor: '#F5F5F5' }}>
+                    <LpDefinition parsedProblem={solverResults.parsedLP}/>
+                </Container>
             </div>
             <BottomNavBar />
         </>)
