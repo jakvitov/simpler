@@ -10,6 +10,7 @@ import PageContentHeader from "../../../components/ui/PageContentHeader.tsx";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
 import LpDefinition from "../../../components/layout/solution/LpDefinition.tsx";
 import {Container} from "react-bootstrap";
+import ProblemSpecificationDetails from "../../../components/ui/solution/ProblemSpecificationDetails.tsx";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -34,6 +35,7 @@ function SolveLpResultsBasicSimplex() {
                 <MainNavBar />
                 <PageContentHeader value="Basic simplex LP solution"></PageContentHeader>
                 <Container style={{ backgroundColor: '#F5F5F5' }}>
+                    <ProblemSpecificationDetails target={solverResults.optimisationTarget} method={"BASIC_SIMPLEX"} status={solverResults.result} />
                     <LpDefinition parsedProblem={solverResults.parsedLP}/>
                 </Container>
             </div>
