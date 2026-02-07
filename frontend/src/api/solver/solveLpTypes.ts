@@ -12,9 +12,16 @@ export type OptimisationTarget =
 export type SolveSimplexResultType =
     | "SOLVED"
     | "UNBOUNDED"
-    | "ERROR"
+    | "NOT_SOLVABLE"
 
-export default interface SolveLpRequest {
+export interface SolveLpRequest {
     data: string,
-    optimisationTarget: OptimisationTarget
+    optimisationTarget: OptimisationTarget,
+    method: SolverMethods,
+}
+
+export interface SolveLpErrorResponse {
+    errors: string[],
+    //common discriminator for responses
+    success: boolean
 }

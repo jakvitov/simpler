@@ -7,13 +7,13 @@ import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
 import {useState} from "react";
 import ConfirmButton from "../../components/ui/ConfirmButton.tsx";
-import type SolveLpRequest from "../../api/solver/solveLpTypes.ts";
-import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
+import type {OptimisationTarget, SolveLpRequest, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
 import {get, set} from "idb-keyval";
 import {
     SOLVE_LP_DATA_PREFIX,
     SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
+    SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX,
 } from "../../utils/storageConstants.ts";
 import {hashStringSHA256} from "../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
@@ -35,11 +35,19 @@ function SolveLpMpsInput() {
                 await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
             }
 
-            if (await get(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash) === undefined) {
-                await set(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
+            if (response.success) {
+                if (await get(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash) === undefined) {
+                    await set(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
+                }
+                navigate(`/solve-lp/results/basic-simplex/${requestHash}`)
+            } else {
+                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
+                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
+                }
+                navigate(`/solve-lp/results/error/${requestHash}`)
             }
 
-            navigate(`/solve-lp/results/basic-simplex/${requestHash}`)
+
         } catch (error) {
             console.error(error)
         }
@@ -50,6 +58,7 @@ function SolveLpMpsInput() {
         const request: SolveLpRequest = {
             data: mpsInput,
             optimisationTarget: optimisationTarget,
+            method: solverMethod
         }
 
         switch (solverMethod) {

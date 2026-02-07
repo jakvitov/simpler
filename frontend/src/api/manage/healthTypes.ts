@@ -1,4 +1,9 @@
+export type HelathResponseStatus =
+    | "OK"
+    | "ERROR"
+
+
 export interface HealthResponse {
-    status: string
+    status: HelathResponseStatus
     version: string
 }

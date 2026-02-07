@@ -2,7 +2,6 @@ import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {SOLVE_LP_DATA_PREFIX, SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX} from "../../../utils/storageConstants.ts";
 import {get} from "idb-keyval";
-import type SolveLpRequest from "../../../api/solver/solveLpTypes.ts";
 import type BasicSimplexSolveResponse from "../../../api/solver/basic/basicSimplexSolveTypes.ts";
 import MainHeader from "../../../components/ui/MainHeader.tsx";
 import MainNavBar from "../../../components/layout/MainNavBar.tsx";
@@ -11,6 +10,7 @@ import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
 import LpDefinition from "../../../components/layout/solution/LpDefinition.tsx";
 import {Container} from "react-bootstrap";
 import ProblemSpecificationDetails from "../../../components/ui/solution/ProblemSpecificationDetails.tsx";
+import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -26,17 +26,17 @@ function SolveLpResultsBasicSimplex() {
     if (solverInput === null || solverResults === null) {
 
     } else {
-
-        console.log("Loaded ")
-
         return (<>
             <div className={"page-content"}>
                 <MainHeader />
                 <MainNavBar />
                 <PageContentHeader value="Basic simplex LP solution"></PageContentHeader>
-                <Container style={{ backgroundColor: '#F5F5F5' }}>
-                    <ProblemSpecificationDetails target={solverResults.optimisationTarget} method={"BASIC_SIMPLEX"} status={solverResults.result} />
-                    <LpDefinition parsedProblem={solverResults.parsedLP}/>
+                <Container>
+                    <Container style={{ backgroundColor: '#F5F5F5'}}>
+                        <ProblemSpecificationDetails target={solverInput.optimisationTarget} method={"BASIC_SIMPLEX"} status={solverResults.result} />
+
+                        <LpDefinition parsedProblem={solverResults.parsedLP}/>
+                    </Container>
                 </Container>
             </div>
             <BottomNavBar />

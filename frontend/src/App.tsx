@@ -9,6 +9,7 @@ import SolveLpLayout from "./pages/solve-lp/SolveLpLayout.tsx";
 import Settings from "./pages/Settings.tsx";
 import VerifyMpsLayout from "./pages/verify-mps/VerifyMpsLayout.tsx";
 import SolveLpResultsBasicSimplex from "./pages/solve-lp/results/SolveLpResultsBasicSimplex.tsx";
+import SolveLpResultsError from "./pages/solve-lp/results/SolveLpResultsError.tsx";
 
 function App() {
     return (
@@ -28,6 +29,7 @@ function App() {
                 <Route path="interactive" element={<SolveLpInteractiveInput/>}/>
 
                 <Route path="results/basic-simplex/:key" element={<SolveLpResultsBasicSimplex/>}></Route>
+                <Route path="results/error/:key" element={<SolveLpResultsError/>}></Route>
             </Route>
         </Routes>
     )
