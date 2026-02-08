@@ -43,7 +43,7 @@ function BottomNavBar() {
         >
             <Container fluid className="d-flex justify-content-between">
                 <span>Version : {version}</span>
-                <td><a onClick={handleCleanSorage} href={"#"}> Clean storage</a></td>
+                <span><a onClick={handleCleanSorage} href={"#"}> Clean storage</a></span>
                 <span>Backend: {health}</span>
             </Container>
         </Navbar>

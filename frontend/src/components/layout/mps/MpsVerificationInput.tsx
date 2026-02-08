@@ -7,7 +7,7 @@ import {hashStringSHA256} from "../../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
 import {LAST_MPS_INPUT_DATA, MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../../../api/verification/verificationTypes.ts";
-import { get, set } from 'idb-keyval';
+import {get, set} from 'idb-keyval';
 
 type MpsVerificationInputProps = {
     initialText?: string
@@ -19,7 +19,6 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
 
     const [mpsCode, setMpsCode] = useState((props.initialText === null || props.initialText === undefined) ? INPUT_MESSAGE : props.initialText);
     const navigate = useNavigate();
-
 
     useEffect(() => {
         const previousInput: string|null = localStorage.getItem(LAST_MPS_INPUT_DATA);
@@ -36,6 +35,7 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
         }
 
         const verifyMps = async() => {
+            console.log("TRRIGGERED  MPS VERIFICATION")
             try {
                 let dataHash = await hashStringSHA256(mpsCode)
 
