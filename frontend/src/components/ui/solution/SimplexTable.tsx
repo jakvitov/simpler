@@ -20,12 +20,14 @@ function renderVariableNamesRow(variables: string[]): string {
     for (let i = 1; i < variables.length; i++) {
         res += `& ${variables[i]} `
     }
+
+    res += "& RHS"
     res += "\\\\[10pt]"
     return res
 }
 
 // render line like 3/2 & -1/2 \\ for simplex table matrix
-function renderValuesRow(valuesRow: Rational[]): string {
+function renderValuesRow(valuesRow: Rational[], rhs: Rational): string {
     if (valuesRow.length === 0) {
         return ""
     }
@@ -35,17 +37,34 @@ function renderValuesRow(valuesRow: Rational[]): string {
     for (let i = 1; i < valuesRow.length; i++) {
         res += `& ${renderRationalWithNegativeSignOnly(valuesRow[i])} `
     }
+    res += `& ${renderRationalWithNegativeSignOnly(rhs)} `
     res += "\\\\[15pt]"
+    return res
+}
+
+/**
+ * Based on the props sized, return properties for katex array inside of matrix
+ * example {cccc|c}, rhs is rendered in the matrix block |c
+ */
+function getKatexArrayType(props: SimplexTableProps): string {
+    let res = "{"
+    for (let i = 0; i < props.variables.length; i++) {
+        res += "c"
+    }
+    //For rhs
+    res += "|c}"
     return res
 }
 
 function renderSimplexTable(props: SimplexTableProps): string {
     console.log(props.data)
     let res = "\\begin{pmatrix}"
+    res += "\\begin{array}" + getKatexArrayType(props)
     res += renderVariableNamesRow(props.variables)
-    props.data.forEach((value) => {
-        res += renderValuesRow(value)
+    props.data.forEach((value, i) => {
+        res += renderValuesRow(value, props.rhs[i])
     })
+    res += "\\end{array}"
     res += "\\end{pmatrix}"
     return res
 }
