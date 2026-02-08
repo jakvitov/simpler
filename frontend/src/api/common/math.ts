@@ -13,6 +13,14 @@ export function renderRationalWithSign(r: Rational): string {
     return (r.sign === "P" ? "+" : "-") + "\\frac{" + r.denominator + "}{" + r.numerator + "}";
 }
 
+export function renderRationalWithNegativeSignOnly(r: Rational): string {
+    if (r.sign === "N") {
+        return renderRationalWithSign(r)
+    } else {
+        return "\\frac{" + r.denominator + "}{" + r.numerator + "}";
+    }
+}
+
 export interface Matrix {
     data: Rational[]
 }
