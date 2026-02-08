@@ -57,7 +57,6 @@ function getKatexArrayType(props: SimplexTableProps): string {
 }
 
 function renderSimplexTable(props: SimplexTableProps): string {
-    console.log(props.data)
     let res = "\\begin{pmatrix}"
     res += "\\begin{array}" + getKatexArrayType(props)
     res += renderVariableNamesRow(props.variables)
@@ -69,7 +68,7 @@ function renderSimplexTable(props: SimplexTableProps): string {
     return res
 }
 
-function SimplexTable(props: SimplexTableProps) {
+function SimplexTableComponent(props: SimplexTableProps) {
     if (props.demo) {
         props = {
             variables: ["X1", "X2", "X3"],
@@ -82,4 +81,4 @@ function SimplexTable(props: SimplexTableProps) {
     return <BlockMath math={renderSimplexTable(props)}></BlockMath>
 }
 
-export default SimplexTable
+export default SimplexTableComponent

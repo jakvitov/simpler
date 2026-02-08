@@ -1,5 +1,5 @@
-import type InequalitySign from "./math.ts";
-import type Rational from "./math.ts"
+import type {InequalitySign} from "./math.ts";
+import type {Rational} from "./math.ts";
 
 
 export interface LpDefinitonVariableValue {
@@ -32,6 +32,12 @@ export interface Bound {
 export interface ParsedLpDefinition {
     lines: LpDefinitionLine[],
     bounds: Bound[]
+}
+
+export interface SimplexTable {
+    variables: string[],
+    data: Rational[][],
+    rhs: Rational[]
 }
 
 

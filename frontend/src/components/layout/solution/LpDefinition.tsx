@@ -41,20 +41,20 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
 }
 
 function LpDefinition(props: ParsedLpDefinitionProps){
-    console.log("Loaded props: "  + props)
 
     if (props.parsedProblem !== null) {
         return (
             <>
                 <h3 className={"pt-2"}>Parsed linear problem:</h3>
-                <BlockMath math={"\\text{Equations:}"}></BlockMath>
-                {props.parsedProblem.lines.map((line: LpDefinitionLine, i: number) => <BlockMath math={renderParsedLpDefinitionLine(line, i)} />)}
-                <BlockMath math={"\\text{Bounds:}"}></BlockMath>
-                {props.parsedProblem.bounds.map((bound: Bound, i: number) => <BlockMath math={renderParsedLpDefinitionBound(bound, i)}/>)}
+                <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
+                {props.parsedProblem.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
+                <BlockMath key={"2"} math={"\\text{Bounds:}"}></BlockMath>
+                {props.parsedProblem.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>)}
             </>
         )
     }
 
+    //DEMO
     return (
         <>
             <BlockMath math="x_1 \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}" />
