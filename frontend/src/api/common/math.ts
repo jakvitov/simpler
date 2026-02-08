@@ -3,13 +3,17 @@
  */
 
 //Rational should contain only positive values and use negative sign if needed
-export default interface Rational {
+export interface Rational {
     numerator: number;
     denominator: number;
     sign: RationalSign;
 }
 
-export default interface Matrix {
+export function renderRationalWithSign(r: Rational): string {
+    return (r.sign === "P" ? "+" : "-") + "\\frac{" + r.denominator + "}{" + r.numerator + "}";
+}
+
+export interface Matrix {
     data: Rational[]
 }
 

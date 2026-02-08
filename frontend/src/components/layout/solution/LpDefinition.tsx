@@ -1,13 +1,9 @@
 import {BlockMath} from 'react-katex';
-import type Rational from "../../../api/common/math.ts";
 import type {Bound, LpDefinitionLine, ParsedLpDefinition} from "../../../api/common/lpDefinitionTypes.ts";
+import {renderRationalWithSign} from "../../../api/common/math.ts";
 
 type ParsedLpDefinitionProps = {
     parsedProblem: ParsedLpDefinition|null
-}
-
-function renderRationalWithSign(rational: Rational) {
-    return (rational.sign === "P" ? "+" : "-") + "\\frac{" + rational.denominator + "}{" + rational.numerator + "}";
 }
 
 function renderParsedLpDefinitionBound(bound: Bound, index: number) {
