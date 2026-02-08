@@ -5,12 +5,13 @@ import SolverInputType from "../../components/layout/solve/SolverInputType.tsx";
 import SolverAlgorithmRadial from "../../components/layout/solve/SolverAlgorithmRadial.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import ConfirmButton from "../../components/ui/ConfirmButton.tsx";
 import type {OptimisationTarget, SolveLpRequest, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
 import {get, set} from "idb-keyval";
 import {
+    LAST_MPS_INPUT_DATA,
     SOLVE_LP_DATA_PREFIX,
     SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
     SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX,
@@ -25,6 +26,13 @@ function SolveLpMpsInput() {
     const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
 
     const navigate = useNavigate()
+
+    useEffect(() => {
+        const previousInput: string|null = localStorage.getItem(LAST_MPS_INPUT_DATA);
+        if (previousInput !== null) {
+            setMpsInput(previousInput)
+        }
+    }, []);
 
     const handleSolveBasicSimplex = async(request: SolveLpRequest) => {
         try {

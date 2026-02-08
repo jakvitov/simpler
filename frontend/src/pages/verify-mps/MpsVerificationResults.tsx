@@ -6,9 +6,9 @@ import {useNavigate, useParams} from "react-router-dom";
 import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../../api/verification/verificationTypes.ts";
 import MpsVerificationInput from "../../components/layout/mps/MpsVerificationInput.tsx";
-import MpsVerificationError from "../../components/layout/mps/MpsVerificationError.tsx";
 import {get} from "idb-keyval";
 import {useEffect, useState} from "react";
+import ErrorEnumerationContainer from "../../components/ui/ErrorEnumerationContainer.tsx";
 
 function MpsVerificationResults() {
 
@@ -42,7 +42,7 @@ function MpsVerificationResults() {
                 <MainHeader />
                 <MainNavBar />
                 <PageContentHeader value="MPS verification failed ⚠️"></PageContentHeader>
-                <MpsVerificationError errors={mpsVerificationResult.errors} />
+                <ErrorEnumerationContainer mainReason={"Encountered problems during MPS verification:"} errors={mpsVerificationResult.errors} />
                 <MpsVerificationInput initialText={mpsData} />
             </div>
             <BottomNavBar />

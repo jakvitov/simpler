@@ -141,7 +141,7 @@
         },
         {
           "uuid": "ea8df9ef-dfd7-4f5d-b8c1-18641ab6d9ac",
-          "body": "{\n  \"success\": false\n  \"errors\": [\"Error 1.\", \"ERROR 2.\", \"ERROR3.\"]\n}",
+          "body": "{\n  \"success\": false,\n  \"errors\": [\"Error 1.\", \"ERROR 2.\", \"ERROR3.\"]\n}",
           "latency": 0,
           "statusCode": 400,
           "label": "Response including errors that happened during solution. Typically include unverified MPS.",

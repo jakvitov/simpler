@@ -1,6 +1,7 @@
 import {Container, Navbar} from 'react-bootstrap';
 import {useEffect, useState} from "react";
 import {fetchHealthCheck} from "../../api/manage/healthApi.ts";
+import {clear} from "idb-keyval";
 
 function BottomNavBar() {
 
@@ -30,6 +31,10 @@ function BottomNavBar() {
         return () => clearInterval(intervalID)
     }, [])
 
+    const handleCleanSorage = () => {
+        console.log("Cleaning all persisted data. ")
+        clear().then(() => console.log("Persisted data cleaned."))
+    }
 
     return (
         <Navbar
@@ -38,6 +43,7 @@ function BottomNavBar() {
         >
             <Container fluid className="d-flex justify-content-between">
                 <span>Version : {version}</span>
+                <td><a onClick={handleCleanSorage} href={"#"}> Clean storage</a></td>
                 <span>Backend: {health}</span>
             </Container>
         </Navbar>

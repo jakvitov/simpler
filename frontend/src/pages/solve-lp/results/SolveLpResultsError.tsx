@@ -8,6 +8,7 @@ import {get} from "idb-keyval";
 import {SOLVE_LP_DATA_PREFIX, SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX} from "../../../utils/storageConstants.ts";
 import {useParams} from "react-router-dom";
 import type {SolveLpErrorResponse, SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
+import ErrorEnumerationContainer from "../../../components/ui/ErrorEnumerationContainer.tsx";
 
 function SolveLpResultsError() {
 
@@ -31,11 +32,9 @@ function SolveLpResultsError() {
         <div className={"page-content"}>
             <MainHeader />
             <MainNavBar />
-            <PageContentHeader value="Error occurred during solution"></PageContentHeader>
             <Container>
-                <Container style={{ backgroundColor: '#F5F5F5'}}>
-
-                </Container>
+                <PageContentHeader value="Error occurred during solution ⚠️"></PageContentHeader>
+                <ErrorEnumerationContainer mainReason={"Encountered errors during solution attempt:"} errors={solverError.errors} />
             </Container>
         </div>
         <BottomNavBar />

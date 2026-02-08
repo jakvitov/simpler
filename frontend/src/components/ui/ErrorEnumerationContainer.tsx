@@ -1,11 +1,12 @@
 import {Container} from "react-bootstrap";
 
-type MpsVerificationErrorProps = {
+type ErrorEnumerationContainerProps = {
+    mainReason: string
     errors: string[]
 }
 
-function formMpsVerificationErrorText(props: MpsVerificationErrorProps): string {
-    let res = "Encountered problems during MPS verification: \n"
+function formMpsVerificationErrorText(props: ErrorEnumerationContainerProps): string {
+    let res = props.mainReason + "\n"
     for (let i = 0; i < props.errors.length; i++) {
         if (i === res.length - 1) {
             res += props.errors[i]
@@ -16,7 +17,7 @@ function formMpsVerificationErrorText(props: MpsVerificationErrorProps): string 
     return res
 }
 
-function MpsVerificationError(props: MpsVerificationErrorProps) {
+function ErrorEnumerationContainer(props: ErrorEnumerationContainerProps) {
     return (<Container><Container className={"mt-3 mb-4"} style={{
         padding: '0.375rem 0.75rem',
         backgroundColor: '#F5F5F5',
@@ -28,4 +29,4 @@ function MpsVerificationError(props: MpsVerificationErrorProps) {
         zIndex: 1,}}><pre>{formMpsVerificationErrorText(props)}</pre> </Container></Container>)
 }
 
-export default MpsVerificationError
+export default ErrorEnumerationContainer

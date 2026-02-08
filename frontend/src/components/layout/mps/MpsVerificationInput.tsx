@@ -1,11 +1,11 @@
 import {Container} from "react-bootstrap";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import MPSInput from "./MpsInput.tsx";
 import ConfirmButton from "../../ui/ConfirmButton.tsx";
 import {verifyMpsCall} from "../../../api/verification/verificationApi.ts";
 import {hashStringSHA256} from "../../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
-import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/storageConstants.ts";
+import {LAST_MPS_INPUT_DATA, MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../../../api/verification/verificationTypes.ts";
 import { get, set } from 'idb-keyval';
 
@@ -19,6 +19,14 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
 
     const [mpsCode, setMpsCode] = useState((props.initialText === null || props.initialText === undefined) ? INPUT_MESSAGE : props.initialText);
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        const previousInput: string|null = localStorage.getItem(LAST_MPS_INPUT_DATA);
+        if (previousInput !== null) {
+            setMpsCode(previousInput)
+        }
+    }, []);
 
     const submitVerifyMps = () => {
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import {LAST_MPS_INPUT_DATA} from "../../../utils/storageConstants.ts";
 
 
 /**
@@ -32,6 +33,12 @@ export default function MPSInput({
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newValue = e.target.value;
         setText(newValue);
+        //Set the last mps input data, to be loaded on refresh etc.
+        try {
+            localStorage.setItem(LAST_MPS_INPUT_DATA, newValue);
+        } catch (e) {
+            localStorage.removeItem(LAST_MPS_INPUT_DATA);
+        }
         onChange?.(newValue);
     };
 

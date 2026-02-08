@@ -1,4 +1,6 @@
 
+export const LAST_MPS_INPUT_DATA = 'LAST_MPS_INPUT_DATA-';
+
 export const MPS_VERIF_SS_PREFIX = 'MPS-VERIF-RES-'
 export const MPS_DATA_SS_PREFIX = 'MPS-DATA-'
 
