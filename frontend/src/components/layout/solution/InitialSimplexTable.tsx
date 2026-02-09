@@ -9,7 +9,7 @@ type InitialSimplexTableProps = {
 function InitialSimplexTable(props: InitialSimplexTableProps) {
     return <>
         <h3 className={"pt-2"}>Initial simplex table:</h3>
-        <SimplexTableComponent variables={props.initialST.variables} data={props.initialST.data} rhs={props.initialST.rhs} demo={true}></SimplexTableComponent>
+        <SimplexTableComponent simplexTable={props.initialST} demo={true}></SimplexTableComponent>
     </>
 }
 

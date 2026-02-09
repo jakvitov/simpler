@@ -36,8 +36,11 @@ export interface ParsedLpDefinition {
 
 export interface SimplexTable {
     variables: string[],
+    baseVariables: string[],
     data: Rational[][],
-    rhs: Rational[]
+    rhs: Rational[],
+    objectiveFunctionRow: Rational[],
+    objectiveValue: Rational
 }
 
 

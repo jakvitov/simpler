@@ -1,12 +1,10 @@
-import type {Rational} from "../../../api/common/math.ts";
+import {demoRational, type Rational} from "../../../api/common/math.ts";
 import {demoMatrix, renderRationalWithNegativeSignOnly} from "../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
+import type {SimplexTable} from "../../../api/common/lpDefinitionTypes.ts";
 
 type SimplexTableProps = {
-    variables: string[],
-    base_variables: string[]
-    data: Rational[][],
-    rhs: Rational[],
+    simplexTable: SimplexTable;
     demo: boolean
 }
 
@@ -27,18 +25,12 @@ function renderVariableNamesRow(variables: string[]): string {
 }
 
 // render line like 3/2 & -1/2 \\ for simplex table matrix
-// null base variable means that the row is last and should be evaluated like z function
-function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: string|null): string {
+function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: string): string {
     if (valuesRow.length === 0) {
         return ""
     }
 
-    let res: string = "";
-    if (baseVariable === null) {
-        res += "z"
-    } else {
-        res += `${baseVariable}`
-    }
+    let res: string = `${baseVariable}`;
 
     for (let i = 0; i < valuesRow.length; i++) {
         res += `& ${renderRationalWithNegativeSignOnly(valuesRow[i])} `
@@ -54,7 +46,7 @@ function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: str
  */
 function getKatexArrayType(props: SimplexTableProps): string {
     let res = "{c|"
-    for (let i = 0; i < props.variables.length; i++) {
+    for (let i = 0; i < props.simplexTable.variables.length; i++) {
         res += "c"
     }
     //For rhs
@@ -65,14 +57,12 @@ function getKatexArrayType(props: SimplexTableProps): string {
 function renderSimplexTable(props: SimplexTableProps): string {
     let res = "\\begin{pmatrix}"
     res += "\\begin{array}" + getKatexArrayType(props)
-    res += renderVariableNamesRow(props.variables)
-    props.data.forEach((value, i) => {
-        if (i === props.base_variables.length) {
-            res += renderValuesRow(value, props.rhs[i], null)
-        } else {
-            res += renderValuesRow(value, props.rhs[i], props.base_variables[i])
-        }
+    res += renderVariableNamesRow(props.simplexTable.variables)
+    props.simplexTable.data.forEach((value, i) => {
+            res += renderValuesRow(value, props.simplexTable.rhs[i], props.simplexTable.baseVariables[i])
     })
+    res += "\\hline{}\\\\[1pt]"
+    res += renderValuesRow(props.simplexTable.objectiveFunctionRow, props.simplexTable.objectiveValue, "z")
     res += "\\end{array}"
     res += "\\end{pmatrix}"
     return res
@@ -81,10 +71,14 @@ function renderSimplexTable(props: SimplexTableProps): string {
 function SimplexTableComponent(props: SimplexTableProps) {
     if (props.demo) {
         props = {
-            variables: ["X1", "X2", "X3"],
-            data: demoMatrix(3,3),
-            rhs: demoMatrix(1,3)[0],
-            base_variables: ["X1", "X2"],
+            simplexTable: {
+                variables: ["X1", "X2", "X3"],
+                data: demoMatrix(2, 3),
+                rhs: demoMatrix(1, 3)[0],
+                baseVariables: ["X1", "X2"],
+                objectiveFunctionRow: demoMatrix(1, 3)[0],
+                objectiveValue: demoRational(),
+            },
             demo: true
         }
     }
