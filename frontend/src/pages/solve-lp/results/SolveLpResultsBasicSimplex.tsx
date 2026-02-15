@@ -13,6 +13,8 @@ import ProblemSpecificationDetails from "../../../components/ui/solution/Problem
 import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
 import InitialSimplexTable from "../../../components/layout/solution/InitialSimplexTable.tsx";
 import SimplexTableObjectiveRowArrow from "../../../components/ui/solution/SimplexTableObjectiveRowArrow.tsx";
+import SimplexTableRowAddititionArrows from "../../../components/ui/solution/SimplexTableRowAddititionArrows.tsx";
+import {demoRational, type Rational} from "../../../api/common/math.ts";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -28,6 +30,11 @@ function SolveLpResultsBasicSimplex() {
     if (solverInput === null || solverResults === null) {
 
     } else {
+
+        //todo demo
+        let testMap = new Map<number, Rational>()
+        testMap.set(1, demoRational())
+
         return (<>
             <div className={"page-content"}>
                 <MainHeader />
@@ -39,6 +46,9 @@ function SolveLpResultsBasicSimplex() {
                         <LpDefinition parsedProblem={solverResults.parsedLP}/>
                         <InitialSimplexTable initialST={solverResults.initialST} />
                         <SimplexTableObjectiveRowArrow simplexTable={solverResults.initialST} arrowColumn={1} demo={false} />
+
+                        <SimplexTableRowAddititionArrows simplexTable={solverResults.initialST} sourceRowIndex={0} targetRows={testMap} />
+
                     </Container>
                 </Container>
             </div>
