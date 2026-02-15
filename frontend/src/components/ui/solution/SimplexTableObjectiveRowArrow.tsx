@@ -9,7 +9,7 @@ type SimplexTableObjectiveRowArrowProps = {
     demo: boolean
 }
 
-function renderSimplexTable(props: SimplexTableObjectiveRowArrowProps): string {
+export function renderSimplexTableWithObjectiveRowArrow(props: SimplexTableObjectiveRowArrowProps): string {
     let res = "\\begin{pmatrix}\n"
     res += "\\begin{array}" + getKatexArrayType(props) + "\n"
     res += renderVariableNamesRow(props.simplexTable.variables)
@@ -48,8 +48,7 @@ function SimplexTableObjectiveRowArrow(props: SimplexTableObjectiveRowArrowProps
         }
     }
 
-    console.log(renderSimplexTable(props))
-    return <BlockMath math={renderSimplexTable(props)}></BlockMath>
+    return <BlockMath math={renderSimplexTableWithObjectiveRowArrow(props)}></BlockMath>
 }
 
 export default SimplexTableObjectiveRowArrow;
