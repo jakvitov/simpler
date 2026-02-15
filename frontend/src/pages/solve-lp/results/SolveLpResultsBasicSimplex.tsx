@@ -12,6 +12,7 @@ import {Container} from "react-bootstrap";
 import ProblemSpecificationDetails from "../../../components/ui/solution/ProblemSpecificationDetails.tsx";
 import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
 import InitialSimplexTable from "../../../components/layout/solution/InitialSimplexTable.tsx";
+import SimplexTableObjectiveRowArrow from "../../../components/ui/solution/SimplexTableObjectiveRowArrow.tsx";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -37,6 +38,7 @@ function SolveLpResultsBasicSimplex() {
                         <ProblemSpecificationDetails target={solverInput.optimisationTarget} method={"BASIC_SIMPLEX"} status={solverResults.result} />
                         <LpDefinition parsedProblem={solverResults.parsedLP}/>
                         <InitialSimplexTable initialST={solverResults.initialST} />
+                        <SimplexTableObjectiveRowArrow simplexTable={solverResults.initialST} arrowColumn={1} demo={false} />
                     </Container>
                 </Container>
             </div>

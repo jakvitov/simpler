@@ -9,7 +9,7 @@ type SimplexTableProps = {
 }
 
 // render line like var1 & var2 \\ for simplex table matrix
-function renderVariableNamesRow(variables: string[]): string {
+export function renderVariableNamesRow(variables: string[]): string {
     if (variables.length === 0) {
         return "";
     }
@@ -25,7 +25,7 @@ function renderVariableNamesRow(variables: string[]): string {
 }
 
 // render line like 3/2 & -1/2 \\ for simplex table matrix
-function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: string): string {
+export function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: string): string {
     if (valuesRow.length === 0) {
         return ""
     }
@@ -44,7 +44,7 @@ function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariable: str
  * Based on the props sized, return properties for katex array inside of matrix
  * example {cccc|c}, rhs is rendered in the matrix block |c
  */
-function getKatexArrayType(props: SimplexTableProps): string {
+export function getKatexArrayType(props: SimplexTableProps): string {
     let res = "{c|"
     for (let i = 0; i < props.simplexTable.variables.length; i++) {
         res += "c"
@@ -55,16 +55,16 @@ function getKatexArrayType(props: SimplexTableProps): string {
 }
 
 function renderSimplexTable(props: SimplexTableProps): string {
-    let res = "\\begin{pmatrix}"
-    res += "\\begin{array}" + getKatexArrayType(props)
+    let res = "\\begin{pmatrix}\n"
+    res += "\\begin{array}" + getKatexArrayType(props) + "\n"
     res += renderVariableNamesRow(props.simplexTable.variables)
     props.simplexTable.data.forEach((value, i) => {
-            res += renderValuesRow(value, props.simplexTable.rhs[i], props.simplexTable.baseVariables[i])
+            res += renderValuesRow(value, props.simplexTable.rhs[i], props.simplexTable.baseVariables[i]) + "\n"
     })
-    res += "\\hline{}\\\\[1pt]"
-    res += renderValuesRow(props.simplexTable.objectiveFunctionRow, props.simplexTable.objectiveValue, "z")
-    res += "\\end{array}"
-    res += "\\end{pmatrix}"
+    res += "\\hline{}\\\\[1pt]\n"
+    res += renderValuesRow(props.simplexTable.objectiveFunctionRow, props.simplexTable.objectiveValue, "z") + "\n"
+    res += "\\end{array}\n"
+    res += "\\end{pmatrix}\n"
     return res
 }
 
@@ -82,7 +82,6 @@ function SimplexTableComponent(props: SimplexTableProps) {
             demo: true
         }
     }
-
     return <BlockMath math={renderSimplexTable(props)}></BlockMath>
 }
 
