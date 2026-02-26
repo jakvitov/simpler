@@ -39,11 +39,11 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
             try {
                 let dataHash = await hashStringSHA256(mpsCode)
 
-                if (await get(MPS_VERIF_SS_PREFIX + dataHash) === null ) {
+                if (await get(MPS_VERIF_SS_PREFIX + dataHash) === undefined) {
                     const verificationResponse: MpsVerificationResponse  = await verifyMpsCall({data: mpsCode})
                     await set(MPS_VERIF_SS_PREFIX + dataHash, JSON.stringify(verificationResponse))
                 }
-                if (await get(MPS_DATA_SS_PREFIX + dataHash) === null) {
+                if (await get(MPS_DATA_SS_PREFIX + dataHash) === undefined) {
                     await set(MPS_DATA_SS_PREFIX + dataHash, mpsCode)
                 }
                 navigate(`/verify-mps/results/${dataHash}`)
