@@ -1,0 +1,234 @@
+{
+  "uuid": "61dc587d-731e-49ad-b7a5-b858aeb1b1ce",
+  "lastMigration": 33,
+  "name": "Local mock",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3000,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "0edb4908-220e-4177-8fbb-e5095c02ffb7",
+      "type": "http",
+      "documentation": "Passing healthcheck with version",
+      "method": "get",
+      "endpoint": "be/simpler/health",
+      "responses": [
+        {
+          "uuid": "4a8f77f6-f17a-4a7b-b92f-ddbab327dd86",
+          "body": "{\n  \"status\": \"OK\",\n  \"version\": \"1.0.0-mock\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb",
+      "type": "http",
+      "documentation": "MPS verification mock",
+      "method": "post",
+      "endpoint": "be/simpler/mps/verify",
+      "responses": [
+        {
+          "uuid": "1cd65d08-a615-45e4-8b75-5795bcbd6c99",
+          "body": "{\n  \"status\": \"OK\",\n  \"errors\": []\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "data",
+              "value": "success",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "cba429ee-06f6-4842-9ff4-08362c359ac8",
+          "body": "{\n    \"status\": \"VERIFICATION_FAILED\",\n    \"errors\": [\"Reason1\", \"Reason 2\", \"Reason 3\", \"Reason4\"]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "data",
+              "value": "fail",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "083c3798-45ba-4e4c-85ed-caa13f3f62fa",
+      "type": "http",
+      "documentation": "",
+      "method": "post",
+      "endpoint": "be/simpler/solve-lp/basic",
+      "responses": [
+        {
+          "uuid": "bd5155a3-a741-4569-986e-a35cff5761a4",
+          "body": "{\n  \"result\": \"SOLVED\",\n  \"success\": true,\n  \"parsedLP\": {\n    \"lines\": [\n      {\n        \"variableValues\": [\n          {\n            \"variableName\": \"x1\",\n            \"value\": {\n              \"numerator\": 12,\n              \"denominator\": 5,\n              \"sign\": \"P\"\n            }\n          },\n          {\n            \"variableName\": \"x1\",\n            \"value\": {\n              \"numerator\": 12,\n              \"denominator\": 5,\n              \"sign\": \"N\"\n            }\n          }\n        ],\n        \"inequalitySign\": \"GE\",\n        \"rhs\": {\n          \"numerator\": 12,\n          \"denominator\": 5,\n          \"sign\": \"N\"\n        }\n      }\n    ],\n    \"bounds\": [\n      {\n        \"variableName\": \"x1\",\n        \"upperbound\": {\n          \"numerator\": 5,\n          \"denominator\": 2,\n          \"sign\": \"N\"\n        },\n        \"lowerbound\": {\n          \"numerator\": 5,\n          \"denominator\": 2,\n          \"sign\": \"N\"\n        }\n      }\n    ]\n  },\n  \"initialST\": {\"variables\":[\"X1\",\"X2\",\"X3\"],\"data\":[[{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"}],[{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"}]],\"rhs\":[{\"numerator\":2,\"denominator\":3,\"sign\":\"P\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":2,\"denominator\":3,\"sign\":\"P\"}],\"baseVariables\":[\"X1\",\"X2\"],\"objectiveFunctionRow\":[{\"numerator\":2,\"denominator\":3,\"sign\":\"P\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"},{\"numerator\":3,\"denominator\":8,\"sign\":\"N\"}],\"objectiveValue\":{\"numerator\":2,\"denominator\":3,\"sign\":\"P\"}}\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "data",
+              "value": "success",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "ea8df9ef-dfd7-4f5d-b8c1-18641ab6d9ac",
+          "body": "{\n  \"success\": false,\n  \"errors\": [\"Error 1.\", \"ERROR 2.\", \"ERROR3.\"]\n}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "Response including errors that happened during solution. Typically include unverified MPS.",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "data",
+              "value": "fail",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "0edb4908-220e-4177-8fbb-e5095c02ffb7"
+    },
+    {
+      "type": "route",
+      "uuid": "2bd3fba2-84a3-4c7d-9e3f-f44c8d4f5ebb"
+    },
+    {
+      "type": "route",
+      "uuid": "083c3798-45ba-4e4c-85ed-caa13f3f62fa"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}
