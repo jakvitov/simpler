@@ -14,11 +14,11 @@ import jakarta.inject.Inject;
 public class SolveBasicSimplexController {
 
     @Inject
-    private final BasicSimplexSolverService basicSimplexSolverService;
+    private BasicSimplexSolverService basicSimplexSolverService;
 
     @Post
     public HttpResponse<SolveLpBasicSimplexResponseDto> solveBasicSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
-
+        return null;
     }
 
 
