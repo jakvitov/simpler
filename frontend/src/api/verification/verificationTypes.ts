@@ -1,3 +1,5 @@
+import type {SimplexTable} from "../common/lpDefinitionTypes.ts";
+
 export interface MpsVerificationRequest {
     data: string
 }
@@ -9,5 +11,6 @@ export type MpsVerificationResponseStatus =
 
 export interface MpsVerificationResponse {
     status: MpsVerificationResponseStatus,
-    errors: string[]
+    errors: string[],
+    initialSimplexTable: SimplexTable
 }

@@ -9,6 +9,8 @@ import MpsVerificationInput from "../../components/layout/mps/MpsVerificationInp
 import {get} from "idb-keyval";
 import {useEffect, useState} from "react";
 import ErrorEnumerationContainer from "../../components/ui/ErrorEnumerationContainer.tsx";
+import {Container} from "react-bootstrap";
+import InitialSimplexTable from "../../components/layout/solution/InitialSimplexTable.tsx";
 
 function MpsVerificationResults() {
 
@@ -32,6 +34,11 @@ function MpsVerificationResults() {
                 <MainHeader />
                 <MainNavBar />
                 <PageContentHeader value="MPS verified ✅"></PageContentHeader>
+                <Container>
+                    <Container style={{ backgroundColor: '#F5F5F5'}}>
+                        <InitialSimplexTable initialST={mpsVerificationResult.initialSimplexTable} />
+                    </Container>
+                </Container>
                 <MpsVerificationInput initialText={mpsData} />
             </div>
             <BottomNavBar />
