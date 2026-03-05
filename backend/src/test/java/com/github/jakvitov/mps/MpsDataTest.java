@@ -9,7 +9,6 @@ public class MpsDataTest {
     public void parse_correct_mps_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
-                OBJSENSE    MAX
                 ROWS
                  N  COST
                  L  LIM1
@@ -74,7 +73,6 @@ public class MpsDataTest {
     public void verify_correct_mps_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
-                OBJSENSE    MAX
                 ROWS
                  N  COST
                  L  LIM1
