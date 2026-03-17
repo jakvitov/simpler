@@ -55,7 +55,7 @@ function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
     if (props.parsedLpDefinition.warningMessage !== null && props.parsedLpDefinition.warningMessage !== undefined) {
         return (<>
             <h3 className={"pt-2"}>Parsed linear problem:</h3>
-            <h4 className={"pt-2"}>Warning:</h4>
+            <h3 className={"pt-2"}>Warning:</h3>
             <pre>{props.parsedLpDefinition.warningMessage}</pre>
             <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
             {props.parsedLpDefinition.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
