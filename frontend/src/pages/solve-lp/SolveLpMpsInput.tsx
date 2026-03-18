@@ -1,8 +1,8 @@
 import MainHeader from "../../components/ui/MainHeader.tsx";
 import MainNavBar from "../../components/layout/MainNavBar.tsx";
 import {Container} from "react-bootstrap";
-import SolverInputType from "../../components/layout/solve/SolverInputType.tsx";
-import SolverAlgorithmRadial from "../../components/layout/solve/SolverAlgorithmRadial.tsx";
+import SolverInputType from "../../components/layout/solve-input/SolverInputType.tsx";
+import SolverAlgorithmRadial from "../../components/layout/solve-input/SolverAlgorithmRadial.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
 import {useEffect, useState} from "react";

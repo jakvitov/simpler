@@ -31,7 +31,8 @@ export interface Bound {
  */
 export interface ParsedLpDefinition {
     lines: LpDefinitionLine[],
-    bounds: Bound[]
+    bounds: Bound[],
+    warningMessage: string|null
 }
 
 export interface SimplexTable {

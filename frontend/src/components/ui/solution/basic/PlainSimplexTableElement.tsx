@@ -1,16 +1,14 @@
-import {demoRational, type Rational} from "../../../api/common/math.ts";
-import {demoMatrix, renderRationalWithNegativeSignOnly} from "../../../api/common/math.ts";
+import type {SimplexTable} from "../../../../api/common/lpDefinitionTypes.ts";
 import {BlockMath} from "react-katex";
-import type {SimplexTable} from "../../../api/common/lpDefinitionTypes.ts";
+import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
 
-type SimplexTableProps = {
-    simplexTable: SimplexTable;
-    demo: boolean
+type PlainSimplexTableElementProps = {
+    simplexTable: SimplexTable
 }
 
 // render line like var1 & var2 \\ for simplex table matrix
 export function renderVariableNamesRow(variables: string[]): string {
-    if (variables.length === 0) {
+    if (variables.length == 0) {
         return "";
     }
     let res = ""
@@ -44,9 +42,9 @@ export function renderValuesRow(valuesRow: Rational[], rhs: Rational, baseVariab
  * Based on the props sized, return properties for katex array inside of matrix
  * example {cccc|c}, rhs is rendered in the matrix block |c
  */
-export function getKatexArrayType(props: SimplexTableProps): string {
+export function getPlainSimplexTableKatexArrayType(simplexTable: SimplexTable): string {
     let res = "{c|"
-    for (let i = 0; i < props.simplexTable.variables.length; i++) {
+    for (let i = 0; i < simplexTable.variables.length; i++) {
         res += "c"
     }
     //For rhs
@@ -54,12 +52,12 @@ export function getKatexArrayType(props: SimplexTableProps): string {
     return res
 }
 
-function renderSimplexTable(props: SimplexTableProps): string {
+function renderSimplexTable(props: PlainSimplexTableElementProps): string {
     let res = "\\begin{pmatrix}\n"
-    res += "\\begin{array}" + getKatexArrayType(props) + "\n"
+    res += "\\begin{array}" + getPlainSimplexTableKatexArrayType(props.simplexTable) + "\n"
     res += renderVariableNamesRow(props.simplexTable.variables)
     props.simplexTable.data.forEach((value, i) => {
-            res += renderValuesRow(value, props.simplexTable.rhs[i], props.simplexTable.baseVariables[i]) + "\n"
+        res += renderValuesRow(value, props.simplexTable.rhs[i], props.simplexTable.baseVariables[i]) + "\n"
     })
     res += "\\hline{}\\\\[1pt]\n"
     res += renderValuesRow(props.simplexTable.objectiveFunctionRow, props.simplexTable.objectiveValue, "z") + "\n"
@@ -68,21 +66,14 @@ function renderSimplexTable(props: SimplexTableProps): string {
     return res
 }
 
-function SimplexTableComponent(props: SimplexTableProps) {
-    if (props.demo) {
-        props = {
-            simplexTable: {
-                variables: ["X1", "X2", "X3"],
-                data: demoMatrix(2, 3),
-                rhs: demoMatrix(1, 3)[0],
-                baseVariables: ["X1", "X2"],
-                objectiveFunctionRow: demoMatrix(1, 3)[0],
-                objectiveValue: demoRational(),
-            },
-            demo: true
-        }
-    }
+
+/**
+ * Element containing render of plain simplex table as defined by SimplexTable
+ * @param props
+ * @constructor
+ */
+function PlainSimplexTableElement(props: PlainSimplexTableElementProps) {
     return <BlockMath math={renderSimplexTable(props)}></BlockMath>
 }
 
-export default SimplexTableComponent
+export default PlainSimplexTableElement;

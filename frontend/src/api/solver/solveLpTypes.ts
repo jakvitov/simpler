@@ -9,10 +9,11 @@ export type OptimisationTarget =
     | "MAX"
     | "MIN"
 
-export type SolveSimplexResultType =
+export type SolutionStatus =
     | "SOLVED"
+    | "MAX_ITERATIONS"
+    | "CYCLE"
     | "UNBOUNDED"
-    | "NOT_SOLVABLE"
 
 export interface SolveLpRequest {
     data: string,
