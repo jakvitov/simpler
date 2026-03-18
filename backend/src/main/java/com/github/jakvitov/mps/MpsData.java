@@ -244,6 +244,10 @@ public class MpsData {
     private Map<String, LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>>> parseBounds(List<String> prefilteredLines) {
         List<String> boundsSectionLines = getSectionLines(MpsSections.BOUNDS, prefilteredLines);
 
+        if (boundsSectionLines.isEmpty()) {
+            return new HashMap<>(0);
+        }
+
         //Bound name -> variable -> bound type -> value
         Map<String, LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>>> boundSection = new HashMap<>();
 
@@ -305,6 +309,9 @@ public class MpsData {
         List<Integer> startIndexes = StringUtils.allIndexesOf(prefilteredLines, section.toString());
 
         if (startIndexes.isEmpty()) {
+            if (section.equals(MpsSections.BOUNDS)) {
+                return new ArrayList<>();
+            }
             throw new MpsParsingException(section, "No " + section + " section tags found!");
         } else if (startIndexes.size() > 1) {
             throw new MpsParsingException(section, "Multiple " + section + " section beginnings found!");

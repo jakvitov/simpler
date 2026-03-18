@@ -16,6 +16,9 @@ public class SimplexTable {
     public List<BigFraction> objectiveFunctionRow = new ArrayList<>();
     public BigFraction objectiveValue;
 
+    //Metadata - not transformed to out DTOS
+    public boolean containsArtificialVariables;
+
     public static SimplexTable fromMpsData(MpsDataTransformedBounds mpsData) {
         SimplexTable result = new SimplexTable();
         Optional<String> objectiveRowNameOpt = mpsData.rows.entrySet().stream().filter((rowEntry) -> rowEntry.getValue() == RowType.N).map(entry -> entry.getKey()).findFirst();
@@ -148,6 +151,7 @@ public class SimplexTable {
                 this.variables.add("A_" + artificialIndex);
                 this.objectiveFunctionRow.add(BigFraction.ZERO);
                 artificialIndex ++;
+                this.containsArtificialVariables = true;
             }
         }
     }
