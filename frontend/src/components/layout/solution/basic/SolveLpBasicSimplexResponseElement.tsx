@@ -32,7 +32,16 @@ function SolveLpBasicSimplexResponseElement(props: SolveLpBasicSimplexResponseEl
                 <BlockMath math={renderRationalWithNegativeSignOnly(props.solveLpBasicSimplexResponseDto.solutionObjectiveFunctionValue)} />
             </div>
         )
-    } else {
+    } else if (props.solveLpBasicSimplexResponseDto.solutionStatus === "UNBOUNDED") {
+        return (<div className="basicSimplexSolution">
+            <h3 className={"pt-2"}>Initial simplex table:</h3>
+            <PlainSimplexTableElement simplexTable={props.solveLpBasicSimplexResponseDto.initialSimplexTable} />
+            {(props.solveLpBasicSimplexResponseDto.iterations != null) ? props.solveLpBasicSimplexResponseDto.iterations.map((iterationDto, index) => <BasicSimplexIterationElement basicSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
+            <h3 className={"pt-2"}>Objective function value:</h3>
+            <BlockMath math={"+/- \\infty"} />
+        </div>)
+    }
+    else {
         let text = "LP solution status " + props.solveLpBasicSimplexResponseDto.solutionStatus + " not implemented yet."
         return (
             <div className="basicSimplexSolution">

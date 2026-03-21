@@ -42,8 +42,22 @@ function SolveLpResultsBasicSimplex() {
                     <BottomNavBar />
                 </>
             )
+        } else if (solverResults.solutionStatus === "UNBOUNDED") {
+            return (<>
+                    <div className={"page-content"}>
+                        <MainHeader />
+                        <MainNavBar />
+                        <PageContentHeader value="LP solution unbounded ♾️"></PageContentHeader>
+                        <Container>
+                            <Container style={{ backgroundColor: '#F5F5F5'}}>
+                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                            </Container>
+                        </Container>
+                    </div>
+                    <BottomNavBar />
+                </>
+            )
         }
-
     }
 }
 

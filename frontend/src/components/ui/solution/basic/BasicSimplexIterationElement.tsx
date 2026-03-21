@@ -18,6 +18,18 @@ type BasicSimplexIterationElementProps = {
  * @constructor
  */
 function BasicSimplexIterationElement(props: BasicSimplexIterationElementProps) {
+    //Singals unbounded solution
+    if (props.basicSimplexIterationDto.simplexTableLeavingRowNormalisationDto == null) {
+        return (<div className="basicSimplexIterationElement">
+            <hr/>
+            <h3 className={"pt-2"}>Start iteration {props.iterationIndex + 1}</h3>
+            <p className={"pt-2"}>Leaving and entering variable calculation:</p>
+            <SimplexTableLeavingEnteringVariableElement simplexTableLeavingEnteringVariableDto={props.basicSimplexIterationDto.simplexTableLeavingEnteringVariableDto} />
+            <hr/>
+        </div>)
+    }
+
+    //Standard iteration
     return (<div className="basicSimplexIterationElement">
         <hr/>
         <h3 className={"pt-2"}>Start iteration {props.iterationIndex + 1}</h3>
