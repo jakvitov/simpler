@@ -23,7 +23,7 @@ function SolveLpBasicSimplexResponseElement(props: SolveLpBasicSimplexResponseEl
             <div className="basicSimplexSolution">
                 <h3 className={"pt-2"}>Initial simplex table:</h3>
                 <PlainSimplexTableElement simplexTable={props.solveLpBasicSimplexResponseDto.initialSimplexTable} />
-                {props.solveLpBasicSimplexResponseDto.iterations.map((iterationDto, index) => <BasicSimplexIterationElement basicSimplexIterationDto={iterationDto} iterationIndex={index} />)}
+                {(props.solveLpBasicSimplexResponseDto.iterations != null) ? props.solveLpBasicSimplexResponseDto.iterations.map((iterationDto, index) => <BasicSimplexIterationElement basicSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
                 <h3 className={"pt-2"}>Final simplex table:</h3>
                 <PlainSimplexTableElement simplexTable={props.solveLpBasicSimplexResponseDto.finalSimplexTable} />
                 <h3 className={"pt-2"}>Optimal variable values found:</h3>

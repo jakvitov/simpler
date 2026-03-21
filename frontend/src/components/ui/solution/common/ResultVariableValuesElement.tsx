@@ -1,4 +1,4 @@
-import type {Rational} from "../../../../api/common/math.ts";
+import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
 
 type ResultVariableValuesElementProps = {
@@ -30,10 +30,10 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
         res += `& ${variableNames[i]}`;
     }
     res += "\\\\ \\hline \n";
-    res += resultVariableValues.get(variableNames[0]);
+    res += renderRationalWithNegativeSignOnly(resultVariableValues.get(variableNames[0]));
 
     for (let i = 1; i < resultVariableValues.size; i++) {
-        res += `& ${resultVariableValues.get(variableNames[i])}`;
+        res += `& ${renderRationalWithNegativeSignOnly(resultVariableValues.get(variableNames[i]))}`;
     }
     res += "\\\\ \n \\end{array}"
     return res;
@@ -46,9 +46,10 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
  * @constructor
  */
 function ResultVariableValuesElement(props: ResultVariableValuesElementProps) {
+    console.log(JSON.stringify(props))
     if (props.resultVariableValues != null) {
         const resultVariableValuesMap = new Map<string, Rational>(
-            Object.entries(props.resultVariableValues.coefficients).map(([k, v]) => [(k), v])
+            Object.entries(props.resultVariableValues).map(([k, v]) => [(k), v])
         );
         return <BlockMath math={renderResultVariableValuesElement(resultVariableValuesMap)} />
     }

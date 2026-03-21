@@ -9,14 +9,20 @@ export interface Rational {
     sign: RationalSign;
 }
 
-export function renderRationalWithSign(r: Rational): string {
+export function renderRationalWithSign(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
     if (r.denominator == 1) {
         return (r.sign === "P" ? "+" : "-") + r.numerator;
     }
     return (r.sign === "P" ? "+" : "-") + "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
 }
 
-export function renderRationalWithNegativeSignOnly(r: Rational): string {
+export function renderRationalWithNegativeSignOnly(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
     if (r.sign === "P") {
         if (r.denominator == 1) {
             return "\\phantom{+}" + r.numerator
