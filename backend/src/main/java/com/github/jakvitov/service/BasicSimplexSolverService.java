@@ -125,17 +125,17 @@ public class BasicSimplexSolverService {
      */
     private Map<String, BigFraction> getSolutionVariableValues(SimplexTable simplexTable) {
         Map<String, BigFraction> result = new HashMap<>();
-        for (int i = 0; i < simplexTable.objectiveFunctionRow.size(); i ++) {
-            if (simplexTable.objectiveFunctionRow.get(i).signum() > 0 && !(simplexTable.variables.get(i).startsWith("S_") || simplexTable.variables.get(i).startsWith("A_"))) {
-               result.put(simplexTable.variables.get(i), simplexTable.objectiveFunctionRow.get(i));
-            }
+        for (int i = 0; i < simplexTable.baseVariables.size(); i ++) {
+            String variableName = simplexTable.baseVariables.get(i);
+            result.put(variableName, simplexTable.rhs.get(i));
+
         }
         return result;
     }
 
     private void switchLeavingEnteringVariables(int leavingVariableRow, int enteringVariableRow, SimplexTable simplexTable) {
         String enteringVariableName = simplexTable.variables.get(enteringVariableRow);
-        simplexTable.variables.set(leavingVariableRow, enteringVariableName);
+        simplexTable.baseVariables.set(leavingVariableRow, enteringVariableName);
     }
 
     /**
