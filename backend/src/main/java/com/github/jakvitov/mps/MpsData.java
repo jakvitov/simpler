@@ -32,6 +32,13 @@ public class MpsData {
         String[] lines = input.split("\n");
 
         List<String> prefilteredLines = Arrays.stream(lines).filter(line -> !line.startsWith("#") && !line.isBlank())
+                .map(line -> {
+                    int commentIndex = line.indexOf("#");
+                    if (commentIndex != -1) {
+                        return line.substring(0, commentIndex);
+                    }
+                    return line;
+                })
                 .map(line -> line.replaceAll("(?m)^\\s+|\\s+$", "") /*All whitespaces at the beginning and end of lines */)
                 .toList();
 
