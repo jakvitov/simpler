@@ -73,7 +73,7 @@ function renderSimplexTableRowsNormalizationElementObjectiveRow(props: SimplexTa
 
     res += `& ${renderRationalWithNegativeSignOnly(props.simplexTableRowNormalizationElementDto.simplexTableDto.objectiveValue)}`
 
-    res += "& & \\\\[15pt]"
+    res += `& \\gets &  \\times (${renderRationalWithNegativeSignOnly(props.simplexTableRowNormalizationElementDto.objectiveRowCoefficient)}) \\\\[15pt]`
 
     return res
 }

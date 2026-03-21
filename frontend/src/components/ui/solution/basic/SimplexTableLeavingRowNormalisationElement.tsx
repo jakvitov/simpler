@@ -44,7 +44,7 @@ function renderSimplexTableLeavingRowNormalisationRow(props: SimplexTableLeaving
     if (rowIndex == props.simplexTableLeavingEnteringVariableDto.rowNormalizationIndex) {
         res += `& \\gets & \\times (${renderRationalWithNegativeSignOnly(props.simplexTableLeavingEnteringVariableDto.by as Rational)})`
     } else {
-        res += "& & "
+        res += "&c & "
     }
     res += "\\\\[15pt]"
     return res;
