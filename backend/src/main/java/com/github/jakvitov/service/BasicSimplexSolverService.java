@@ -45,7 +45,7 @@ public class BasicSimplexSolverService {
         HashMap<Integer, Integer> visitedBaseCount = new HashMap<>();
         visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
 
-        for (int iteration = 1; (iteration < maxIterations) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
+        for (int iteration = 1; ((iteration-1) < maxIterations) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
 
             if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > maxCycles) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
