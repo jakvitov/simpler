@@ -68,6 +68,9 @@ function renderSimplexTableWithEnteringVariable(props: SimplexTableLeavingEnteri
  */
 function SimplexTableLeavingEnteringVariableElement(props: SimplexTableLeavingEnteringVariableElementProps) {
     const simplexTableWithEnteringVariableCode = renderSimplexTableWithEnteringVariable(props);
+    if (props.simplexTableLeavingEnteringVariableDto.tVector == null) {
+        return <BlockMath math={`${simplexTableWithEnteringVariableCode}`}/>
+    }
     const tVecWithLeavingVariableCode = renderTVecWithLeavingVariable(props);
     return <BlockMath math={`${simplexTableWithEnteringVariableCode + tVecWithLeavingVariableCode}`}/>
 }
