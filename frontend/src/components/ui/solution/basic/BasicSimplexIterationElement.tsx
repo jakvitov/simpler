@@ -20,16 +20,16 @@ type BasicSimplexIterationElementProps = {
 function BasicSimplexIterationElement(props: BasicSimplexIterationElementProps) {
     return (<div className="basicSimplexIterationElement">
         <hr/>
-        <h3 className={"pt-2"}>Start iteration {props.iterationIndex}</h3>
-        <h3 className={"pt-2"}>Leaving and entering variable calculation:</h3>
+        <h3 className={"pt-2"}>Start iteration {props.iterationIndex + 1}</h3>
+        <p className={"pt-2"}>Leaving and entering variable calculation:</p>
         <SimplexTableLeavingEnteringVariableElement simplexTableLeavingEnteringVariableDto={props.basicSimplexIterationDto.simplexTableLeavingEnteringVariableDto} />
-        <h3 className={"pt-2"}>Normalization of leaving variable row:</h3>
+        <p className={"pt-2"}>Normalization of leaving variable row:</p>
         <SimplexTableLeavingRowNormalisationElement simplexTableLeavingEnteringVariableDto={props.basicSimplexIterationDto.simplexTableLeavingRowNormalisationDto} />
-        <h3 className={"pt-2"}>Normalization of remaining rows:</h3>
+        <p className={"pt-2"}>Normalization of remaining rows:</p>
         <SimplexTableRowsNormalizationElement simplexTableRowNormalizationElementDto={props.basicSimplexIterationDto.simplexTableRowsNormalizationDto} />
-        <h3 className={"pt-2"}>Final simplex after variable switch:</h3>
+        <p className={"pt-2"}>Final simplex after variable switch:</p>
         <PlainSimplexTableElement simplexTable={props.basicSimplexIterationDto.simplexTableAfterVariableSwitch} />
-        <h3 className={"pt-2"}>End iteration {props.iterationIndex}</h3>
+        <p className={"pt-2"}>End iteration {props.iterationIndex}</p>
         <hr/>
     </div>)
 }

@@ -54,7 +54,7 @@ function renderSimplexTableRowsNormalizationElementRow(props: SimplexTableRowNor
         res += `& \\gets & \\times (${renderRationalWithNegativeSignOnly(coefficientsMap.get(rowIndex) as Rational)})`
     } else {
         //Leaving variable row is not multiplied
-        res += `& \\gets & X`
+        res += `& \\to & Source`
     }
 
     res += "\\\\[15pt]"
@@ -90,7 +90,6 @@ function renderSimplexTableRowsNormalizationElement(props: SimplexTableRowNormal
     props.simplexTableRowNormalizationElementDto.simplexTableDto.data.forEach((_, i) => {
         res += renderSimplexTableRowsNormalizationElementRow(props, i, coefficientsMap) + "\n"
     })
-    res += "\\hline{}\\\\[1pt]\n"
     res += "\\hline{}\\\\[1pt]\n"
     res += renderSimplexTableRowsNormalizationElementObjectiveRow(props) + "\n"
     res += "\\end{array}\n"
