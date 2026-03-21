@@ -73,7 +73,7 @@ public class SimplexTable {
             if (variableValueForRow == null) {
                 variableValueForRow = BigFraction.ZERO;
             }
-            result.objectiveFunctionRow.add(variableValueForRow);
+            result.objectiveFunctionRow.add(variableValueForRow.negate());
         }
 
         //Fill in the RHS
