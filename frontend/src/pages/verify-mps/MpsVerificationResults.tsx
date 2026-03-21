@@ -10,7 +10,7 @@ import {get} from "idb-keyval";
 import {useEffect, useState} from "react";
 import ErrorEnumerationContainer from "../../components/ui/ErrorEnumerationContainer.tsx";
 import {Container} from "react-bootstrap";
-import InitialSimplexTable from "../../components/layout/solution/InitialSimplexTable.tsx";
+import ParsedLpDefinitionElement from "../../components/ui/verification/ParsedLpDefinitionElement.tsx";
 
 function MpsVerificationResults() {
 
@@ -36,7 +36,7 @@ function MpsVerificationResults() {
                 <PageContentHeader value="MPS verified ✅"></PageContentHeader>
                 <Container>
                     <Container style={{ backgroundColor: '#F5F5F5'}}>
-                        <InitialSimplexTable initialST={mpsVerificationResult.initialSimplexTable} />
+                        <ParsedLpDefinitionElement parsedLpDefinition={mpsVerificationResult.parsedLpDefinition} />
                     </Container>
                 </Container>
                 <MpsVerificationInput initialText={mpsData} />

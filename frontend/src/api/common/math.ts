@@ -9,17 +9,33 @@ export interface Rational {
     sign: RationalSign;
 }
 
-export function renderRationalWithSign(r: Rational): string {
-    return (r.sign === "P" ? "+" : "-") + "\\dfrac{" + r.denominator + "}{" + r.numerator + "}";
+export function renderRationalWithSign(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
+    if (r.denominator == 1) {
+        return (r.sign === "P" ? "+" : "-") + r.numerator;
+    }
+    return (r.sign === "P" ? "+" : "-") + "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
 }
 
-export function renderRationalWithNegativeSignOnly(r: Rational): string {
+export function renderRationalWithNegativeSignOnly(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
     if (r.sign === "P") {
-        //Phantom + makes alignment with - in matrices possible
-        return "\\phantom{+}" + "\\dfrac{" + r.denominator + "}{" + r.numerator + "}";
-
+        if (r.denominator == 1) {
+            return "\\phantom{+}" + r.numerator
+        } else {
+            //Phantom + makes alignment with - in matrices possible
+            return "\\phantom{+}" + "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
     } else {
-        return "- \\dfrac{" + r.denominator + "}{" + r.numerator + "}";
+        if (r.denominator == 1) {
+            return "- " + r.numerator;
+        } else {
+            return "- \\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
     }
 }
 
@@ -56,3 +72,5 @@ export type RationalSign =
 export type InequalitySign =
     | "GE"
     | "LE"
+    | "EQ"
+    | "N"

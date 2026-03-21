@@ -14,10 +14,13 @@ repositories {
 dependencies {
 
     implementation("org.hipparchus:hipparchus-core:4.0.3")
+    implementation("org.projectlombok:lombok:1.18.42")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
 
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+
     compileOnly("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
     testImplementation("io.micronaut:micronaut-http-client")

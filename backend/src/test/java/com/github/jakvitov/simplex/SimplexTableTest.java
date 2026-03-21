@@ -13,7 +13,6 @@ public class SimplexTableTest {
     public void simplex_table_from_mps_string_input_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
-                OBJSENSE    MAX
                 ROWS
                  N  COST
                  L  LIM1
@@ -54,7 +53,6 @@ public class SimplexTableTest {
     public void simplex_table_deep_copy_test() {
         final String mpsInput = """
                 NAME          TESTPROB
-                OBJSENSE    MAX
                 ROWS
                  N  COST
                  L  LIM1

@@ -16,7 +16,6 @@ public class MpsDataTransformedBounds {
     public LinkedHashMap<String, Map<String, BigFraction>> columns;
     //Rhs name -> Row name -> value
     public Map<String, BigFraction> rhs;
-    public Objsense objsense;
 
     public MpsDataTransformedBounds(MpsData originalMpsData) {
         this.name = originalMpsData.name;
@@ -28,7 +27,6 @@ public class MpsDataTransformedBounds {
             throw new MpsParsingException(MpsSections.RHS, "Multiple RHS definitions are not currently supported.");
         }
         this.rhs = originalMpsData.rhs.entrySet().iterator().next().getValue();
-        this.objsense = originalMpsData.objsense;
 
         transformBoundsIntoNewRows(originalMpsData);
     }

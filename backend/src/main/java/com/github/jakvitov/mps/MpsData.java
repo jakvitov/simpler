@@ -19,7 +19,6 @@ public class MpsData {
     public Map<String, Map<String, BigFraction>> rhs;
     //Bound name -> variable -> bound type -> value
     public Map<String, LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>>> bounds;
-    public Objsense objsense;
 
 
     /**
@@ -33,12 +32,18 @@ public class MpsData {
         String[] lines = input.split("\n");
 
         List<String> prefilteredLines = Arrays.stream(lines).filter(line -> !line.startsWith("#") && !line.isBlank())
+                .map(line -> {
+                    int commentIndex = line.indexOf("#");
+                    if (commentIndex != -1) {
+                        return line.substring(0, commentIndex);
+                    }
+                    return line;
+                })
                 .map(line -> line.replaceAll("(?m)^\\s+|\\s+$", "") /*All whitespaces at the beginning and end of lines */)
                 .toList();
 
         MpsData mpsData = new MpsData();
         mpsData.name = mpsData.parseName(prefilteredLines);
-        mpsData.objsense = mpsData.parseObjsense(prefilteredLines);
         mpsData.rows = mpsData.parseRows(prefilteredLines);
         mpsData.columns = mpsData.parseColumns(prefilteredLines);
         mpsData.rhs = mpsData.parseRhs(prefilteredLines);
@@ -55,9 +60,6 @@ public class MpsData {
     public void validate() throws MpsValidationException {
         if (name == null || name.isBlank()) {
             throw new MpsValidationException("NAME section is missing in the provided Mps input!");
-        }
-        if (objsense == null) {
-            throw new MpsValidationException("OBJSENSE section is missing in the provided Mps input!");
         }
 
         //Validate ROWS
@@ -140,27 +142,6 @@ public class MpsData {
             throw new MpsParsingException(MpsSections.NAME, "Name section must contain only the name of the problem.", nameLine);
         }
         return parts[1];
-    }
-
-    private Objsense parseObjsense(List<String> prefilteredLines) {
-        List<String> objsenseLines = prefilteredLines.stream().filter(line -> line.startsWith("OBJSENSE")).toList();
-        if (objsenseLines.size() > 1) {
-            throw new MpsParsingException(MpsSections.OBJSENSE, "Multiple OBJSENSE sections found!", objsenseLines);
-        } else if (objsenseLines.isEmpty()) {
-            throw new MpsParsingException(MpsSections.OBJSENSE, "No OBJSENSE sections found!");
-        }
-
-        String objsenseLine = objsenseLines.getFirst();
-        String[] parts = objsenseLine.split("\\s+");
-        if (parts.length != 2) {
-            throw new MpsParsingException(MpsSections.OBJSENSE, "OBJSENSE section must contain only the optimisation target of the problem.", objsenseLine);
-        }
-
-        try {
-            return Objsense.valueOf(parts[1]);
-        } catch (IllegalArgumentException e) {
-            throw  new MpsParsingException(MpsSections.OBJSENSE, "OBJSENSE section must contain only the optimisation target of the problem. Allowed values: MAX, MIN", objsenseLine);
-        }
     }
 
     private LinkedHashMap<String, RowType> parseRows(List<String> prefilteredLines) {
@@ -270,6 +251,10 @@ public class MpsData {
     private Map<String, LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>>> parseBounds(List<String> prefilteredLines) {
         List<String> boundsSectionLines = getSectionLines(MpsSections.BOUNDS, prefilteredLines);
 
+        if (boundsSectionLines.isEmpty()) {
+            return new HashMap<>(0);
+        }
+
         //Bound name -> variable -> bound type -> value
         Map<String, LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>>> boundSection = new HashMap<>();
 
@@ -331,6 +316,9 @@ public class MpsData {
         List<Integer> startIndexes = StringUtils.allIndexesOf(prefilteredLines, section.toString());
 
         if (startIndexes.isEmpty()) {
+            if (section.equals(MpsSections.BOUNDS)) {
+                return new ArrayList<>();
+            }
             throw new MpsParsingException(section, "No " + section + " section tags found!");
         } else if (startIndexes.size() > 1) {
             throw new MpsParsingException(section, "Multiple " + section + " section beginnings found!");

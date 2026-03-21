@@ -9,7 +9,6 @@ public class MpsDataTransformedBoundsTest {
     public void mps_data_transformed_bounds_constructor_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
-                OBJSENSE    MAX
                 ROWS
                  N  COST
                  L  LIM1
