@@ -57,6 +57,37 @@ function SolveLpResultsBasicSimplex() {
                     <BottomNavBar />
                 </>
             )
+        } else if (solverResults.solutionStatus === "MAX_ITERATIONS") {
+            return (<>
+                    <div className={"page-content"}>
+                        <MainHeader />
+                        <MainNavBar />
+                        <PageContentHeader value="LP sol️ution exceeded max iterations ⚠️"></PageContentHeader>
+                        <Container>
+                            <Container style={{ backgroundColor: '#F5F5F5'}}>
+                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                            </Container>
+                        </Container>
+                    </div>
+                    <BottomNavBar />
+                </>
+            )
+        }
+        else if (solverResults.solutionStatus === "CYCLE") {
+            return (<>
+                    <div className={"page-content"}>
+                        <MainHeader />
+                        <MainNavBar />
+                        <PageContentHeader value="LP solution includes possible cycle 🔄️"></PageContentHeader>
+                        <Container>
+                            <Container style={{ backgroundColor: '#F5F5F5'}}>
+                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                            </Container>
+                        </Container>
+                    </div>
+                    <BottomNavBar />
+                </>
+            )
         }
     }
 }

@@ -60,7 +60,7 @@ function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
             <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
             {props.parsedLpDefinition.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
             <BlockMath key={"2"} math={"\\text{Bounds:}"}></BlockMath>
-            {props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>)}
+            {(props.parsedLpDefinition.bounds !== null && props.parsedLpDefinition.bounds !== undefined) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
             </>
             )
     }
@@ -70,7 +70,7 @@ function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
                 <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
                 {props.parsedLpDefinition.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
                 <BlockMath key={"2"} math={"\\text{Bounds:}"}></BlockMath>
-                {props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>)}
+                {(props.parsedLpDefinition.bounds !== null && props.parsedLpDefinition.bounds !== undefined) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
             </>
         )
 }
