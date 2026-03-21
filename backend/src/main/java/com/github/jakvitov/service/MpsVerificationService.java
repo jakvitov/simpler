@@ -59,7 +59,13 @@ public class MpsVerificationService {
             warningMessages.add("Multiple BOUNDS found in the MPS definition.\nOnly one is supported in LP overview and only the first one will be displayed.");
         }
         Map<String, BigFraction> rhs = mpsData.rhs.entrySet().iterator().next().getValue();
-        LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>> bounds = mpsData.bounds.entrySet().iterator().next().getValue();
+
+        LinkedHashMap<String, LinkedHashMap<BoundType, BigFraction>> bounds;
+        if (mpsData.bounds.isEmpty()) {
+            bounds = new LinkedHashMap<>();
+        } else {
+            bounds = mpsData.bounds.entrySet().iterator().next().getValue();
+        }
 
         //Since we only parse lp definition, multiple or none objective rows is allowed
         List<String> objectiveRowsName = mpsData.rows.entrySet().stream().filter(rowEntry -> rowEntry.getValue().equals(RowType.N)).map(Map.Entry::getKey).toList();

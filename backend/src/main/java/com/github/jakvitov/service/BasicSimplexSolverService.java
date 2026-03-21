@@ -48,7 +48,7 @@ public class BasicSimplexSolverService {
         for (int iteration = 1; (iteration < maxIterations) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
 
             if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > maxCycles) {
-                result.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+                result.setSolutionStatus(SolutionStatus.CYCLE);
                 result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 return result;
             }
@@ -66,7 +66,7 @@ public class BasicSimplexSolverService {
                 SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
                 simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
                 simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(null);
-                simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(null);
+                simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
                 simplexTableLeavingEnteringVariableDto.setTVector(tVector);
                 basicSimplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
                 BasicSimplexIterationDto simplexIterationDto = new BasicSimplexIterationDto();
