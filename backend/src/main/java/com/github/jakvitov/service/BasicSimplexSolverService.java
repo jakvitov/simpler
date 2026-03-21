@@ -56,10 +56,8 @@ public class BasicSimplexSolverService {
             BasicSimplexIterationDto basicSimplexIterationDto = new BasicSimplexIterationDto();
 
             int enteringVariableIndex = getEnteringVariableIndex(simplexTable);
-            List<BigFraction> tVector = computeTVector(enteringVariableIndex, simplexTable);
-            Optional<Integer> leavingVariableIndex = getLeavingVariableIndex(tVector);
 
-            if (leavingVariableIndex.isEmpty()) {
+            if (isUnbounded(simplexTable, enteringVariableIndex)) {
                 result.setSolutionStatus(SolutionStatus.UNBOUNDED);
                 result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 //Last iteration of unbounded solution contains only t-vec with LE 0 results
@@ -67,7 +65,6 @@ public class BasicSimplexSolverService {
                 simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
                 simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(null);
                 simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
-                simplexTableLeavingEnteringVariableDto.setTVector(tVector);
                 basicSimplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
                 BasicSimplexIterationDto simplexIterationDto = new BasicSimplexIterationDto();
                 simplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
@@ -75,27 +72,30 @@ public class BasicSimplexSolverService {
                 return result;
             }
 
+            List<Optional<BigFraction>> tVector = computeTVector(enteringVariableIndex, simplexTable);
+            int leavingVariableIndex = getLeavingVariableIndex(tVector);
+
             SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
             simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
-            simplexTableLeavingEnteringVariableDto.setTVector(tVector);
-            simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(leavingVariableIndex.get());
+            simplexTableLeavingEnteringVariableDto.setTVector(tVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+            simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(leavingVariableIndex);
             simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
 
             basicSimplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
 
-            BigFraction normalizationCoefficient = normaliseLeavingVariableRow(leavingVariableIndex.get(), enteringVariableIndex, simplexTable);
+            BigFraction normalizationCoefficient = normaliseLeavingVariableRow(leavingVariableIndex, enteringVariableIndex, simplexTable);
 
             SimplexTableLeavingRowNormalisationDto simplexTableLeavingRowNormalisationDto = new SimplexTableLeavingRowNormalisationDto();
-            simplexTableLeavingRowNormalisationDto.setRowNormalizationIndex(leavingVariableIndex.get());
+            simplexTableLeavingRowNormalisationDto.setRowNormalizationIndex(leavingVariableIndex);
             simplexTableLeavingRowNormalisationDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
             simplexTableLeavingRowNormalisationDto.setBy(normalizationCoefficient);
 
             basicSimplexIterationDto.setSimplexTableLeavingRowNormalisationDto(simplexTableLeavingRowNormalisationDto);
-            SimplexTableRowsNormalizationDto simplexTableRowsNormalizationDto = normaliseRowsByLeavingVariableRow(leavingVariableIndex.get(), enteringVariableIndex, simplexTable);
+            SimplexTableRowsNormalizationDto simplexTableRowsNormalizationDto = normaliseRowsByLeavingVariableRow(leavingVariableIndex, enteringVariableIndex, simplexTable);
 
             basicSimplexIterationDto.setSimplexTableRowsNormalizationDto(simplexTableRowsNormalizationDto);
 
-            switchLeavingEnteringVariables(leavingVariableIndex.get(), enteringVariableIndex, simplexTable);
+            switchLeavingEnteringVariables(leavingVariableIndex, enteringVariableIndex, simplexTable);
 
             basicSimplexIterationDto.setSimplexTableAfterVariableSwitch(new SimplexTableDto(simplexTable));
 
@@ -119,6 +119,23 @@ public class BasicSimplexSolverService {
         result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
         result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue);
         return result;
+    }
+
+    /**
+     * Check if SimplexTable shows unbounded solution for the given iteration
+     * @param simplexTable
+     * @param enteringVariableIndex
+     * @return
+     */
+    private boolean isUnbounded(SimplexTable simplexTable, int enteringVariableIndex) {
+        boolean unbounded = true;
+        for (int i = 0; i < simplexTable.baseVariables.size(); i++) {
+            if (simplexTable.data.get(i).get(enteringVariableIndex).signum() > 0) {
+                unbounded = false;
+                break;
+            }
+        }
+        return unbounded;
     }
 
     /**
@@ -209,31 +226,37 @@ public class BasicSimplexSolverService {
      * @param tVec
      * @return
      */
-    private Optional<Integer> getLeavingVariableIndex(List<BigFraction> tVec) {
-        Optional<Integer> minimum = Optional.empty();
+    private int getLeavingVariableIndex(List<Optional<BigFraction>> tVec) {
+        Optional<Integer> minimumIndex = Optional.empty();
         for (int i = 0; i < tVec.size(); i ++) {
-            if ((tVec.get(i).signum() > 0) && minimum.isEmpty()) {
-                minimum = Optional.of(i);
-            } else if (minimum.isPresent() && tVec.get(i).signum() > 0 && tVec.get(i).compareTo(tVec.get(minimum.get())) < 0) {
-                minimum = Optional.of(i);
+            if (tVec.get(i).isEmpty()) {
+                continue;
+            }
+            if ((tVec.get(i).get().signum() >= 0) && minimumIndex.isEmpty()) {
+                minimumIndex = Optional.of(i);
+            } else if (minimumIndex.isPresent() && tVec.get(i).get().signum() >= 0 && tVec.get(i).get().compareTo(tVec.get(minimumIndex.get()).get() /* safe since this index must have been set after check*/) < 0) {
+                minimumIndex = Optional.of(i);
             }
         }
-        return minimum;
+
+        if (minimumIndex.isEmpty()) {
+            throw new IllegalStateException("No valid entry in T-vector found.");
+        }
+        return minimumIndex.get();
     }
 
     /**
      * Compute T vector given entering variable index
      * @return
      */
-    private List<BigFraction> computeTVector(int enteringVariableIndex, SimplexTable simplexTable) {
-        List<BigFraction> tVec = new ArrayList<>(simplexTable.rhs.size());
-
+    private List<Optional<BigFraction>> computeTVector(int enteringVariableIndex, SimplexTable simplexTable) {
+        List<Optional<BigFraction>> tVec = new ArrayList<>(simplexTable.rhs.size());
         for (int i = 0; i < simplexTable.rhs.size(); i ++) {
             if (simplexTable.data.get(i).get(enteringVariableIndex).equals(BigFraction.ZERO)) {
-                tVec.add(BigFraction.ZERO);
+                tVec.add(Optional.empty());
                 continue;
             }
-            tVec.add(simplexTable.rhs.get(i).divide(simplexTable.data.get(i).get(enteringVariableIndex)));
+            tVec.add(Optional.of(simplexTable.rhs.get(i).divide(simplexTable.data.get(i).get(enteringVariableIndex))));
         }
         return tVec;
     }
