@@ -1,0 +1,18 @@
+#Simple LP with x1=2, x2=2, z=4
+#Two iterations solution
+NAME          SIMPLELP
+ROWS
+ N  OBJ
+ L  C1
+ L  C2
+COLUMNS
+    X1        OBJ     1
+    X1        C1      1
+    X1        C2      0
+    X2        OBJ     1
+    X2        C1      0
+    X2        C2      1
+RHS
+    RHS1      C1      2
+    RHS1      C2      2
+ENDATA
