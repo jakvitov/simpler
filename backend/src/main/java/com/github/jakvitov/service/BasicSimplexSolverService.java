@@ -69,6 +69,9 @@ public class BasicSimplexSolverService {
                 simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(null);
                 simplexTableLeavingEnteringVariableDto.setTVector(tVector);
                 basicSimplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
+                BasicSimplexIterationDto simplexIterationDto = new BasicSimplexIterationDto();
+                simplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
+                result.getIterations().add(simplexIterationDto);
                 return result;
             }
 
