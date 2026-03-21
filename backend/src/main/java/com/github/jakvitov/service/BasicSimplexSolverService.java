@@ -39,6 +39,10 @@ public class BasicSimplexSolverService {
 
     private SolveLpBasicSimplexResponseDto solveBasicSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget) {
         SolveLpBasicSimplexResponseDto result = new SolveLpBasicSimplexResponseDto();
+
+        if (optimisationTarget.equals(OptimisationTarget.MIN)) {
+            convertObjectiveRowForMinimalization(simplexTable);
+        }
         result.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
         //Visited base hash -> number of visits
@@ -117,8 +121,26 @@ public class BasicSimplexSolverService {
         result.setSolutionStatus(SolutionStatus.SOLVED);
         result.setResultVariableValues(getSolutionVariableValues(simplexTable));
         result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
-        result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue);
+
+        if (optimisationTarget.equals(OptimisationTarget.MIN)) {
+            result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue.negate());
+        } else {
+            result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue);
+        }
         return result;
+    }
+
+    /**
+     * Given Simplex table constructed for maximization, adjust it for minimalization problem by
+     * negating the original variables in the objective row
+     * @param simplexTable
+     */
+    private void convertObjectiveRowForMinimalization(SimplexTable simplexTable) {
+        for (int i = 0; i < simplexTable.variables.size(); i ++) {
+            if (!(simplexTable.variables.get(i).startsWith("S_") || simplexTable.variables.get(i).startsWith("A_"))) {
+                simplexTable.objectiveFunctionRow.set(i, simplexTable.objectiveFunctionRow.get(i).negate());
+            }
+        }
     }
 
     /**
