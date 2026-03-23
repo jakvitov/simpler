@@ -192,4 +192,60 @@ public class SimplexTable {
     public int hashCode() {
         return Objects.hash(variables, baseVariables, data, rhs, objectiveFunctionRow, objectiveValue);
     }
+
+    public void print() {
+        int colWidth = 12;
+        int numVars = variables.size();
+        int numRows = baseVariables.size();
+
+        // Helper to center a string in a field
+        java.util.function.BiFunction<String, Integer, String> center = (s, width) -> {
+            if (s.length() >= width) return s.substring(0, width);
+            int pad = width - s.length();
+            int left = pad / 2;
+            int right = pad - left;
+            return " ".repeat(left) + s + " ".repeat(right);
+        };
+
+        String horizontalLine = "+" + ("-".repeat(colWidth) + "+").repeat(numVars + 2);
+
+        // Header row: "Basis" | variables... | "RHS"
+        System.out.println(horizontalLine);
+        StringBuilder header = new StringBuilder("|");
+        header.append(center.apply("Basis", colWidth)).append("|");
+        for (String var : variables) {
+            header.append(center.apply(var, colWidth)).append("|");
+        }
+        header.append(center.apply("RHS", colWidth)).append("|");
+        System.out.println(header);
+        System.out.println(horizontalLine);
+
+        // Data rows
+        for (int i = 0; i < numRows; i++) {
+            StringBuilder row = new StringBuilder("|");
+            row.append(center.apply(baseVariables.get(i), colWidth)).append("|");
+            for (int j = 0; j < numVars; j++) {
+                String val = (i < data.size() && j < data.get(i).size())
+                        ? data.get(i).get(j).toString() : "0";
+                row.append(center.apply(val, colWidth)).append("|");
+            }
+            String rhsVal = (i < rhs.size()) ? rhs.get(i).toString() : "0";
+            row.append(center.apply(rhsVal, colWidth)).append("|");
+            System.out.println(row);
+            System.out.println(horizontalLine);
+        }
+
+        // Objective function row
+        StringBuilder objRow = new StringBuilder("|");
+        objRow.append(center.apply("z", colWidth)).append("|");
+        for (int j = 0; j < numVars; j++) {
+            String val = (j < objectiveFunctionRow.size())
+                    ? objectiveFunctionRow.get(j).toString() : "0";
+            objRow.append(center.apply(val, colWidth)).append("|");
+        }
+        String objVal = (objectiveValue != null) ? objectiveValue.toString() : "0";
+        objRow.append(center.apply(objVal, colWidth)).append("|");
+        System.out.println(objRow);
+        System.out.println(horizontalLine);
+    }
 }

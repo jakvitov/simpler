@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 @Singleton
 public class BasicSimplexSolverService {
 
-    @Value("${simpler.basic.simplex.max.iterations}")
+    @Value("${simpler.simplex.basic.max.iterations}")
     private Integer maxIterations;
 
-    @Value("${simplex.basic.simplex.max.base.cycles}")
+    @Value("${simpler.simplex.basic.simplex.max.base.cycles}")
     private Integer maxCycles;
 
     public SolveLpBasicSimplexResponseDto handleSolveBasicSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
@@ -149,7 +149,7 @@ public class BasicSimplexSolverService {
      * @param enteringVariableIndex
      * @return
      */
-    private boolean isUnbounded(SimplexTable simplexTable, int enteringVariableIndex) {
+    protected boolean isUnbounded(SimplexTable simplexTable, int enteringVariableIndex) {
         boolean unbounded = true;
         for (int i = 0; i < simplexTable.baseVariables.size(); i++) {
             if (simplexTable.data.get(i).get(enteringVariableIndex).signum() > 0) {
@@ -165,7 +165,7 @@ public class BasicSimplexSolverService {
      * @param simplexTable
      * @return
      */
-    private Map<String, BigFraction> getSolutionVariableValues(SimplexTable simplexTable) {
+    protected Map<String, BigFraction> getSolutionVariableValues(SimplexTable simplexTable) {
         Map<String, BigFraction> result = new HashMap<>();
         for (int i = 0; i < simplexTable.baseVariables.size(); i ++) {
             String variableName = simplexTable.baseVariables.get(i);
@@ -175,7 +175,7 @@ public class BasicSimplexSolverService {
         return result;
     }
 
-    private void switchLeavingEnteringVariables(int leavingVariableRow, int enteringVariableRow, SimplexTable simplexTable) {
+    protected void switchLeavingEnteringVariables(int leavingVariableRow, int enteringVariableRow, SimplexTable simplexTable) {
         String enteringVariableName = simplexTable.variables.get(enteringVariableRow);
         simplexTable.baseVariables.set(leavingVariableRow, enteringVariableName);
     }
@@ -188,7 +188,7 @@ public class BasicSimplexSolverService {
      * @param simplexTable
      * @return SimplexTableRowsNormalizationDto
      */
-    private SimplexTableRowsNormalizationDto normaliseRowsByLeavingVariableRow(int leavingVariableRow, int enteringVariableColumn, SimplexTable simplexTable) {
+    protected SimplexTableRowsNormalizationDto normaliseRowsByLeavingVariableRow(int leavingVariableRow, int enteringVariableColumn, SimplexTable simplexTable) {
         SimplexTableRowsNormalizationDto simplexTableRowsNormalizationDto = new SimplexTableRowsNormalizationDto();
         simplexTableRowsNormalizationDto.setLeavingVariableIndex(leavingVariableRow);
         //Normalize standard table rows
@@ -230,7 +230,7 @@ public class BasicSimplexSolverService {
      * @param simplexTable
      * @return
      */
-    private BigFraction normaliseLeavingVariableRow(int leavingVariableRow, int enteringVariableColumn, SimplexTable simplexTable) {
+    protected BigFraction normaliseLeavingVariableRow(int leavingVariableRow, int enteringVariableColumn, SimplexTable simplexTable) {
         //Shall never be zero, since we skip degenerate rows in t-vector
         BigFraction targetVariableValue = simplexTable.data.get(leavingVariableRow).get(enteringVariableColumn);
 
@@ -248,7 +248,7 @@ public class BasicSimplexSolverService {
      * @param tVec
      * @return
      */
-    private int getLeavingVariableIndex(List<Optional<BigFraction>> tVec) {
+    protected int getLeavingVariableIndex(List<Optional<BigFraction>> tVec) {
         Optional<Integer> minimumIndex = Optional.empty();
         for (int i = 0; i < tVec.size(); i ++) {
             if (tVec.get(i).isEmpty()) {
@@ -271,7 +271,7 @@ public class BasicSimplexSolverService {
      * Compute T vector given entering variable index
      * @return
      */
-    private List<Optional<BigFraction>> computeTVector(int enteringVariableIndex, SimplexTable simplexTable) {
+    protected List<Optional<BigFraction>> computeTVector(int enteringVariableIndex, SimplexTable simplexTable) {
         List<Optional<BigFraction>> tVec = new ArrayList<>(simplexTable.rhs.size());
         for (int i = 0; i < simplexTable.rhs.size(); i ++) {
             if (simplexTable.data.get(i).get(enteringVariableIndex).equals(BigFraction.ZERO)) {
@@ -287,7 +287,7 @@ public class BasicSimplexSolverService {
      * Given non solved simplex table, return index of the entering variable in variables list
      * @return
      */
-    private int getEnteringVariableIndex(SimplexTable simplexTable) {
+    protected int getEnteringVariableIndex(SimplexTable simplexTable) {
         int minIndex = 0;
         BigFraction min = simplexTable.objectiveFunctionRow.getFirst();
         for (int i = 1; i < simplexTable.objectiveFunctionRow.size(); i ++) {
@@ -299,7 +299,12 @@ public class BasicSimplexSolverService {
         return minIndex;
     }
 
-    public boolean isSimplexTableSolved(SimplexTable simplexTable) {
+    /**
+     * Return true if given SimplexTable is solved
+     * @param simplexTable
+     * @return
+     */
+    protected boolean isSimplexTableSolved(SimplexTable simplexTable) {
         long negativeCount = simplexTable.objectiveFunctionRow.stream().filter(i -> i.signum() < 0).count();
         return negativeCount == 0;
     }
