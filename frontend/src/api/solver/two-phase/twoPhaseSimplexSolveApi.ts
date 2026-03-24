@@ -4,7 +4,7 @@ import type {SolveLpTwoPhaseSimplexResponseDto} from "./twoPhaseSimplexSolveType
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const fetchSolveBasicSimplex = async (request: SolveLpRequest): Promise<SolveLpTwoPhaseSimplexResponseDto|SolveLpErrorResponse> => {
+export const fetchSolveTwoPhaseSimplex = async (request: SolveLpRequest): Promise<SolveLpTwoPhaseSimplexResponseDto|SolveLpErrorResponse> => {
     try {
         const response = await axios.post<SolveLpTwoPhaseSimplexResponseDto> (
             `${API_BASE_URL}/be/simpler/solve-lp/two-phase`,
