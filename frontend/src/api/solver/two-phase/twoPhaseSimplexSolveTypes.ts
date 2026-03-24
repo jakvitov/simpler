@@ -31,7 +31,8 @@ export interface SolveLpTwoPhaseSimplexResponseDto {
     phaseTwoSolutionDto: TwoPhaseSimplexPhaseTwoSolutionDto|undefined,
     solutionStatus: SolutionStatus,
     resultVariableValues: Record<string, Rational>|undefined,
-    solutionObjectiveFunctionValue: Rational|undefined
+    solutionObjectiveFunctionValue: Rational|undefined,
+    success: boolean
 }
 
 
