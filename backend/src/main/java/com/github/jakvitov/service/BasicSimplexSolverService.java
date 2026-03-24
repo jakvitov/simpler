@@ -274,7 +274,7 @@ public class BasicSimplexSolverService {
     protected List<Optional<BigFraction>> computeTVector(int enteringVariableIndex, SimplexTable simplexTable) {
         List<Optional<BigFraction>> tVec = new ArrayList<>(simplexTable.rhs.size());
         for (int i = 0; i < simplexTable.rhs.size(); i ++) {
-            if (simplexTable.data.get(i).get(enteringVariableIndex).equals(BigFraction.ZERO)) {
+            if (simplexTable.data.get(i).get(enteringVariableIndex).signum() <= 0) {
                 tVec.add(Optional.empty());
                 continue;
             }

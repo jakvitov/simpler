@@ -7,15 +7,14 @@ import com.github.jakvitov.dto.solver.basic.BasicSimplexIterationDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableLeavingEnteringVariableDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableLeavingRowNormalisationDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableRowsNormalizationDto;
-import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
 import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
+import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexPhaseSolutionDto;
 import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
-import com.github.jakvitov.simplex.SimplexTableTransformationError;
 import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -51,9 +50,6 @@ public class TwoPhaseSimplexSolverService {
 
         responseDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
-        TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = normalizeArtificialVariables(simplexTable);
-        responseDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
-
         IntWrapper iterations = IntWrapper.of(0);
         Map<Integer, Integer> visitedBaseCount = new HashMap<>();
 
@@ -75,9 +71,15 @@ public class TwoPhaseSimplexSolverService {
      */
     private boolean solveTwoPhaseSimplexPhaseOne(SimplexTable simplexTable, OptimisationTarget optimisationTarget, SolveLpTwoPhaseSimplexResponseDto result, IntWrapper iteration, Map<Integer, Integer> visitedBaseCount) {
         visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
+        //Make objective row artificial variables 1/1 and others 0
+        setupObjectiveRowBeforePhaseOne(simplexTable);
 
         TwoPhaseSimplexPhaseSolutionDto simplexPhaseOneSolutionDto = new TwoPhaseSimplexPhaseSolutionDto();
         simplexPhaseOneSolutionDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
+
+        //Add artificial variable values to the objective row adjusting them to the actual base
+        TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = normalizeArtificialVariables(simplexTable);
+        result.setArtificialVariablesNormalization(artificialVariablesNormalization);
 
         for (; ((iteration.value-1) < maxIterations) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
 
@@ -111,7 +113,7 @@ public class TwoPhaseSimplexSolverService {
 
             List<Optional<BigFraction>> tVector = basicSimplexSolverService.computeTVector(enteringVariableIndex, simplexTable);
 
-            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(tVector);
+            int leavingVariableIndex = getLeavingVariableIndexForPhaseOne(tVector);
 
             SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
             simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
@@ -295,6 +297,31 @@ public class TwoPhaseSimplexSolverService {
     }
 
     /**
+     * Get index of the leaving variable in base for Phase I simplex. Instead of basic simplex or phase two,
+     * we do allow ratios to be negative
+     * @param tVec
+     * @return
+     */
+    private int getLeavingVariableIndexForPhaseOne(List<Optional<BigFraction>> tVec) {
+        Optional<Integer> minimumIndex = Optional.empty();
+        for (int i = 0; i < tVec.size(); i ++) {
+            if (tVec.get(i).isEmpty()) {
+                continue;
+            }
+            if (minimumIndex.isEmpty()) {
+                minimumIndex = Optional.of(i);
+            } else if (tVec.get(i).get().compareTo(tVec.get(minimumIndex.get()).get() /* safe since this index must have been set after check*/) < 0) {
+                minimumIndex = Optional.of(i);
+            }
+        }
+
+        if (minimumIndex.isEmpty()) {
+            throw new IllegalStateException("No valid entry in T-vector found.");
+        }
+        return minimumIndex.get();
+    }
+
+    /**
      * Removes all artificial variables from given simplex table and crops original objective row accordingly
      * @param simplexTable
      */
@@ -311,7 +338,21 @@ public class TwoPhaseSimplexSolverService {
             simplexTable.data.set(i, simplexTable.data.get(i).subList(0, artificialVariableBeginningIndex.getAsInt()));
         }
         simplexTable.objectiveFunctionRow = simplexTable.objectiveFunctionRow.subList(0, artificialVariableBeginningIndex.getAsInt());
-        IntStream.range(artificialVariableBeginningIndex.getAsInt(), originalObjectiveRow.size()).forEach(originalObjectiveRow::remove);
+        originalObjectiveRow.subList(artificialVariableBeginningIndex.getAsInt(), originalObjectiveRow.size()).clear();
+    }
+
+    /**
+     * Setup objective row before phase I, making artificial variables 1/1 and all other 0
+     * @param simplexTable
+     */
+    private void setupObjectiveRowBeforePhaseOne(SimplexTable simplexTable) {
+        IntStream.range(0, simplexTable.variables.size()).forEach(i -> {
+            if (simplexTable.variables.get(i).startsWith("A_")) {
+                simplexTable.objectiveFunctionRow.set(i, BigFraction.ONE);
+            } else {
+                simplexTable.objectiveFunctionRow.set(i, BigFraction.ZERO);
+            }
+        });
     }
 
     /**
