@@ -252,6 +252,7 @@ public class TwoPhaseSimplexSolverService {
         result.setResultVariableValues(basicSimplexSolverService.getSolutionVariableValues(simplexTable));
         simplexPhaseTwoSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
         result.setPhaseTwoSolutionDto(simplexPhaseTwoSolutionDto);
+        result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue);
     }
 
     /**
