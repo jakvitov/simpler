@@ -9,7 +9,8 @@ import com.github.jakvitov.dto.solver.basic.SimplexTableLeavingRowNormalisationD
 import com.github.jakvitov.dto.solver.basic.SimplexTableRowsNormalizationDto;
 import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
-import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexPhaseSolutionDto;
+import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexPhaseOneSolutionDto;
+import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexPhaseTwoSolutionDto;
 import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
@@ -74,12 +75,12 @@ public class TwoPhaseSimplexSolverService {
         //Make objective row artificial variables 1/1 and others 0
         setupObjectiveRowBeforePhaseOne(simplexTable);
 
-        TwoPhaseSimplexPhaseSolutionDto simplexPhaseOneSolutionDto = new TwoPhaseSimplexPhaseSolutionDto();
+        TwoPhaseSimplexPhaseOneSolutionDto simplexPhaseOneSolutionDto = new TwoPhaseSimplexPhaseOneSolutionDto();
         simplexPhaseOneSolutionDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
         //Add artificial variable values to the objective row adjusting them to the actual base
         TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = normalizeArtificialVariables(simplexTable);
-        result.setArtificialVariablesNormalization(artificialVariablesNormalization);
+        simplexPhaseOneSolutionDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
 
         for (; ((iteration.value-1) < maxIterations) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
 
@@ -163,7 +164,7 @@ public class TwoPhaseSimplexSolverService {
     private void solveTwoPhaseSimplexPhaseTwo(SimplexTable simplexTable, OptimisationTarget optimisationTarget, SolveLpTwoPhaseSimplexResponseDto result,  IntWrapper iteration, Map<Integer, Integer> visitedBaseCount, List<BigFraction> originalObjectiveRow) {
         //Remove artificial variables from phase I
         removeArtificialVariablesAfterPhaseOne(simplexTable, originalObjectiveRow);
-        TwoPhaseSimplexPhaseSolutionDto simplexPhaseTwoSolutionDto = new TwoPhaseSimplexPhaseSolutionDto();
+        TwoPhaseSimplexPhaseTwoSolutionDto simplexPhaseTwoSolutionDto = new TwoPhaseSimplexPhaseTwoSolutionDto();
         simplexPhaseTwoSolutionDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
         simplexTable.objectiveFunctionRow = originalObjectiveRow;

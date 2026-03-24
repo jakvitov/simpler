@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Serdeable
-public class TwoPhaseSimplexPhaseSolutionDto {
+public class TwoPhaseSimplexPhaseTwoSolutionDto {
 
     private SimplexTableDto initialSimplexTable;
     private SimplexTableDto simplexTableWithRestoredObjectiveRow;

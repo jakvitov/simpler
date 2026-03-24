@@ -21,7 +21,7 @@ public class SolveTwoPhaseSimplexController {
     private TwoPhaseSimplexSolverService twoPhaseSimplexSolverService;
 
     @Post
-    public HttpResponse<?> solveBasicSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
+    public HttpResponse<?> solveTwoPhaseSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
             return HttpResponse.ok(twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto));
         }

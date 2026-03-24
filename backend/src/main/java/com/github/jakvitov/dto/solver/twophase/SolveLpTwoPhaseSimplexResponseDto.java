@@ -14,9 +14,8 @@ import java.util.Map;
 public class SolveLpTwoPhaseSimplexResponseDto {
 
     private SimplexTableDto initialSimplexTable;
-    private TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization;
-    private TwoPhaseSimplexPhaseSolutionDto phaseOneSolutionDto;
-    private TwoPhaseSimplexPhaseSolutionDto phaseTwoSolutionDto;
+    private TwoPhaseSimplexPhaseOneSolutionDto phaseOneSolutionDto;
+    private TwoPhaseSimplexPhaseTwoSolutionDto phaseTwoSolutionDto;
     private SolutionStatus solutionStatus;
     //Null when SolutionStatus is not SOLVED
     @Nullable
