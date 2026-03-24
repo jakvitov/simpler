@@ -1,7 +1,6 @@
 import type {
     TwoPhaseSimplexObjectiveRowNormalizationDto
 } from "../../../../api/solver/two-phase/twoPhaseSimplexSolveTypes.ts";
-import {recordToMap} from "../../../../utils/recordUtils.ts";
 import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
 
@@ -79,7 +78,12 @@ function renderSimplexTableObjectiveRowNormalizationElementObjectiveRow(props: T
 }
 
 function renderTwoPhaseSimplexObjectiveRowNormalizationElement(props: TwoPhaseSimplexObjectiveRowNormalizationElementProps): string {
-    const coefficients = recordToMap(props.twoPhaseSimplexObjectiveRowNormalizationDto.coefficients);
+    let coefficients = new Map<number, Rational>()
+    if (props.twoPhaseSimplexObjectiveRowNormalizationDto.coefficients != null) {
+        coefficients = new Map<number, Rational>(
+            Object.entries(props.twoPhaseSimplexObjectiveRowNormalizationDto.coefficients).map(([k, v]) => [Number(k), v])
+        );
+    }
 
     let res = "\\begin{pmatrix}\n"
     res += "\\begin{array}" + getKatexArrayTypeForSimplexObjectiveRowNormalizationElement(props) + "\n"

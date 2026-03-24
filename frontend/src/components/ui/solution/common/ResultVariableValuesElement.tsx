@@ -19,7 +19,7 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
         return ""
     }
 
-    let res = "\\def\\arraystretch{1.5}";
+    let res = "\\def\\arraystretch{2}";
     res += ("\\begin{array}" + getResultVariableValuesArrayType(resultVariableValues) + "\n")
     let variableNames: string[] = []
     resultVariableValues.forEach((_value, key) => variableNames.push(key) )

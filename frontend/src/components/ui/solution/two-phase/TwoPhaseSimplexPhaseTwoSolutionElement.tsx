@@ -20,7 +20,7 @@ function TwoPhaseSimplexPhaseTwoSolutionElement(props: TwoPhaseSimplexPhaseTwoSo
         <p className={"pt-2"}>Adjusting objective row to base variables:</p>
         <TwoPhaseSimplexObjectiveRowNormalizationElement twoPhaseSimplexObjectiveRowNormalizationDto={props.twoPhaseSimplexPhaseTwoSolutionDto.objectiveRowToBaseVariablesAdjustment} />
         {(props.twoPhaseSimplexPhaseTwoSolutionDto.iterations != null) ? props.twoPhaseSimplexPhaseTwoSolutionDto.iterations.map((iterationDto, index) => <BasicSimplexIterationElement basicSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
-        <p className={"pt-2"}>Final simplex table after phase I:</p>
+        <p className={"pt-2"}>Final simplex table after phase II:</p>
         <PlainSimplexTableElement simplexTable={props.twoPhaseSimplexPhaseTwoSolutionDto.finalSimplexTable} />
     </>)
 }
