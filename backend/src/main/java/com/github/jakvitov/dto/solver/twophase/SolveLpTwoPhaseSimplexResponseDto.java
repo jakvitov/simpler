@@ -23,4 +23,5 @@ public class SolveLpTwoPhaseSimplexResponseDto {
     //Null when SolutionStatus is not SOLVED
     @Nullable
     private BigFraction solutionObjectiveFunctionValue;
+    private boolean success = true;
 }
