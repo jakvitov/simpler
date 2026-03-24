@@ -34,7 +34,6 @@ function renderSimplexTableRowsNormalizationElementVariableNamesRow(props: Simpl
 
 //We receive coefficients as Record from BE and it needs to be transformed to a map separately
 function renderSimplexTableRowsNormalizationElementRow(props: SimplexTableRowNormalizationElementProps, rowIndex: number, coefficientsMap: Map<number, Rational>): string {
-    console.log("Map type: " + typeof props.simplexTableRowNormalizationElementDto.coefficients)
     if (props.simplexTableRowNormalizationElementDto.simplexTableDto.data.length === 0) {
         return ""
     }

@@ -10,6 +10,7 @@ import Settings from "./pages/Settings.tsx";
 import VerifyMpsLayout from "./pages/verify-mps/VerifyMpsLayout.tsx";
 import SolveLpResultsBasicSimplex from "./pages/solve-lp/results/SolveLpResultsBasicSimplex.tsx";
 import SolveLpResultsError from "./pages/solve-lp/results/SolveLpResultsError.tsx";
+import SolveLpResultsTwoPhaseSimplex from "./pages/solve-lp/results/SolveLpResultsTwoPhaseSimplex.tsx";
 
 function App() {
     return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="interactive" element={<SolveLpInteractiveInput/>}/>
 
                 <Route path="results/basic-simplex/:key" element={<SolveLpResultsBasicSimplex/>}></Route>
+                <Route path="results/two-phase-simplex/:key" element={<SolveLpResultsTwoPhaseSimplex/>}></Route>
                 <Route path="results/error/:key" element={<SolveLpResultsError/>}></Route>
             </Route>
         </Routes>
