@@ -38,7 +38,7 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
         res += "\\geq"
         res += renderRationalWithSign(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "LE") {
-        res += "\\geq"
+        res += "\\leq"
         res += renderRationalWithSign(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "EQ") {
         res += "="
