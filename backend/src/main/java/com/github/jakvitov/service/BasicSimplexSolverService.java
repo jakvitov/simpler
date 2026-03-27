@@ -204,7 +204,7 @@ public class BasicSimplexSolverService {
                 simplexTable.data.get(rowIndex).set(columnIndex, simplexTable.data.get(rowIndex).get(columnIndex).add(addtitionValue));
             }
 
-            simplexTable.rhs.get(rowIndex).add(simplexTable.rhs.get(leavingVariableRow).multiply(coefficient));
+            simplexTable.rhs.set(rowIndex, simplexTable.rhs.get(rowIndex).add(simplexTable.rhs.get(leavingVariableRow).multiply(coefficient)));
             simplexTableRowsNormalizationDto.getCoefficients().put(rowIndex, coefficient);
         }
 

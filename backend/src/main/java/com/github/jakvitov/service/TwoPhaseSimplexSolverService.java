@@ -282,11 +282,11 @@ public class TwoPhaseSimplexSolverService {
             //Base variable does not have 0 in objective row. It needs to be fixed
             if (!simplexTable.objectiveFunctionRow.get(objectiveRowIndex).equals(BigFraction.ZERO)) {
                 //Safe divide, since variable is in base, its value in that row must be 1
-                BigFraction coefficient = simplexTable.objectiveFunctionRow.get(objectiveRowIndex).divide(simplexTable.data.get(baseIndex).get(objectiveRowIndex));
+                BigFraction coefficient = simplexTable.objectiveFunctionRow.get(objectiveRowIndex).divide(simplexTable.data.get(baseIndex).get(objectiveRowIndex)).negate();
 
                 //Add coefficient * base variable row to objective row
                 for (int i = 0; i < simplexTable.variables.size(); i ++) {
-                    simplexTable.objectiveFunctionRow.set(i, simplexTable.objectiveFunctionRow.get(i).add(simplexTable.data.get(baseIndex).get(i)).multiply(coefficient));
+                    simplexTable.objectiveFunctionRow.set(i, simplexTable.objectiveFunctionRow.get(i).add(simplexTable.data.get(baseIndex).get(i).multiply(coefficient)));
                 }
                 simplexTable.objectiveValue = simplexTable.objectiveValue.add(simplexTable.rhs.get(baseIndex).multiply(coefficient));
                 coefficients.put(baseIndex, coefficient);
