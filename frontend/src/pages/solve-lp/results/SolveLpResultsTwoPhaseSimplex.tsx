@@ -14,6 +14,10 @@ import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
 import type {SolveLpTwoPhaseSimplexResponseDto} from "../../../api/solver/two-phase/twoPhaseSimplexSolveTypes.ts";
 import SolveLpTwoPhaseSimplexResponseElement
     from "../../../components/layout/solution/two-phase/SolveLpTwoPhaseSimplexResponseElement.tsx";
+import CommonErrorBoundary from "../../../components/ui/error/CommonErrorBoundary.tsx";
+
+
+
 function SolveLpResultsTwoPhaseSimplex() {
     const { key } = useParams<{ key: string }>();
 
@@ -28,68 +32,29 @@ function SolveLpResultsTwoPhaseSimplex() {
     if (solverInput === null || solverResults === null) {
 
     } else {
-        if (solverResults.solutionStatus === "SOLVED") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP solved ✅"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        } else if (solverResults.solutionStatus === "UNBOUNDED") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP solution unbounded ♾️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        } else if (solverResults.solutionStatus === "MAX_ITERATIONS") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP sol️ution exceeded max iterations ⚠️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
+        let pageHeaderText;
+        switch (solverResults.solutionStatus) {
+            case "SOLVED": pageHeaderText = "LP solved ✅"; break;
+            case "UNBOUNDED": pageHeaderText = "LP solution unbounded ♾️";break;
+            case "CYCLE": pageHeaderText = "LP solution includes possible cycle 🔄️"; break;
+            case "MAX_ITERATIONS": pageHeaderText = "LP sol️ution exceeded max iterations ⚠️";break;
         }
-        else if (solverResults.solutionStatus === "CYCLE") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP solution includes possible cycle 🔄️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
+        return (<>
+                <div className={"page-content"}>
+                    <MainHeader />
+                    <MainNavBar />
+                    <PageContentHeader value={pageHeaderText}></PageContentHeader>
+                    <Container>
+                        <Container style={{ backgroundColor: '#F5F5F5'}}>
+                            <CommonErrorBoundary>
                                 <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
-                            </Container>
+                            </CommonErrorBoundary>
                         </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        }
+                    </Container>
+                </div>
+                <BottomNavBar />
+            </>
+        )
     }
 }
 

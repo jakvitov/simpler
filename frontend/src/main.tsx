@@ -6,11 +6,14 @@ import 'katex/dist/katex.min.css';
 
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
+import TopLevelErrorBoundary from "./components/ui/error/TopLevelErrorBoundary.tsx";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App/>
+        <TopLevelErrorBoundary>
+            <App/>
+        </TopLevelErrorBoundary>
     </BrowserRouter>
   </StrictMode>,
 )

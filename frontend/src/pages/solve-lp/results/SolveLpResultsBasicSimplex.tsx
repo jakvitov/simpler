@@ -11,6 +11,7 @@ import {Container} from "react-bootstrap";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
 import SolveLpBasicSimplexResponseElement
     from "../../../components/layout/solution/basic/SolveLpBasicSimplexResponseElement.tsx";
+import CommonErrorBoundary from "../../../components/ui/error/CommonErrorBoundary.tsx";
 
 function SolveLpResultsBasicSimplex() {
     const { key } = useParams<{ key: string }>();
@@ -26,70 +27,31 @@ function SolveLpResultsBasicSimplex() {
     if (solverInput === null || solverResults === null) {
 
     } else {
+        let pageHeaderText
+        switch (solverResults.solutionStatus) {
+            case "SOLVED": pageHeaderText = "LP solved ✅"; break;
+            case "UNBOUNDED": pageHeaderText = "LP solution unbounded ♾️";break;
+            case "CYCLE": pageHeaderText = "LP solution includes possible cycle 🔄️"; break;
+            case "MAX_ITERATIONS": pageHeaderText = "LP sol️ution exceeded max iterations ⚠️";break;
+        }
 
-        if (solverResults.solutionStatus === "SOLVED") {
-            return (<>
-                    <div className={"page-content"}>
+        return (<>
+                <div className={"page-content"}>
                     <MainHeader />
                     <MainNavBar />
-                    <PageContentHeader value="LP solved ✅"></PageContentHeader>
+                    <PageContentHeader value={pageHeaderText}></PageContentHeader>
                     <Container>
                         <Container style={{ backgroundColor: '#F5F5F5'}}>
-                            <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                            <CommonErrorBoundary>
+                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                            </CommonErrorBoundary>
                         </Container>
                     </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        } else if (solverResults.solutionStatus === "UNBOUNDED") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP solution unbounded ♾️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        } else if (solverResults.solutionStatus === "MAX_ITERATIONS") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP sol️ution exceeded max iterations ⚠️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        }
-        else if (solverResults.solutionStatus === "CYCLE") {
-            return (<>
-                    <div className={"page-content"}>
-                        <MainHeader />
-                        <MainNavBar />
-                        <PageContentHeader value="LP solution includes possible cycle 🔄️"></PageContentHeader>
-                        <Container>
-                            <Container style={{ backgroundColor: '#F5F5F5'}}>
-                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
-                            </Container>
-                        </Container>
-                    </div>
-                    <BottomNavBar />
-                </>
-            )
-        }
+                </div>
+                <BottomNavBar />
+            </>
+        )
     }
 }
 
-export default SolveLpResultsBasicSimplex
+export default SolveLpResultsBasicSimplex;
