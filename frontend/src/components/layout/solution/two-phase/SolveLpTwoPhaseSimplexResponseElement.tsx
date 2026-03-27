@@ -14,7 +14,6 @@ type SolveLpTwoPhaseSimplexResponseElementProps = {
 
 
 function SolveLpTwoPhaseSimplexResponseElement(props: SolveLpTwoPhaseSimplexResponseElementProps) {
-    throw Error("JLDKJL")
     if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "SOLVED") {
         return (<div className="basicSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
