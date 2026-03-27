@@ -135,7 +135,7 @@ public class BasicSimplexSolverService {
      * negating the original variables in the objective row
      * @param simplexTable
      */
-    private void convertObjectiveRowForMinimalization(SimplexTable simplexTable) {
+    protected void convertObjectiveRowForMinimalization(SimplexTable simplexTable) {
         for (int i = 0; i < simplexTable.variables.size(); i ++) {
             if (!(simplexTable.variables.get(i).startsWith("S_") || simplexTable.variables.get(i).startsWith("A_"))) {
                 simplexTable.objectiveFunctionRow.set(i, simplexTable.objectiveFunctionRow.get(i).negate());

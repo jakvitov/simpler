@@ -45,6 +45,11 @@ public class TwoPhaseSimplexSolverService {
     }
 
     private SolveLpTwoPhaseSimplexResponseDto solveTwoPhaseSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget) {
+
+        if (optimisationTarget.equals(OptimisationTarget.MIN)) {
+            basicSimplexSolverService.convertObjectiveRowForMinimalization(simplexTable);
+        }
+
         List<BigFraction> originalObjectiveRow = new ArrayList<>(simplexTable.objectiveFunctionRow);
 
         SolveLpTwoPhaseSimplexResponseDto responseDto = new SolveLpTwoPhaseSimplexResponseDto();
@@ -57,6 +62,10 @@ public class TwoPhaseSimplexSolverService {
         boolean continueToPhaseTwo = solveTwoPhaseSimplexPhaseOne(simplexTable, optimisationTarget, responseDto, iterations, visitedBaseCount);
         if (continueToPhaseTwo) {
             solveTwoPhaseSimplexPhaseTwo(simplexTable, optimisationTarget, responseDto, iterations, visitedBaseCount, originalObjectiveRow);
+        }
+
+        if (optimisationTarget.equals(OptimisationTarget.MIN) && responseDto.getSolutionObjectiveFunctionValue() != null) {
+            responseDto.setSolutionObjectiveFunctionValue(responseDto.getSolutionObjectiveFunctionValue().negate());
         }
         return responseDto;
     }
