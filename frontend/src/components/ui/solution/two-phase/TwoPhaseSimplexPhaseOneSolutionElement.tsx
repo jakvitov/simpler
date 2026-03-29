@@ -4,11 +4,14 @@ import TwoPhaseSimplexObjectiveRowNormalizationElement from "./TwoPhaseSimplexOb
 import BasicSimplexIterationElement from "../basic/BasicSimplexIterationElement.tsx";
 
 type TwoPhaseSimplexPhaseOneSolutionElementProps = {
-    twoPhaseSimplexPhaseOneSolutionDto: TwoPhaseSimplexPhaseOneSolutionDto
+    twoPhaseSimplexPhaseOneSolutionDto: TwoPhaseSimplexPhaseOneSolutionDto|undefined;
 }
 
 
 function TwoPhaseSimplexPhaseOneSolutionElement(props: TwoPhaseSimplexPhaseOneSolutionElementProps) {
+    if (props.twoPhaseSimplexPhaseOneSolutionDto == null) {
+        return (<h3 className={"pt-2"}>Phase I skipped.</h3>)
+    }
     return (<>
         <h3 className={"pt-2"}>Start phase I</h3>
         <p className={"pt-2"}>Initial simplex table:</p>

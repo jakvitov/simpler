@@ -27,7 +27,7 @@ export interface TwoPhaseSimplexPhaseTwoSolutionDto {
 
 export interface SolveLpTwoPhaseSimplexResponseDto {
     initialSimplexTable: SimplexTable,
-    phaseOneSolutionDto: TwoPhaseSimplexPhaseOneSolutionDto,
+    phaseOneSolutionDto: TwoPhaseSimplexPhaseOneSolutionDto|undefined,
     phaseTwoSolutionDto: TwoPhaseSimplexPhaseTwoSolutionDto|undefined,
     solutionStatus: SolutionStatus,
     resultVariableValues: Record<string, Rational>|undefined,
