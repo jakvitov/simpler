@@ -1,40 +1,44 @@
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {SOLVE_LP_DATA_PREFIX, SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX} from "../../../utils/storageConstants.ts";
-import {get} from "idb-keyval";
 import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
-import type {SolveLpBasicSimplexResponseDto} from "../../../api/solver/basic/basicSimplexSolveTypes.ts";
+import {get} from "idb-keyval";
+import {
+    SOLVE_LP_DATA_PREFIX,
+    SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX
+} from "../../../utils/storageConstants.ts";
 import MainHeader from "../../../components/ui/MainHeader.tsx";
 import MainNavBar from "../../../components/layout/MainNavBar.tsx";
 import PageContentHeader from "../../../components/ui/PageContentHeader.tsx";
 import {Container} from "react-bootstrap";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
-import SolveLpBasicSimplexResponseElement
-    from "../../../components/layout/solution/basic/SolveLpBasicSimplexResponseElement.tsx";
+import type {SolveLpTwoPhaseSimplexResponseDto} from "../../../api/solver/two-phase/twoPhaseSimplexSolveTypes.ts";
+import SolveLpTwoPhaseSimplexResponseElement
+    from "../../../components/layout/solution/two-phase/SolveLpTwoPhaseSimplexResponseElement.tsx";
 import CommonErrorBoundary from "../../../components/ui/error/CommonErrorBoundary.tsx";
 
-function SolveLpResultsBasicSimplex() {
+
+
+function SolveLpResultsTwoPhaseSimplex() {
     const { key } = useParams<{ key: string }>();
 
     const [solverInput, setSolverInput] = useState<SolveLpRequest|null>(null)
-    const [solverResults, setSolverRestults] = useState<SolveLpBasicSimplexResponseDto|null>(null)
+    const [solverResults, setSolverRestults] = useState<SolveLpTwoPhaseSimplexResponseDto|null>(null)
 
     useEffect(() => {
         get(SOLVE_LP_DATA_PREFIX + key).then(i => JSON.parse(i) as SolveLpRequest).then(setSolverInput)
-        get(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + key).then(i => JSON.parse(i) as SolveLpBasicSimplexResponseDto).then(setSolverRestults)
+        get(SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX + key).then(i => JSON.parse(i) as SolveLpTwoPhaseSimplexResponseDto).then(setSolverRestults)
     }, [])
 
     if (solverInput === null || solverResults === null) {
 
     } else {
-        let pageHeaderText
+        let pageHeaderText;
         switch (solverResults.solutionStatus) {
             case "SOLVED": pageHeaderText = "LP solved ✅"; break;
             case "UNBOUNDED": pageHeaderText = "LP solution unbounded ♾️";break;
             case "CYCLE": pageHeaderText = "LP solution includes possible cycle 🔄️"; break;
             case "MAX_ITERATIONS": pageHeaderText = "LP sol️ution exceeded max iterations ⚠️";break;
         }
-
         return (<>
                 <div className={"page-content"}>
                     <MainHeader />
@@ -43,7 +47,7 @@ function SolveLpResultsBasicSimplex() {
                     <Container>
                         <Container style={{ backgroundColor: '#F5F5F5'}}>
                             <CommonErrorBoundary>
-                                <SolveLpBasicSimplexResponseElement solveLpBasicSimplexResponseDto={solverResults}/>
+                                <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
                             </CommonErrorBoundary>
                         </Container>
                     </Container>
@@ -54,4 +58,4 @@ function SolveLpResultsBasicSimplex() {
     }
 }
 
-export default SolveLpResultsBasicSimplex;
+export default SolveLpResultsTwoPhaseSimplex

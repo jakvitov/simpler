@@ -1,17 +1,17 @@
-import axios, {type AxiosError} from "axios";
 import type {SolveLpErrorResponse, SolveLpRequest} from "../solveLpTypes.ts";
-import type {SolveLpBasicSimplexResponseDto} from "./basicSimplexSolveTypes.ts";
+import axios, {type AxiosError} from "axios";
+import type {SolveLpTwoPhaseSimplexResponseDto} from "./twoPhaseSimplexSolveTypes.ts";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const fetchSolveBasicSimplex = async (request: SolveLpRequest): Promise<SolveLpBasicSimplexResponseDto|SolveLpErrorResponse> => {
+export const fetchSolveTwoPhaseSimplex = async (request: SolveLpRequest): Promise<SolveLpTwoPhaseSimplexResponseDto|SolveLpErrorResponse> => {
     try {
-        const response = await axios.post<SolveLpBasicSimplexResponseDto> (
-        `${API_BASE_URL}/be/simpler/solve-lp/basic`,
-        request
+        const response = await axios.post<SolveLpTwoPhaseSimplexResponseDto> (
+            `${API_BASE_URL}/be/simpler/solve-lp/two-phase`,
+            request
         );
 
-        return response.data as SolveLpBasicSimplexResponseDto;
+        return response.data as SolveLpTwoPhaseSimplexResponseDto;
     } catch (error) {
         try {
             const err = error as AxiosError;

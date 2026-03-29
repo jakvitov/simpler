@@ -2,7 +2,7 @@ import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api
 import {BlockMath} from "react-katex";
 
 type ResultVariableValuesElementProps = {
-    resultVariableValues: Record<string, Rational>
+    resultVariableValues: Record<string, Rational>|undefined
 }
 
 function getResultVariableValuesArrayType(resultVariableValues: Map<string, Rational>): string {
@@ -19,7 +19,7 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
         return ""
     }
 
-    let res = "\\def\\arraystretch{1.5}";
+    let res = "\\def\\arraystretch{2}";
     res += ("\\begin{array}" + getResultVariableValuesArrayType(resultVariableValues) + "\n")
     let variableNames: string[] = []
     resultVariableValues.forEach((_value, key) => variableNames.push(key) )
@@ -46,7 +46,6 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
  * @constructor
  */
 function ResultVariableValuesElement(props: ResultVariableValuesElementProps) {
-    console.log(JSON.stringify(props))
     if (props.resultVariableValues != null) {
         const resultVariableValuesMap = new Map<string, Rational>(
             Object.entries(props.resultVariableValues).map(([k, v]) => [(k), v])

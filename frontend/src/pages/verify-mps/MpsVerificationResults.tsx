@@ -11,6 +11,7 @@ import {useEffect, useState} from "react";
 import ErrorEnumerationContainer from "../../components/ui/ErrorEnumerationContainer.tsx";
 import {Container} from "react-bootstrap";
 import ParsedLpDefinitionElement from "../../components/ui/verification/ParsedLpDefinitionElement.tsx";
+import CommonErrorBoundary from "../../components/ui/error/CommonErrorBoundary.tsx";
 
 function MpsVerificationResults() {
 
@@ -36,7 +37,9 @@ function MpsVerificationResults() {
                 <PageContentHeader value="MPS verified ✅"></PageContentHeader>
                 <Container>
                     <Container style={{ backgroundColor: '#F5F5F5'}}>
-                        <ParsedLpDefinitionElement parsedLpDefinition={mpsVerificationResult.parsedLpDefinition} />
+                        <CommonErrorBoundary>
+                            <ParsedLpDefinitionElement parsedLpDefinition={mpsVerificationResult.parsedLpDefinition} />
+                        </CommonErrorBoundary>
                     </Container>
                 </Container>
                 <MpsVerificationInput initialText={mpsData} />

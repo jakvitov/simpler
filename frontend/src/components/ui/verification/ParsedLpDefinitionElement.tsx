@@ -36,13 +36,13 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
 
     if (lpDefinitionLine.inequalitySign === "GE") {
         res += "\\geq"
-        res += renderRationalWithSign(lpDefinitionLine.rhs)
+        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "LE") {
-        res += "\\geq"
-        res += renderRationalWithSign(lpDefinitionLine.rhs)
+        res += "\\leq"
+        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "EQ") {
         res += "="
-        res += renderRationalWithSign(lpDefinitionLine.rhs)
+        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "N") {
         res += "\\rightarrow OBJECTIVE"
     }
