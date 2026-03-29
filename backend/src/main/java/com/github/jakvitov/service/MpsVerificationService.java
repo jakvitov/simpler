@@ -4,10 +4,11 @@ import com.github.jakvitov.dto.lpdefinition.*;
 import com.github.jakvitov.dto.verification.MpsVerificationInputDto;
 import com.github.jakvitov.dto.verification.MpsVerificationResponseDto;
 import com.github.jakvitov.dto.verification.MpsVerificationStatus;
-import com.github.jakvitov.dto.SimplexTableDto;
-import com.github.jakvitov.mps.*;
-import com.github.jakvitov.simplex.SimplexTable;
-import io.micronaut.http.server.exceptions.ContentLengthExceededHandler;
+import com.github.jakvitov.mps.BoundType;
+import com.github.jakvitov.mps.MpsData;
+import com.github.jakvitov.mps.MpsParsingException;
+import com.github.jakvitov.mps.RowType;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.hipparchus.fraction.BigFraction;
 
@@ -15,16 +16,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Singleton
 public class MpsVerificationService {
 
-    private final ContentLengthExceededHandler contentLengthExceededHandler;
-
-    public MpsVerificationService(ContentLengthExceededHandler contentLengthExceededHandler) {
-        this.contentLengthExceededHandler = contentLengthExceededHandler;
-    }
+    @Inject
+    private ErrorManagementService errorManagementService;
 
     public MpsVerificationResponseDto verifyMps(MpsVerificationInputDto mpsVerificationInputDto) {
         List<String> errors = new ArrayList<>();
@@ -42,6 +39,7 @@ public class MpsVerificationService {
             errors.addAll(List.of(mpe.reasons));
         }
         catch (Exception e) {
+            errorManagementService.registerLastExceptionAndLog(e, mpsVerificationInputDto);
             errors.add(e.getMessage());
         }
         return new MpsVerificationResponseDto(MpsVerificationStatus.VERIFICATION_FAILED, errors, null);

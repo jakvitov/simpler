@@ -59,7 +59,7 @@ function MpsVerificationResults() {
         </>)
     } else {
         alert("Application error occured. Unknown verification status encountered " + mpsVerificationResult.status)
-        navigate("/verify-mps")
+        navigate("/report-bug")
     }
 
 

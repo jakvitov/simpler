@@ -10,7 +10,7 @@ interface State {
 }
 
 /**
- * Top level error boundary used around App
+ * Top level bugreport boundary used around App
  */
 class TopLevelErrorBoundary extends Component<Props, State> {
     state: State = { hasError: false };
@@ -20,16 +20,15 @@ class TopLevelErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, info: ErrorInfo) {
-        console.error("Unhandled error:", error, info.componentStack);
+        console.error("Unhandled bugreport:", error, info.componentStack);
         alert(`🐞 An unexpected error occurred: ${error.message}`);
-        window.location.href = "/";
+        window.location.href = "/report-bug";
     }
 
     render() {
         if (this.state.hasError) {
             return null;
         }
-
         return this.props.children;
     }
 }

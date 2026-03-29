@@ -11,6 +11,7 @@ import VerifyMpsLayout from "./pages/verify-mps/VerifyMpsLayout.tsx";
 import SolveLpResultsBasicSimplex from "./pages/solve-lp/results/SolveLpResultsBasicSimplex.tsx";
 import SolveLpResultsError from "./pages/solve-lp/results/SolveLpResultsError.tsx";
 import SolveLpResultsTwoPhaseSimplex from "./pages/solve-lp/results/SolveLpResultsTwoPhaseSimplex.tsx";
+import ReportBug from "./pages/bugreport/ReportBug.tsx";
 
 function App() {
     return (
@@ -23,6 +24,8 @@ function App() {
                 <Route index element={<VerifyMps/>}/>
                 <Route path="results/:key" element={<MpsVerificationResults />} />
             </Route>
+
+            <Route path={"/report-bug"} element={<ReportBug />} />
 
             <Route path="/solve-lp" element={<SolveLpLayout/>}>
                 <Route index element={<SolveLpMpsInput/>}/>

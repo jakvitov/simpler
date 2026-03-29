@@ -1,4 +1,5 @@
 import React, { Component, type ReactNode } from "react";
+import ReportBugLink from "./ReportBugLink.tsx";
 
 type Props = {
     children: ReactNode;
@@ -9,7 +10,7 @@ type State = {
 };
 
 /**
- * Common error boundary to be used around basic elements
+ * Common bugreport boundary to be used around basic elements
  */
 class CommonErrorBoundary extends Component<Props, State> {
     constructor(props: Props) {
@@ -28,8 +29,7 @@ class CommonErrorBoundary extends Component<Props, State> {
     render() {
         if (this.state.hasError) {
             return (<>
-                <p>Unexpected error occurred. <a href={"/report-bug"}>Report bug 🐞</a></p>
-
+                <p>Unexpected error occurred. <ReportBugLink /></p>
             </>);
         }
 

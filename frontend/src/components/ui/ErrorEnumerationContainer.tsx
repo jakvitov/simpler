@@ -1,4 +1,5 @@
 import {Container} from "react-bootstrap";
+import ReportBugLink from "./error/ReportBugLink.tsx";
 
 type ErrorEnumerationContainerProps = {
     mainReason: string
@@ -26,7 +27,7 @@ function ErrorEnumerationContainer(props: ErrorEnumerationContainerProps) {
         lineHeight: '1.5',
         pointerEvents: 'none',
         wordWrap: 'break-word',
-        zIndex: 1,}}><pre>{formMpsVerificationErrorText(props)}</pre> </Container></Container>)
+        zIndex: 1,}}><pre>{formMpsVerificationErrorText(props)}</pre></Container><ReportBugLink /></Container>)
 }
 
 export default ErrorEnumerationContainer

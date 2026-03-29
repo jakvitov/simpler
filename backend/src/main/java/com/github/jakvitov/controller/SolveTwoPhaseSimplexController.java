@@ -3,6 +3,7 @@ package com.github.jakvitov.controller;
 import com.github.jakvitov.dto.solver.SolveLpErrorResponse;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.mps.MpsParsingException;
+import com.github.jakvitov.service.ErrorManagementService;
 import com.github.jakvitov.service.TwoPhaseSimplexSolverService;
 import com.github.jakvitov.simplex.SimplexTableTransformationError;
 import io.micronaut.http.HttpResponse;
@@ -22,15 +23,15 @@ public class SolveTwoPhaseSimplexController {
     @Inject
     private TwoPhaseSimplexSolverService twoPhaseSimplexSolverService;
 
+    @Inject
+    private ErrorManagementService errorManagementService;
+
     @Post
     public HttpResponse<?> solveTwoPhaseSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
             return HttpResponse.ok(twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto));
-        } catch (Exception e) {
-            log.error("Exc", e);
-            return HttpResponse.serverError(e);
         }
-        /**catch (MpsParsingException mpe) {
+        catch (MpsParsingException mpe) {
             SolveLpErrorResponse errorResponse = new SolveLpErrorResponse(List.of(mpe.reasons), false);
             return HttpResponse.badRequest(errorResponse);
         } catch (SimplexTableTransformationError stte) {
@@ -38,11 +39,12 @@ public class SolveTwoPhaseSimplexController {
             return HttpResponse.badRequest(errorResponse);
         }
         catch (Exception e) {
+            errorManagementService.registerLastExceptionAndLog(e, solveLpRequestDto);
             List<String> errors = new ArrayList<>(1);
             errors.add(e.getMessage());
             SolveLpErrorResponse errorResponse = new SolveLpErrorResponse(errors, false);
             return HttpResponse.serverError(errorResponse);
-        }*/
+        }
     }
 
 }
