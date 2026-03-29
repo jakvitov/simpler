@@ -9,7 +9,7 @@ type State = {
 };
 
 /**
- * Common error boundary to be used around basic elements
+ * Common bugreport boundary to be used around basic elements
  */
 class CommonErrorBoundary extends Component<Props, State> {
     constructor(props: Props) {
@@ -29,7 +29,6 @@ class CommonErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return (<>
                 <p>Unexpected error occurred. <a href={"/report-bug"}>Report bug 🐞</a></p>
-
             </>);
         }
 
