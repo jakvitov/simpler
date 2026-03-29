@@ -26,7 +26,7 @@ function ErrorEnumerationContainer(props: ErrorEnumerationContainerProps) {
         lineHeight: '1.5',
         pointerEvents: 'none',
         wordWrap: 'break-word',
-        zIndex: 1,}}><pre>{formMpsVerificationErrorText(props)}</pre> </Container></Container>)
+        zIndex: 1,}}><pre>{formMpsVerificationErrorText(props)}</pre></Container><a href={"/report-bug"}>Report bug 🐞</a></Container>)
 }
 
 export default ErrorEnumerationContainer

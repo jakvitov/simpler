@@ -54,7 +54,7 @@ export default function BugReportInputTextField(props: BugReportTextInputFieldPr
                 value={text}
                 onChange={handleChange}
                 placeholder={"Bug report."}
-                rows={50}
+                rows={20}
                 spellCheck={false}
                 style={{
                     width: '100%',
