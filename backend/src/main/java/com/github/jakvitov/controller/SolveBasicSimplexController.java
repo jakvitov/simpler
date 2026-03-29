@@ -4,6 +4,7 @@ import com.github.jakvitov.dto.solver.SolveLpErrorResponse;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.mps.MpsParsingException;
 import com.github.jakvitov.service.BasicSimplexSolverService;
+import com.github.jakvitov.service.ErrorManagementService;
 import com.github.jakvitov.simplex.SimplexTableTransformationError;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -20,6 +21,9 @@ public class SolveBasicSimplexController {
     @Inject
     private BasicSimplexSolverService basicSimplexSolverService;
 
+    @Inject
+    private ErrorManagementService errorManagementService;
+
     @Post
     public HttpResponse<?> solveBasicSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
@@ -33,6 +37,7 @@ public class SolveBasicSimplexController {
             return HttpResponse.badRequest(errorResponse);
         }
         catch (Exception e) {
+            errorManagementService.registerLastExceptionAndLog(e, solveLpRequestDto);
             List<String> errors = new ArrayList<>(1);
             errors.add(e.getMessage());
             SolveLpErrorResponse errorResponse = new SolveLpErrorResponse(errors, false);
