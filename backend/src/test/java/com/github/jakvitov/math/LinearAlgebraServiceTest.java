@@ -57,7 +57,22 @@ public class LinearAlgebraServiceTest {
         assert testData.getFirst().equals(originalRow1);
         assert testData.get(1).equals(originalRow2);
         assert testData.get(2).equals(originalRow3);
+    }
 
+    @Test
+    public void matrix_inverse_fails_for_singular_matrix() {
+        List<List<BigFraction>> testData = new ArrayList<>(3);
+        List<BigFraction> testRow1 = List.of(BigFraction.ONE, BigFraction.TWO, new BigFraction(3));
+        List<BigFraction> testRow2 = List.of(new BigFraction(4), new BigFraction(5), new BigFraction(6));
+        List<BigFraction> testRow3 = List.of(new BigFraction(7), new BigFraction(8), new BigFraction(9));
+
+        testData.add(testRow1);
+        testData.add(testRow2);
+        testData.add(testRow3);
+
+        Optional<List<List<BigFraction>>> inversionResult = linearAlgebraService.getMatrixInversion(testData);
+
+        assert inversionResult.isEmpty();
     }
 
 }
