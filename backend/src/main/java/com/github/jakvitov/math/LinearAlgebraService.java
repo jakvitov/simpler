@@ -134,4 +134,31 @@ public class LinearAlgebraService {
         return Optional.of(result);
     }
 
+    public Optional<List<List<BigFraction>>> transposeMatrix(List<List<BigFraction>> inputMatrix) {
+
+        if (inputMatrix.isEmpty()) {
+            return Optional.of(new ArrayList<>(0));
+        }
+
+        int rows = inputMatrix.size();
+        int cols = inputMatrix.get(0).size();
+
+        // Validate that all rows have consistent length
+        for (List<BigFraction> row : inputMatrix) {
+            if (row.size() != cols) return Optional.empty();
+        }
+
+        // Build transposed matrix (cols x rows)
+        List<List<BigFraction>> transposed = new ArrayList<>();
+        for (int j = 0; j < cols; j++) {
+            List<BigFraction> row = new ArrayList<>();
+            for (int i = 0; i < rows; i++) {
+                row.add(inputMatrix.get(i).get(j));
+            }
+            transposed.add(row);
+        }
+
+        return Optional.of(transposed);
+    }
+
 }

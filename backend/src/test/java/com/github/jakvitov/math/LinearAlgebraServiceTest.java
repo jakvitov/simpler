@@ -124,4 +124,33 @@ public class LinearAlgebraServiceTest {
         assert result.isEmpty();
     }
 
+    @Test
+    public void matrix_transposition_succeeds_for_non_empty_matrix() {
+        List<List<BigFraction>> testData = new ArrayList<>(2);
+
+        List<BigFraction> testRow1 = List.of(BigFraction.ONE, new BigFraction(3));
+        List<BigFraction> testRow2 = List.of(new BigFraction(4), new BigFraction(5));
+
+        List<BigFraction> originalRow1 = new ArrayList<>(testRow1);
+        List<BigFraction> originalRow2 = new ArrayList<>(testRow2);
+
+        testData.add(testRow1);
+        testData.add(testRow2);
+
+        Optional<List<List<BigFraction>>> result = linearAlgebraService.transposeMatrix(testData);
+
+        assert result.isPresent();
+
+        assert result.get().size() == 2;
+        assert result.get().getFirst().size() == 2;
+
+        assert result.get().getFirst().getFirst().equals(BigFraction.ONE);
+        assert result.get().getFirst().get(1).equals(new BigFraction(4));
+        assert result.get().get(1).getFirst().equals(new BigFraction(3));
+        assert result.get().get(1).get(1).equals(new BigFraction(5));
+
+        assert testData.getFirst().equals(originalRow1);
+        assert testData.get(1).equals(originalRow2);
+    }
+
 }
