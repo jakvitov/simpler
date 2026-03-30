@@ -118,6 +118,10 @@ public class LinearAlgebraServiceTest {
         List<BigFraction> testRow2 = List.of(new BigFraction(4), new BigFraction(5), new BigFraction(6));
         List<BigFraction> testRow3 = List.of(new BigFraction(7), new BigFraction(8), new BigFraction(9));
 
+        lhs.add(testRow1);
+        lhs.add(testRow2);
+        lhs.add(testRow3);
+
         List<List<BigFraction>> rhs = List.of(List.of(BigFraction.ONE), List.of(BigFraction.TWO));
         Optional<List<List<BigFraction>>> result = linearAlgebraService.multiplyMatrices(lhs, rhs);
 
