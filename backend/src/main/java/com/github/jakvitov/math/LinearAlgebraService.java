@@ -91,4 +91,47 @@ public class LinearAlgebraService {
         return Optional.of(inverse);
     }
 
+    public Optional<List<List<BigFraction>>> multiplyMatrices(
+            List<List<BigFraction>> a,
+            List<List<BigFraction>> b) {
+
+        if (a.isEmpty() || b.isEmpty()) {
+            return Optional.empty();
+        }
+
+        int aRows = a.size();
+        int aCols = a.getFirst().size();
+        int bRows = b.size();
+        int bCols = b.getFirst().size();
+
+        // Validate that all rows are consistent within each matrix
+        for (List<BigFraction> row : a) {
+            if (row.size() != aCols) return Optional.empty();
+        }
+        for (List<BigFraction> row : b) {
+            if (row.size() != bCols) return Optional.empty();
+        }
+
+        // Core compatibility check: A's columns must equal B's rows
+        if (aCols != bRows) {
+            return Optional.empty();
+        }
+
+        // Multiply: result is (aRows x bCols)
+        List<List<BigFraction>> result = new ArrayList<>();
+        for (int i = 0; i < aRows; i++) {
+            List<BigFraction> row = new ArrayList<>();
+            for (int j = 0; j < bCols; j++) {
+                BigFraction sum = BigFraction.ZERO;
+                for (int k = 0; k < aCols; k++) {
+                    sum = sum.add(a.get(i).get(k).multiply(b.get(k).get(j)));
+                }
+                row.add(sum);
+            }
+            result.add(row);
+        }
+
+        return Optional.of(result);
+    }
+
 }
