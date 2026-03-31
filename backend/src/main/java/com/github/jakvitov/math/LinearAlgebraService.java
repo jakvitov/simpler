@@ -1,5 +1,7 @@
 package com.github.jakvitov.math;
 
+import io.micronaut.serde.jackson.JacksonObjectMapper;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.hipparchus.fraction.BigFraction;
 
@@ -9,6 +11,19 @@ import java.util.Optional;
 
 @Singleton
 public class LinearAlgebraService {
+
+    @Inject
+    public JacksonObjectMapper jacksonObjectMapper;
+
+    public List<List<BigFraction>> getMatrixInversionOrExc(List<List<BigFraction>> inputMatrix) {
+        return getMatrixInversion(inputMatrix).orElseThrow(() -> {
+            try {
+                throw new IllegalArgumentException("Non invertible matrix encountered during inversion " + jacksonObjectMapper.writeValueAsString(inputMatrix));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Non invertible matrix encountered during inversion " + inputMatrix);
+            }
+        });
+    }
 
     public Optional<List<List<BigFraction>>> getMatrixInversion(List<List<BigFraction>> inputMatrix) {
         int n = inputMatrix.size();
@@ -91,6 +106,15 @@ public class LinearAlgebraService {
         return Optional.of(inverse);
     }
 
+    public List<List<BigFraction>> multiplyMatricesOrExc(List<List<BigFraction>> a,
+                                                         List<List<BigFraction>> b) {
+        return multiplyMatrices(a, b).orElseThrow(() -> {
+            int aColumns = a.getFirst() == null ? 0 : a.getFirst().size();
+            int bColumns = b.getFirst() == null ? 0 : b.getFirst().size();
+            return new IllegalArgumentException("Illegal matrices dimensions encountered during multiplication attempt LHS: " + a.size() + "x" + aColumns + ", RHS: " + b.size() + "x" + bColumns);
+        });
+    }
+
     public Optional<List<List<BigFraction>>> multiplyMatrices(
             List<List<BigFraction>> a,
             List<List<BigFraction>> b) {
@@ -132,6 +156,13 @@ public class LinearAlgebraService {
         }
 
         return Optional.of(result);
+    }
+
+    public List<List<BigFraction>> transposeMatrixOrExc(List<List<BigFraction>> a) {
+        return transposeMatrix(a).orElseThrow(() -> {
+            List<Integer> rowSizes = a.stream().map(List::size).toList();
+            return new IllegalArgumentException("Invalid matrix transposition. Matrix row sizes: " + rowSizes);
+        });
     }
 
     public Optional<List<List<BigFraction>>> transposeMatrix(List<List<BigFraction>> inputMatrix) {
