@@ -1,0 +1,267 @@
+package com.github.jakvitov.service;
+
+import com.github.jakvitov.dto.SimplexTableDto;
+import com.github.jakvitov.dto.solver.SolutionStatus;
+import com.github.jakvitov.dto.solver.SolveLpRequestDto;
+import com.github.jakvitov.dto.solver.revised.RevisedSimplexIterationDto;
+import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
+import com.github.jakvitov.math.LinearAlgebraService;
+import com.github.jakvitov.mps.MpsData;
+import com.github.jakvitov.mps.MpsDataTransformedBounds;
+import com.github.jakvitov.simplex.OptimisationTarget;
+import com.github.jakvitov.simplex.SimplexTable;
+import com.github.jakvitov.utils.MemoryUtils;
+import io.micronaut.context.annotation.Value;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import org.hipparchus.fraction.BigFraction;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+@Singleton
+public class RevisedSimplexSolverService {
+
+    @Inject
+    private LinearAlgebraService linearAlgebraService;
+
+    @Inject
+    private BasicSimplexSolverService basicSimplexSolverService;
+
+    @Value("${simpler.simplex.revised.max.iterations}")
+    private Integer maxIterations;
+
+    @Value("${simpler.simplex.revised.max.base.cycles}")
+    private Integer maxCycles;
+
+    public SolveLpRevisedSimlexResponseDto handleSolveRevisedSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
+        MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
+        MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
+        SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
+
+        return solveRevisedSimplex(simplexTable, solveLpRequestDto.optimisationTarget());
+    }
+
+    private SolveLpRevisedSimlexResponseDto solveRevisedSimplex(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget) {
+        if (originalSimplexTable.containsArtificialVariables) {
+            throw new IllegalArgumentException("Artificial variables handling not yet implemented for revised simplex");
+        }
+        SolveLpRevisedSimlexResponseDto responseDto = new SolveLpRevisedSimlexResponseDto();
+        responseDto.setInitialSimplexTable(new SimplexTableDto(originalSimplexTable));
+
+        List<String> currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
+        int iterations = 0;
+        Map<Integer, Integer> visitedBaseCount = new HashMap<>();
+        visitedBaseCount.put(currentBasis.hashCode(), 1);
+
+        while (iterations < maxIterations) {
+
+            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
+                responseDto.setSolutionStatus(SolutionStatus.CYCLE);
+                return responseDto;
+            }
+
+            RevisedSimplexIterationDto iterationDto = new RevisedSimplexIterationDto();
+            iterationDto.setCurrentBasis(new ArrayList<>(currentBasis));
+
+            //Get B given current basis
+            List<List<BigFraction>> initialBasisMatrix = getBasisMatrix(originalSimplexTable, currentBasis);
+            iterationDto.setInitialBasisMatrix(MemoryUtils.copyMatrix(initialBasisMatrix));
+
+            //Compute B^(-1)
+            List<List<BigFraction>> initialBasisMatrixInverse = linearAlgebraService.getMatrixInversionOrExc(initialBasisMatrix);
+            iterationDto.setInitialBasisMatrixInverse(MemoryUtils.copyMatrix(initialBasisMatrixInverse));
+
+            //Compute current basis solution (RHS) x_B
+            List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
+            iterationDto.setXB(MemoryUtils.copyMatrix(xB));
+
+            //Get c_b^T
+            List<List<BigFraction>> originalSimplexTableReducedCosts = getReducedCostsFromSimplexTable(originalSimplexTable, currentBasis);
+            iterationDto.setOriginalSimplexTableReducedCosts(MemoryUtils.copyMatrix(originalSimplexTableReducedCosts));
+
+            //Compute y^t = c_b^T * B^(-1)
+            List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
+            iterationDto.setYT(MemoryUtils.copyMatrix(yT));
+
+            //Non-basic variable column index -> its current iteration reduced cost
+            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
+            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
+
+            //Choose entering variable x_j index
+            Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
+
+            //Optimal solution found
+            if (enteringVariableIndex.isEmpty()) {
+                responseDto.getIterations().add(iterationDto);
+                responseDto.setSolutionStatus(SolutionStatus.SOLVED);
+                responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
+                // 1x1 matrix with the objective function value
+                List<List<BigFraction>> objectiveFunctionValueMatrix = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
+                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrix.getFirst().getFirst());
+                return responseDto;
+            }
+
+            iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
+
+            //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
+            List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
+            iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
+
+            //todo check unbounded
+
+            //Compute ratio vector test
+            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
+            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+
+            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
+            iterationDto.setLeavingVariableIndex(leavingVariableIndex);
+
+            //Update basis
+            currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
+            iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
+
+            //Updated visited base count
+            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
+                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
+            } else {
+                visitedBaseCount.put(currentBasis.hashCode(), 1);
+            }
+
+            responseDto.getIterations().add(iterationDto);
+            iterations ++;
+        }
+
+        responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+        return responseDto;
+    }
+
+    /**
+     * Given final xB (RHS) and current basis, return Map variable name -> optimal value
+     * @param xB
+     * @param currentBasis
+     * @return
+     */
+    private Map<String, BigFraction> getResultVariableValues(List<List<BigFraction>> xB, List<String> currentBasis) {
+        Map<String, BigFraction> result = new HashMap<>(currentBasis.size());
+        IntStream.range(0, currentBasis.size()).boxed().forEach((i) -> {
+            result.put(currentBasis.get(i), xB.get(i).getFirst());
+        });
+        return result;
+    }
+
+    /**
+     * Calculate ratio vector (t-vec)
+     * @param originalSimplexTable
+     * @param d
+     * @param xB
+     * @return
+     */
+    private List<Optional<BigFraction>> computeRatioVector(SimplexTable originalSimplexTable, List<List<BigFraction>> d, List<List<BigFraction>> xB) {
+        List<Optional<BigFraction>> ratioVector = new ArrayList<>(originalSimplexTable.baseVariables.size());
+        IntStream.range(0, originalSimplexTable.baseVariables.size()).boxed().forEach((i) -> {
+            //Column vector
+            BigFraction dItem = d.get(i).getFirst();
+            BigFraction xBItem = xB.get(i).getFirst();
+            if (dItem.signum() <= 0) {
+                ratioVector.add(Optional.empty());
+            } else {
+                ratioVector.add(Optional.of(xBItem.divide(dItem)));
+            }
+        });
+        return ratioVector;
+    }
+
+    /**
+     * Given map of column indexes of non basic variables -> their current reduced costs, return Optional of entering variable
+     * If solution is optimal, return Optional empty
+     * @param nonBasicVariablesCurrentReducedCosts
+     * @return
+     */
+    private Optional<Integer> getEnteringVariableIndex(Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts) {
+        Optional<Integer> enteringVariableIndex = Optional.empty();
+        Optional<BigFraction> minReducedCost = Optional.empty();
+        for (Map.Entry<Integer, BigFraction> nonBasicVariableCurrentReducedCost: nonBasicVariablesCurrentReducedCosts.entrySet()) {
+            if (enteringVariableIndex.isEmpty() && nonBasicVariableCurrentReducedCost.getValue().signum() < 0) {
+                enteringVariableIndex = Optional.of(nonBasicVariableCurrentReducedCost.getKey());
+                minReducedCost = Optional.of(nonBasicVariableCurrentReducedCost.getValue());
+            } else if (minReducedCost.isPresent() && nonBasicVariableCurrentReducedCost.getValue().compareTo(minReducedCost.get()) < 0) {
+                enteringVariableIndex = Optional.of(nonBasicVariableCurrentReducedCost.getKey());
+                minReducedCost = Optional.of(nonBasicVariableCurrentReducedCost.getValue());
+            }
+        }
+
+        return enteringVariableIndex;
+    }
+
+    /**
+     * Given original simplex table and current basis variables, return map of column indexes of non basic variables -> their current reduced costs
+     * @param originalSimplexTable
+     * @param currentBasis
+     * @return
+     */
+    private Map<Integer, BigFraction> computeNonBasicVariablesCurrentReducedCosts(SimplexTable originalSimplexTable, List<String> currentBasis, List<List<BigFraction>> yT) {
+        List<Integer> nonBasicVariablesColumnIndexes = getNonBasicVariablesColumnIndexes(originalSimplexTable, currentBasis);
+
+        //Non basic variable column index -> its current iteration reduced cost
+        Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = new HashMap<>(nonBasicVariablesColumnIndexes.size());
+        nonBasicVariablesColumnIndexes.forEach(nonBasicVariableIndex -> {
+            BigFraction cJ = originalSimplexTable.objectiveFunctionRow.get(nonBasicVariableIndex);
+            BigFraction nonBasicVariableReducedCost = linearAlgebraService.multiplyMatricesOrExc(yT, originalSimplexTable.getDataColumnInMatrixForm(nonBasicVariableIndex)).getFirst().getFirst();
+            nonBasicVariablesCurrentReducedCosts.put(nonBasicVariableIndex, cJ.subtract(nonBasicVariableReducedCost));
+        });
+
+        return nonBasicVariablesCurrentReducedCosts;
+    }
+
+    /**
+     * Given original simplex table and current basis variables names, return column indexes of all non basic variables
+     * @param originalSimplexTable
+     * @param currentBasisVariables
+     * @return
+     */
+    private List<Integer> getNonBasicVariablesColumnIndexes(SimplexTable originalSimplexTable, List<String> currentBasisVariables) {
+        Set<Integer> basicVariableColumnIndexes = currentBasisVariables.stream().map(baseVariableName -> originalSimplexTable.getVariableColumnIndex(baseVariableName).orElseThrow(() -> new IllegalStateException("Base variable " + baseVariableName + " not found among original simplex table variables!"))).collect(Collectors.toSet());
+        return IntStream.range(0, originalSimplexTable.variables.size()).filter(i -> !basicVariableColumnIndexes.contains(i)).boxed().collect(Collectors.toList());
+    }
+
+    /**
+     * Given original simplex table and current basis variable names, return their values in the original simplex table objective row
+     * Return c_b^T given current base
+     * @param originalSimplexTable
+     * @param currentBasisVariables
+     * @return
+     */
+    private List<List<BigFraction>> getReducedCostsFromSimplexTable(SimplexTable originalSimplexTable, List<String> currentBasisVariables) {
+        List<List<BigFraction>> result = new ArrayList<>(currentBasisVariables.size());
+        List<Integer> columnIndexes = currentBasisVariables.stream().map(baseVariableName -> originalSimplexTable.getVariableColumnIndex(baseVariableName).orElseThrow(() -> new IllegalStateException("Base variable " + baseVariableName + " not found among original simplex table variables!"))).toList();
+        result.add(columnIndexes.stream().map((basisVariableColumnIndex) -> originalSimplexTable.objectiveFunctionRow.get(basisVariableColumnIndex)).toList());
+        return result;
+    }
+
+    /**
+     * Given original simplex table and current basis variables, return matrix basis of the variable values in the original
+     * simplex table.
+     * Return B given basis variable names
+     * @param originalSimplexTable
+     * @param currentBasisVariables
+     * @return
+     */
+    private List<List<BigFraction>> getBasisMatrix(SimplexTable originalSimplexTable, List<String> currentBasisVariables) {
+        List<List<BigFraction>> result = new ArrayList<>(currentBasisVariables.size());
+
+        //Column indexes of the basis variables
+        List<Integer> columnIndexes = currentBasisVariables.stream().map(baseVariableName -> originalSimplexTable.getVariableColumnIndex(baseVariableName).orElseThrow(() -> new IllegalStateException("Base variable " + baseVariableName + " not found among original simplex table variables!"))).toList();
+
+        for (int rowIndex = 0; rowIndex < originalSimplexTable.baseVariables.size(); rowIndex ++) {
+            List<BigFraction> resultRow = new ArrayList<>(columnIndexes.size());
+            for (int columnIndex: columnIndexes) {
+                resultRow.add(originalSimplexTable.data.get(rowIndex).get(columnIndex));
+            }
+            result.add(resultRow);
+        }
+        return result;
+    }
+
+}
