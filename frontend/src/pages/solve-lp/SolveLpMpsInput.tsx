@@ -14,11 +14,13 @@ import {
     LAST_MPS_INPUT_DATA,
     SOLVE_LP_DATA_PREFIX,
     SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
-    SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX, SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX,
+    SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX,
+    SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX, SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX,
 } from "../../utils/storageConstants.ts";
 import {hashStringSHA256} from "../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
 import {fetchSolveTwoPhaseSimplex} from "../../api/solver/two-phase/twoPhaseSimplexSolveApi.ts";
+import {fetchSolveRevisedSimplex} from "../../api/solver/revised/revisedSimlexSolveApi.ts";
 
 function SolveLpMpsInput() {
 
@@ -89,6 +91,33 @@ function SolveLpMpsInput() {
         }
     }
 
+    const handleSolveRevisedSimplex = async(request: SolveLpRequest) => {
+        try {
+            const requestHash =  await hashStringSHA256(JSON.stringify(request))
+            const response = await fetchSolveRevisedSimplex(request)
+
+            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
+                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
+            }
+
+            if (response.success) {
+                if (await get(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + requestHash) === undefined) {
+                    await set(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
+                }
+                navigate(`/solve-lp/results/revised-simplex/${requestHash}`)
+            } else {
+                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
+                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
+                }
+                navigate(`/solve-lp/results/error/${requestHash}`)
+            }
+
+
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     const handleSolveMpsButtonClick = () => {
 
         const request: SolveLpRequest = {
@@ -105,7 +134,7 @@ function SolveLpMpsInput() {
                 handleSolveTwoPhaseSimplex(request);
                 return;
             case "REVISED":
-                alert("Not implemented");
+                handleSolveRevisedSimplex(request);
                 return;
             case "MULTIPLICATIVE":
                 alert("Not implemented");
