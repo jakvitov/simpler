@@ -1,6 +1,5 @@
 package com.github.jakvitov.dto.solver.revised;
 
-import com.github.jakvitov.dto.SimplexTableDto;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
 
