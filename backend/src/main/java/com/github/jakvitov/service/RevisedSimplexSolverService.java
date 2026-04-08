@@ -109,7 +109,12 @@ public class RevisedSimplexSolverService {
             List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
             iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
 
-            //todo check unbounded
+            //Unbounded solution
+            if (isUnbounded(d)) {
+                responseDto.getIterations().add(iterationDto);
+                responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
+                return responseDto;
+            }
 
             //Compute ratio vector test
             List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
@@ -149,6 +154,24 @@ public class RevisedSimplexSolverService {
             result.put(currentBasis.get(i), xB.get(i).getFirst());
         });
         return result;
+    }
+
+    /**
+     * Given current d (pivot column) vector, return true if solution is unbounded
+     * @param d
+     * @return
+     */
+    private boolean isUnbounded(List<List<BigFraction>> d) {
+        boolean unbounded = true;
+        for (List<BigFraction> row : d) {
+            for (BigFraction value : row) {
+                if (value.signum() > 0) {
+                    unbounded = false;
+                    break;
+                }
+            }
+        }
+        return unbounded;
     }
 
     /**
