@@ -4,7 +4,11 @@ import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.revised.RevisedSimplexIterationDto;
+import com.github.jakvitov.dto.solver.revised.RevisedSimplexPhaseOneSolutionDto;
+import com.github.jakvitov.dto.solver.revised.RevisedSimplexPhaseTwoSolutionDto;
 import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
+import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
+import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.math.LinearAlgebraService;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
@@ -29,6 +33,9 @@ public class RevisedSimplexSolverService {
     @Inject
     private BasicSimplexSolverService basicSimplexSolverService;
 
+    @Inject
+    private TwoPhaseSimplexSolverService twoPhaseSimplexSolverService;
+
     @Value("${simpler.simplex.revised.max.iterations}")
     private Integer maxIterations;
 
@@ -40,10 +47,226 @@ public class RevisedSimplexSolverService {
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 
-        return solveRevisedSimplex(simplexTable, solveLpRequestDto.optimisationTarget());
+        SolveLpRevisedSimlexResponseDto responseDto = new SolveLpRevisedSimlexResponseDto();
+        responseDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
+
+        List<BigFraction> originalObjectiveRow = new ArrayList<>(simplexTable.objectiveFunctionRow);
+        IntWrapper iterations = IntWrapper.of(0);
+        Map<Integer, Integer> visitedBaseCount = new HashMap<>();
+
+        if (simplexTable.containsArtificialVariables) {
+            boolean continueToPhaseTwo = solveRevisedSimplexPhaseOne(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations);
+            if (continueToPhaseTwo) {
+                solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow);
+            }
+        } else {
+            solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow);
+        }
+
+        return responseDto;
     }
 
-    private SolveLpRevisedSimlexResponseDto solveRevisedSimplex(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget) {
+    private boolean solveRevisedSimplexPhaseOne(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount) {
+
+        RevisedSimplexPhaseOneSolutionDto revisedSimplexPhaseOneSolutionDto = new RevisedSimplexPhaseOneSolutionDto();
+
+        //Make artificial variables 1 and all other 0
+        twoPhaseSimplexSolverService.setupObjectiveRowBeforePhaseOne(originalSimplexTable);
+        revisedSimplexPhaseOneSolutionDto.setInitialSimplexTable(new SimplexTableDto(originalSimplexTable));
+
+        //Add artificial variable rows to objective row to adjust them
+        TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = twoPhaseSimplexSolverService.normalizeArtificialVariables(originalSimplexTable);
+        revisedSimplexPhaseOneSolutionDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
+
+        List<String> currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
+        visitedBaseCount.put(currentBasis.hashCode(), 1);
+
+        //Revised simplex iterations solving phase one
+        while (iterationCount.value < maxIterations) {
+
+            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
+                responseDto.setSolutionStatus(SolutionStatus.CYCLE);
+                return false;
+            }
+
+            RevisedSimplexIterationDto iterationDto = new RevisedSimplexIterationDto();
+            iterationDto.setCurrentBasis(new ArrayList<>(currentBasis));
+
+            //Get B given current basis
+            List<List<BigFraction>> initialBasisMatrix = getBasisMatrix(originalSimplexTable, currentBasis);
+            iterationDto.setInitialBasisMatrix(MemoryUtils.copyMatrix(initialBasisMatrix));
+
+            //Compute B^(-1)
+            List<List<BigFraction>> initialBasisMatrixInverse = linearAlgebraService.getMatrixInversionOrExc(initialBasisMatrix);
+            iterationDto.setInitialBasisMatrixInverse(MemoryUtils.copyMatrix(initialBasisMatrixInverse));
+
+            //Compute current basis solution (RHS) x_B
+            List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
+            iterationDto.setXB(MemoryUtils.copyMatrix(xB));
+
+            //Get c_b^T
+            List<List<BigFraction>> originalSimplexTableReducedCosts = getReducedCostsFromSimplexTable(originalSimplexTable, currentBasis);
+            iterationDto.setOriginalSimplexTableReducedCosts(MemoryUtils.copyMatrix(originalSimplexTableReducedCosts));
+
+            //Compute y^t = c_b^T * B^(-1)
+            List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
+            iterationDto.setYT(MemoryUtils.copyMatrix(yT));
+
+            //Non-basic variable column index -> its current iteration reduced cost
+            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
+            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
+
+            //Choose entering variable x_j index
+            Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
+
+            //Optimal solution found
+            if (enteringVariableIndex.isEmpty()) {
+                revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+                revisedSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
+                return true;
+            }
+
+            iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
+
+            //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
+            List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
+            iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
+
+            //Unbounded solution
+            if (isUnbounded(d)) {
+                revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+                responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
+                return false;
+            }
+
+            //Compute ratio vector test
+            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
+            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+
+            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
+            iterationDto.setLeavingVariableIndex(leavingVariableIndex);
+
+            //Update basis
+            currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
+            iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
+
+            //Updated visited base count
+            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
+                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
+            } else {
+                visitedBaseCount.put(currentBasis.hashCode(), 1);
+            }
+
+            revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+            iterationCount.value ++;
+        }
+
+        responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+        return false;
+    }
+
+    private void solveRevisedSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow) {
+        RevisedSimplexPhaseTwoSolutionDto revisedSimplexPhaseTwoSolutionDto = new RevisedSimplexPhaseTwoSolutionDto();
+
+        twoPhaseSimplexSolverService.removeArtificialVariablesAfterPhaseOne(originalSimplexTable, originalObjectiveRow);
+        //Use result base and use it in the cropped simplex table
+        originalSimplexTable.objectiveFunctionRow = originalObjectiveRow;
+        originalSimplexTable.objectiveValue = BigFraction.ZERO;
+
+        List<String> currentBasis;
+        if (responseDto.getRevisedSimplexPhaseOneSolution() == null) {
+            currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
+        } else {
+            //Current initial basis is result basis from phase I
+            currentBasis = new ArrayList<>(responseDto.getRevisedSimplexPhaseOneSolution().getResultBase());
+        }
+
+        while (iterationCount.value < maxIterations) {
+            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
+                responseDto.setSolutionStatus(SolutionStatus.CYCLE);
+                return;
+            }
+
+            RevisedSimplexIterationDto iterationDto = new RevisedSimplexIterationDto();
+            iterationDto.setCurrentBasis(new ArrayList<>(currentBasis));
+
+            //Get B given current basis
+            List<List<BigFraction>> initialBasisMatrix = getBasisMatrix(originalSimplexTable, currentBasis);
+            iterationDto.setInitialBasisMatrix(MemoryUtils.copyMatrix(initialBasisMatrix));
+
+            //Compute B^(-1)
+            List<List<BigFraction>> initialBasisMatrixInverse = linearAlgebraService.getMatrixInversionOrExc(initialBasisMatrix);
+            iterationDto.setInitialBasisMatrixInverse(MemoryUtils.copyMatrix(initialBasisMatrixInverse));
+
+            //Compute current basis solution (RHS) x_B
+            List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
+            iterationDto.setXB(MemoryUtils.copyMatrix(xB));
+
+            //Get c_b^T
+            List<List<BigFraction>> originalSimplexTableReducedCosts = getReducedCostsFromSimplexTable(originalSimplexTable, currentBasis);
+            iterationDto.setOriginalSimplexTableReducedCosts(MemoryUtils.copyMatrix(originalSimplexTableReducedCosts));
+
+            //Compute y^t = c_b^T * B^(-1)
+            List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
+            iterationDto.setYT(MemoryUtils.copyMatrix(yT));
+
+            //Non-basic variable column index -> its current iteration reduced cost
+            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
+            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
+
+            //Choose entering variable x_j index
+            Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
+
+            //Optimal solution found
+            if (enteringVariableIndex.isEmpty()) {
+                revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
+                responseDto.setSolutionStatus(SolutionStatus.SOLVED);
+                responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
+                // 1x1 matrix with the objective function value
+                List<List<BigFraction>> objectiveFunctionValueMatrix = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
+                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrix.getFirst().getFirst());
+                return;
+            }
+
+            iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
+
+            //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
+            List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
+            iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
+
+            //Unbounded solution
+            if (isUnbounded(d)) {
+                revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
+                responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
+                return;
+            }
+
+            //Compute ratio vector test
+            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
+            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+
+            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
+            iterationDto.setLeavingVariableIndex(leavingVariableIndex);
+
+            //Update basis
+            currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
+            iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
+
+            //Updated visited base count
+            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
+                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
+            } else {
+                visitedBaseCount.put(currentBasis.hashCode(), 1);
+            }
+
+            revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
+            iterationCount.value ++;
+        }
+
+        responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+    }
+
+    /*private SolveLpRevisedSimlexResponseDto solveRevisedSimplex(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget) {
         if (originalSimplexTable.containsArtificialVariables) {
             throw new IllegalArgumentException("Artificial variables handling not yet implemented for revised simplex");
         }
@@ -140,7 +363,7 @@ public class RevisedSimplexSolverService {
 
         responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
         return responseDto;
-    }
+    }*/
 
     /**
      * Given final xB (RHS) and current basis, return Map variable name -> optimal value

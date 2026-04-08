@@ -13,7 +13,7 @@ public class SolveRevisedSimplexIntegrationTest {
     private RevisedSimplexSolverService revisedSimplexSolverService;
 
     @Test
-    public void solve_revised_simplex_succeeds() {
+    public void solve_revised_simplex_succeeds_for_non_phase_one_lp() {
         String mpsData = """
                 NAME          SIMPLELP
                 ROWS

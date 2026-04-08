@@ -274,7 +274,7 @@ public class TwoPhaseSimplexSolverService {
      * @param simplexTable
      * @return
      */
-    private TwoPhaseSimplexObjectiveRowNormalizationDto adjustObjectiveRowToCurrentBasisPhaseTwo(SimplexTable simplexTable) {
+    protected TwoPhaseSimplexObjectiveRowNormalizationDto adjustObjectiveRowToCurrentBasisPhaseTwo(SimplexTable simplexTable) {
         Map<Integer, BigFraction> coefficients = new HashMap<>();
 
         //Create map index in base variables -> Index in objective row
@@ -340,7 +340,7 @@ public class TwoPhaseSimplexSolverService {
      * Removes all artificial variables from given simplex table and crops original objective row accordingly
      * @param simplexTable
      */
-    private void removeArtificialVariablesAfterPhaseOne(SimplexTable simplexTable, List<BigFraction> originalObjectiveRow) {
+    protected void removeArtificialVariablesAfterPhaseOne(SimplexTable simplexTable, List<BigFraction> originalObjectiveRow) {
         OptionalInt artificialVariableBeginningIndex = IntStream.range(0, simplexTable.variables.size())
                 .filter(i -> simplexTable.variables.get(i).startsWith("A_")).findFirst();
         if (artificialVariableBeginningIndex.isEmpty()) {
@@ -360,7 +360,7 @@ public class TwoPhaseSimplexSolverService {
      * Setup objective row before phase I, making artificial variables 1/1 and all other 0
      * @param simplexTable
      */
-    private void setupObjectiveRowBeforePhaseOne(SimplexTable simplexTable) {
+    protected void setupObjectiveRowBeforePhaseOne(SimplexTable simplexTable) {
         IntStream.range(0, simplexTable.variables.size()).forEach(i -> {
             if (simplexTable.variables.get(i).startsWith("A_")) {
                 simplexTable.objectiveFunctionRow.set(i, BigFraction.ONE);
@@ -376,7 +376,7 @@ public class TwoPhaseSimplexSolverService {
      * @param simplexTable
      * @return ArtificialVariablesObjectiveRowNormalizationDto
      */
-    private TwoPhaseSimplexObjectiveRowNormalizationDto normalizeArtificialVariables(SimplexTable simplexTable) {
+    protected TwoPhaseSimplexObjectiveRowNormalizationDto normalizeArtificialVariables(SimplexTable simplexTable) {
         List<Integer> artificialVariableRowIndexes = IntStream.range(0, simplexTable.baseVariables.size()).mapToObj((baseVariableIndex) -> {
             if (simplexTable.baseVariables.get(baseVariableIndex).startsWith("A_")) {
                 return baseVariableIndex;

@@ -7,8 +7,6 @@ import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
 import org.hipparchus.fraction.BigFraction;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Serdeable
@@ -18,7 +16,11 @@ public class SolveLpRevisedSimlexResponseDto {
     private SolutionStatus solutionStatus;
     private SimplexTableDto initialSimplexTable;
 
-    List<RevisedSimplexIterationDto> iterations = new ArrayList<>();
+    @Nullable
+    private RevisedSimplexPhaseOneSolutionDto revisedSimplexPhaseOneSolution;
+
+    @Nullable
+    private RevisedSimplexPhaseTwoSolutionDto revisedSimplexPhaseTwoSolutionDto;
 
     @Nullable
     private Map<String, BigFraction> resultVariableValues;

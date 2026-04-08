@@ -289,7 +289,7 @@ public class SimplexTable {
      * @return
      */
     public List<List<BigFraction>> getDataColumnInMatrixForm(int columnIndex) {
-        if (columnIndex >= this.data.size()) {
+        if (this.data.isEmpty() || columnIndex >= this.data.getFirst().size()) {
             throw new IndexOutOfBoundsException("Cannot obtain data column " + columnIndex + " from matrix with " + this.data.size() + " columns.");
         }
 
