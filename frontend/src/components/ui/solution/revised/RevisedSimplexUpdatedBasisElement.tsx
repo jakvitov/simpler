@@ -6,6 +6,11 @@ type RevisedSimplexUpdatedBasisElementProps = {
     revisedSimplexIterationDto: RevisedSimplexIterationDto
 }
 
+/**
+ * Renders udpated basis after variable switch in revised simplex iteration
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexUpdatedBasisElement(props: RevisedSimplexUpdatedBasisElementProps) {
     if (props.revisedSimplexIterationDto.updatedBasis == null) {
         return (<></>)

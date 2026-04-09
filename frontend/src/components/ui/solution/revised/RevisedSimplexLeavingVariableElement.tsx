@@ -5,6 +5,11 @@ type RevisedSimplexLeavingVariableElementProps = {
     revisedSimplexIterationDto: RevisedSimplexIterationDto
 }
 
+/**
+ * Renders leaving variable info in revised simplex iteration
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexLeavingVariableElement(props: RevisedSimplexLeavingVariableElementProps) {
     if (props.revisedSimplexIterationDto.leavingVariableIndex == null || props.revisedSimplexIterationDto.leavingVariableName == null) {
         return (<></>)

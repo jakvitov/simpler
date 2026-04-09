@@ -5,6 +5,11 @@ type RevisedSimplexEnteringVariableElementProps = {
     revisedSimplexIterationDto: RevisedSimplexIterationDto
 }
 
+/**
+ * Renders entering variable info in revised simplex iteration
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexEnteringVariableElement(props: RevisedSimplexEnteringVariableElementProps) {
     if (props.revisedSimplexIterationDto.enteringVariableIndex == null || props.revisedSimplexIterationDto.enteringVariableName == null) {
         return (<></>)

@@ -41,6 +41,12 @@ function renderNonBasicVariablesCurrentReducedCostsCalculation(props: RevisedSim
     return res;
 }
 
+/**
+ * Element containing whole revised simplex iteration
+ * Renders RevisedSimplexIterationDto
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexIterationElement(props: RevisedSimplexIterationElementProps) {
     return (<>
         <hr/>

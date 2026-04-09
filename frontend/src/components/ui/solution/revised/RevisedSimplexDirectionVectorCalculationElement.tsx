@@ -18,6 +18,11 @@ function renderDirectionVectorCalculation(props: RevisedSimplexDirectionVectorCa
     return res
 }
 
+/**
+ * Renders direction vector calculation info in revised simplex iteration
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexDirectionVectorCalculationElement(props: RevisedSimplexDirectionVectorCalculationElementProps) {
     if (props.revisedSimplexIterationDto.directionVector == null || props.revisedSimplexIterationDto.enteringVariableColumnInOriginalSimplexTable == null) {
         return (<></>)

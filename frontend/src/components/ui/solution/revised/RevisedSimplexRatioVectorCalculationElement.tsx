@@ -19,7 +19,11 @@ function renderRatioVectorCalculation(props: RevisedSimplexRatioVectorCalculatio
     return res
 }
 
-
+/**
+ * Renders ratio vector calculation for revised simplex iteration
+ * @param props
+ * @constructor
+ */
 function RevisedSimplexRatioVectorCalculationElement(props: RevisedSimplexRatioVectorCalculationElementProps) {
     if (props.revisedSimplexIterationDto.ratioVector == null || props.revisedSimplexIterationDto.directionVector == null) {
         return (<></>)
