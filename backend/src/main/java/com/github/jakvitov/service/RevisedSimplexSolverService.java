@@ -3,10 +3,7 @@ package com.github.jakvitov.service;
 import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
-import com.github.jakvitov.dto.solver.revised.RevisedSimplexIterationDto;
-import com.github.jakvitov.dto.solver.revised.RevisedSimplexPhaseOneSolutionDto;
-import com.github.jakvitov.dto.solver.revised.RevisedSimplexPhaseTwoSolutionDto;
-import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
+import com.github.jakvitov.dto.solver.revised.*;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
 import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.math.LinearAlgebraService;
@@ -102,6 +99,7 @@ public class RevisedSimplexSolverService {
 
             //Compute current basis solution (RHS) x_B
             List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
+            iterationDto.setB(MemoryUtils.copyMatrix(originalSimplexTable.getRhsInMatrixForm()));
             iterationDto.setXB(MemoryUtils.copyMatrix(xB));
 
             //Get c_b^T
@@ -112,9 +110,11 @@ public class RevisedSimplexSolverService {
             List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
             iterationDto.setYT(MemoryUtils.copyMatrix(yT));
 
+            //Non-basic variable column index -> its current iteration reduced cost calculation dto
+            Map<Integer, NonBasicVariableCurrentReducedCostCalculationDto> nonBasicVariablesCurrentReducedCostsCalculation = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
+            iterationDto.setNonBasicVariablesCurrentReducedCosts(nonBasicVariablesCurrentReducedCostsCalculation.values().stream().toList());
             //Non-basic variable column index -> its current iteration reduced cost
-            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
-            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
+            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = nonBasicVariablesCurrentReducedCostsCalculation.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, i -> i.getValue().getResult(), (existing, replacement) -> replacement));
 
             //Choose entering variable x_j index
             Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
@@ -127,10 +127,12 @@ public class RevisedSimplexSolverService {
             }
 
             iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
+            iterationDto.setEnteringVariableName(originalSimplexTable.variables.get(enteringVariableIndex.get()));
 
             //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
             List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
             iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
+            iterationDto.setEnteringVariableColumnInOriginalSimplexTable(originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
 
             //Unbounded solution
             if (isUnbounded(d)) {
@@ -145,6 +147,7 @@ public class RevisedSimplexSolverService {
 
             int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
             iterationDto.setLeavingVariableIndex(leavingVariableIndex);
+            iterationDto.setLeavingVariableName(currentBasis.get(leavingVariableIndex));
 
             //Update basis
             currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
@@ -200,6 +203,7 @@ public class RevisedSimplexSolverService {
 
             //Compute current basis solution (RHS) x_B
             List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
+            iterationDto.setB(MemoryUtils.copyMatrix(originalSimplexTable.getRhsInMatrixForm()));
             iterationDto.setXB(MemoryUtils.copyMatrix(xB));
 
             //Get c_b^T
@@ -210,9 +214,11 @@ public class RevisedSimplexSolverService {
             List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
             iterationDto.setYT(MemoryUtils.copyMatrix(yT));
 
+            //Non-basic variable column index -> its current iteration reduced cost calculation dto
+            Map<Integer, NonBasicVariableCurrentReducedCostCalculationDto> nonBasicVariablesCurrentReducedCostsCalculation = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
+            iterationDto.setNonBasicVariablesCurrentReducedCosts(nonBasicVariablesCurrentReducedCostsCalculation.values().stream().toList());
             //Non-basic variable column index -> its current iteration reduced cost
-            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
-            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
+            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = nonBasicVariablesCurrentReducedCostsCalculation.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, i -> i.getValue().getResult(), (existing, replacement) -> replacement));
 
             //Choose entering variable x_j index
             Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
@@ -229,10 +235,12 @@ public class RevisedSimplexSolverService {
             }
 
             iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
+            iterationDto.setEnteringVariableName(originalSimplexTable.variables.get(enteringVariableIndex.get()));
 
             //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
             List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
             iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
+            iterationDto.setEnteringVariableColumnInOriginalSimplexTable(originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
 
             //Unbounded solution
             if (isUnbounded(d)) {
@@ -247,6 +255,7 @@ public class RevisedSimplexSolverService {
 
             int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
             iterationDto.setLeavingVariableIndex(leavingVariableIndex);
+            iterationDto.setLeavingVariableName(currentBasis.get(leavingVariableIndex));
 
             //Update basis
             currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
@@ -265,105 +274,6 @@ public class RevisedSimplexSolverService {
 
         responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
     }
-
-    /*private SolveLpRevisedSimlexResponseDto solveRevisedSimplex(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget) {
-        if (originalSimplexTable.containsArtificialVariables) {
-            throw new IllegalArgumentException("Artificial variables handling not yet implemented for revised simplex");
-        }
-        SolveLpRevisedSimlexResponseDto responseDto = new SolveLpRevisedSimlexResponseDto();
-        responseDto.setInitialSimplexTable(new SimplexTableDto(originalSimplexTable));
-
-        List<String> currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
-        int iterations = 0;
-        Map<Integer, Integer> visitedBaseCount = new HashMap<>();
-        visitedBaseCount.put(currentBasis.hashCode(), 1);
-
-        while (iterations < maxIterations) {
-
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
-                responseDto.setSolutionStatus(SolutionStatus.CYCLE);
-                return responseDto;
-            }
-
-            RevisedSimplexIterationDto iterationDto = new RevisedSimplexIterationDto();
-            iterationDto.setCurrentBasis(new ArrayList<>(currentBasis));
-
-            //Get B given current basis
-            List<List<BigFraction>> initialBasisMatrix = getBasisMatrix(originalSimplexTable, currentBasis);
-            iterationDto.setInitialBasisMatrix(MemoryUtils.copyMatrix(initialBasisMatrix));
-
-            //Compute B^(-1)
-            List<List<BigFraction>> initialBasisMatrixInverse = linearAlgebraService.getMatrixInversionOrExc(initialBasisMatrix);
-            iterationDto.setInitialBasisMatrixInverse(MemoryUtils.copyMatrix(initialBasisMatrixInverse));
-
-            //Compute current basis solution (RHS) x_B
-            List<List<BigFraction>> xB = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getRhsInMatrixForm());
-            iterationDto.setXB(MemoryUtils.copyMatrix(xB));
-
-            //Get c_b^T
-            List<List<BigFraction>> originalSimplexTableReducedCosts = getReducedCostsFromSimplexTable(originalSimplexTable, currentBasis);
-            iterationDto.setOriginalSimplexTableReducedCosts(MemoryUtils.copyMatrix(originalSimplexTableReducedCosts));
-
-            //Compute y^t = c_b^T * B^(-1)
-            List<List<BigFraction>> yT = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, initialBasisMatrixInverse);
-            iterationDto.setYT(MemoryUtils.copyMatrix(yT));
-
-            //Non-basic variable column index -> its current iteration reduced cost
-            Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = computeNonBasicVariablesCurrentReducedCosts(originalSimplexTable, currentBasis, yT);
-            iterationDto.setNonBasicVariablesCurrentReducedCosts(new HashMap<>(nonBasicVariablesCurrentReducedCosts));
-
-            //Choose entering variable x_j index
-            Optional<Integer> enteringVariableIndex = getEnteringVariableIndex(nonBasicVariablesCurrentReducedCosts);
-
-            //Optimal solution found
-            if (enteringVariableIndex.isEmpty()) {
-                responseDto.getIterations().add(iterationDto);
-                responseDto.setSolutionStatus(SolutionStatus.SOLVED);
-                responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
-                // 1x1 matrix with the objective function value
-                List<List<BigFraction>> objectiveFunctionValueMatrix = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
-                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrix.getFirst().getFirst());
-                return responseDto;
-            }
-
-            iterationDto.setEnteringVariableIndex(enteringVariableIndex.get());
-
-            //Compute the direction vector d = B^-1 * a_j (a_j being x_j column in original simplex table)
-            List<List<BigFraction>> d = linearAlgebraService.multiplyMatricesOrExc(initialBasisMatrixInverse, originalSimplexTable.getDataColumnInMatrixForm(enteringVariableIndex.get()));
-            iterationDto.setDirectionVector(MemoryUtils.copyMatrix(d));
-
-            //Unbounded solution
-            if (isUnbounded(d)) {
-                responseDto.getIterations().add(iterationDto);
-                responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
-                return responseDto;
-            }
-
-            //Compute ratio vector test
-            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
-            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
-
-            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
-            iterationDto.setLeavingVariableIndex(leavingVariableIndex);
-
-            //Update basis
-            currentBasis.set(leavingVariableIndex, originalSimplexTable.variables.get(enteringVariableIndex.get()));
-            iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
-
-            //Updated visited base count
-            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
-                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(currentBasis.hashCode(), 1);
-            }
-
-            responseDto.getIterations().add(iterationDto);
-            iterations ++;
-        }
-
-        responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
-        return responseDto;
-    }*/
 
     /**
      * Given final xB (RHS) and current basis, return Map variable name -> optimal value
@@ -447,15 +357,21 @@ public class RevisedSimplexSolverService {
      * @param currentBasis
      * @return
      */
-    private Map<Integer, BigFraction> computeNonBasicVariablesCurrentReducedCosts(SimplexTable originalSimplexTable, List<String> currentBasis, List<List<BigFraction>> yT) {
+    private Map<Integer, NonBasicVariableCurrentReducedCostCalculationDto> computeNonBasicVariablesCurrentReducedCosts(SimplexTable originalSimplexTable, List<String> currentBasis, List<List<BigFraction>> yT) {
         List<Integer> nonBasicVariablesColumnIndexes = getNonBasicVariablesColumnIndexes(originalSimplexTable, currentBasis);
 
         //Non basic variable column index -> its current iteration reduced cost
-        Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts = new HashMap<>(nonBasicVariablesColumnIndexes.size());
+        Map<Integer, NonBasicVariableCurrentReducedCostCalculationDto> nonBasicVariablesCurrentReducedCosts = new HashMap<>(nonBasicVariablesColumnIndexes.size());
         nonBasicVariablesColumnIndexes.forEach(nonBasicVariableIndex -> {
             BigFraction cJ = originalSimplexTable.objectiveFunctionRow.get(nonBasicVariableIndex);
             BigFraction nonBasicVariableReducedCost = linearAlgebraService.multiplyMatricesOrExc(yT, originalSimplexTable.getDataColumnInMatrixForm(nonBasicVariableIndex)).getFirst().getFirst();
-            nonBasicVariablesCurrentReducedCosts.put(nonBasicVariableIndex, cJ.subtract(nonBasicVariableReducedCost));
+            NonBasicVariableCurrentReducedCostCalculationDto nonBasicVariableCurrentReducedCostCalculationDto = new NonBasicVariableCurrentReducedCostCalculationDto();
+            nonBasicVariableCurrentReducedCostCalculationDto.setCJ(cJ);
+            nonBasicVariableCurrentReducedCostCalculationDto.setAJ(originalSimplexTable.getDataColumnInMatrixForm(nonBasicVariableIndex));
+            nonBasicVariableCurrentReducedCostCalculationDto.setNonBasicVariableReducedCost(nonBasicVariableReducedCost);
+            nonBasicVariableCurrentReducedCostCalculationDto.setResult(cJ.subtract(nonBasicVariableReducedCost));
+            nonBasicVariableCurrentReducedCostCalculationDto.setVariableName(originalSimplexTable.variables.get(nonBasicVariableIndex));
+            nonBasicVariablesCurrentReducedCosts.put(nonBasicVariableIndex, nonBasicVariableCurrentReducedCostCalculationDto);
         });
 
         return nonBasicVariablesCurrentReducedCosts;

@@ -6,7 +6,6 @@ import lombok.Data;
 import org.hipparchus.fraction.BigFraction;
 
 import java.util.List;
-import java.util.Map;
 
 @Serdeable
 @Data
@@ -18,6 +17,8 @@ public class RevisedSimplexIterationDto {
     //B^(-1) of i-th iteration
     private List<List<BigFraction>> initialBasisMatrixInverse;
 
+    //Original simplex table RHS used for xB calculation
+    private List<List<BigFraction>> b;
     //RHS
     private List<List<BigFraction>> xB;
 
@@ -28,21 +29,30 @@ public class RevisedSimplexIterationDto {
     private List<List<BigFraction>> yT;
 
     //variable column index in initial simplex table -> its current reduced cost
-    private Map<Integer, BigFraction> nonBasicVariablesCurrentReducedCosts;
+    private List<NonBasicVariableCurrentReducedCostCalculationDto> nonBasicVariablesCurrentReducedCosts;
 
     @Nullable
     private Integer enteringVariableIndex;
 
+    @Nullable
+    private String enteringVariableName;
+
+    //A_j of entering variable in original simplex table
+    @Nullable
+    private List<List<BigFraction>> enteringVariableColumnInOriginalSimplexTable;
     // d
     //todo check this comes as undefined/null and not empty to FE
     @Nullable
     private List<List<BigFraction>> directionVector;
 
     @Nullable
-    List<BigFraction> ratioVector;
+    private List<BigFraction> ratioVector;
 
     @Nullable
-    Integer leavingVariableIndex;
+    private String leavingVariableName;
+
+    @Nullable
+    private Integer leavingVariableIndex;
 
     @Nullable
     private List<String> updatedBasis;
