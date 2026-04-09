@@ -39,6 +39,44 @@ export function renderRationalWithNegativeSignOnly(r: Rational|undefined): strin
     }
 }
 
+export function renderMatrixWithName(name: string, matrix: Rational[][]): string {
+    return name + " = " + renderMatrix(matrix)
+}
+
+export function renderMatrix(matrix: Rational[][]): string {
+    if (matrix.length == 0) {
+        return "";
+    }
+
+    let res = "\\begin{pmatrix}\n";
+    matrix.forEach((row) => {
+        if (row.length == 0) {
+            res += "& \n"
+        } else {
+            res += `${renderRationalWithNegativeSignOnly(row[0])}`;
+            for (let i = 1; i < row.length; i++) {
+                res += `& ${renderRationalWithNegativeSignOnly(row[i])}`;
+            }
+            res += "\\ \n"
+        }
+    })
+    res += "\\end{pmatrix}"
+    return res;
+}
+
+export function renderTextVector(textVector: string[]): string {
+    if (textVector.length == 0) {
+        return "\\begin{pmatrix}\n\\end{pmatrix}";
+    }
+    let res = "\\begin{pmatrix}\n";
+    res += `${textVector[0]}`
+    for (let i = 1; i < textVector.length; i++) {
+        res += `& ${textVector[i]}`
+    }
+    res += "\\end{pmatrix}"
+    return res;
+}
+
 export function demoRational(): Rational {
     let diceRoll = Math.floor(Math.random() * 6)
     if (diceRoll > 3) {
