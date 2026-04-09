@@ -46,6 +46,7 @@ export interface SolveLpRevisedSimlexResponseDto {
     solutionStatus: SolutionStatus;
     initialSimplexTable: SimplexTable;
     revisedSimplexPhaseOneSolution: RevisedSimplexPhaseOneSolutionDto|undefined;
+    revisedSimplexPhaseTwoSolutionDto: RevisedSimplexPhaseTwoSolutionDto|undefined;
     resultVariableValues: Record<string, Rational>|undefined;
     solutionObjectiveFunctionValue: Rational|undefined;
     success: boolean
