@@ -38,7 +38,7 @@ export interface RevisedSimplexPhaseOneSolutionDto {
 }
 
 export interface RevisedSimplexPhaseTwoSolutionDto {
-    initialFeasibleBase: string[]|undefined,
+    initialFeasibleBase: string[],
     iterations: RevisedSimplexIterationDto[],
 }
 

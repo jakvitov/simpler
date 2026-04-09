@@ -44,6 +44,7 @@ function RevisedSimplexPhaseOneSolutionElement(props: RevisedSimplexPhaseOneSolu
         <TwoPhaseSimplexObjectiveRowNormalizationElement twoPhaseSimplexObjectiveRowNormalizationDto={props.revisedSimplexPhaseOneSolutionDto.artificialVariablesNormalization} />
         {(props.revisedSimplexPhaseOneSolutionDto.iterations != null) ? props.revisedSimplexPhaseOneSolutionDto.iterations.map((iterationDto, index) => <RevisedSimplexIterationElement revisedSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
         <RevisedSimplexPhaseOneResultBasisElement resultBasis={props.revisedSimplexPhaseOneSolutionDto.resultBase} />
+        <h3 className={"pt-2"}>End phase I</h3>
     </>)
 
 }
