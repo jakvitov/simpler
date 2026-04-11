@@ -39,6 +39,31 @@ export function renderRationalWithNegativeSignOnly(r: Rational|undefined): strin
     }
 }
 
+/**
+ * Render rational number without any phantom charancters around it
+ * Used in matrix rendering
+ * @param r
+ */
+function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
+    if (r.sign === "P") {
+        if (r.denominator == 1) {
+            return r.numerator.toString()
+        } else {
+            //Phantom + makes alignment with - in matrices possible
+            return "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
+    } else {
+        if (r.denominator == 1) {
+            return "- " + r.numerator;
+        } else {
+            return "- \\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
+    }
+}
+
 export function renderMatrixWithName(name: string, matrix: Rational[][]): string {
     return name + " = " + renderMatrix(matrix)
 }
@@ -53,11 +78,11 @@ export function renderMatrix(matrix: Rational[][]): string {
         if (row.length == 0) {
             res += "& \n"
         } else {
-            res += `${renderRationalWithNegativeSignOnly(row[0])}`;
+            res += `${renderRationalWithNegativeSignOnlyNoPhantom(row[0])}`;
             for (let i = 1; i < row.length; i++) {
-                res += `& ${renderRationalWithNegativeSignOnly(row[i])}`;
+                res += `& ${renderRationalWithNegativeSignOnlyNoPhantom(row[i])}`;
             }
-            res += "\\phantom{+}\\\\ \n"
+            res += "\\\\ \n"
         }
     })
     res += "\\end{pmatrix}"
