@@ -231,8 +231,8 @@ public class RevisedSimplexSolverService {
                 responseDto.setSolutionStatus(SolutionStatus.SOLVED);
                 responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
                 // 1x1 matrix with the objective function value
-                List<List<BigFraction>> objectiveFunctionValueMatrix = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
-                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrix.getFirst().getFirst());
+                List<List<BigFraction>> objectiveFunctionValueMatrixNegated = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
+                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrixNegated.getFirst().getFirst().negate());
                 responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
             }
