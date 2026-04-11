@@ -183,10 +183,12 @@ public class RevisedSimplexSolverService {
             //Current initial basis is result basis from phase I
             currentBasis = new ArrayList<>(responseDto.getRevisedSimplexPhaseOneSolution().getResultBase());
         }
+        revisedSimplexPhaseTwoSolutionDto.setInitialFeasibleBase(new ArrayList<>(currentBasis));
 
         while (iterationCount.value < maxIterations) {
             if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
+                responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
             }
 
@@ -231,6 +233,7 @@ public class RevisedSimplexSolverService {
                 // 1x1 matrix with the objective function value
                 List<List<BigFraction>> objectiveFunctionValueMatrix = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
                 responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrix.getFirst().getFirst());
+                responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
             }
 
@@ -246,6 +249,7 @@ public class RevisedSimplexSolverService {
             if (isUnbounded(d)) {
                 revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
                 responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
+                responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
             }
 
@@ -273,6 +277,7 @@ public class RevisedSimplexSolverService {
         }
 
         responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+        responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
     }
 
     /**

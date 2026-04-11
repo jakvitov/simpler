@@ -27,7 +27,8 @@ public class SolveRevisedSimplexController {
     @Post
     public HttpResponse<?> solveBasicSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
-            return HttpResponse.ok(revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto));
+            var res = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+            return HttpResponse.ok(res);
         }
         catch (MpsParsingException mpe) {
             SolveLpErrorResponse errorResponse = new SolveLpErrorResponse(List.of(mpe.reasons), false);
