@@ -13,7 +13,7 @@ function renderRatioVectorCalculation(props: RevisedSimplexRatioVectorCalculatio
 
 
     let res = "\\theta = x_B / d = "
-    res += renderMatrix(props.revisedSimplexIterationDto.xB) + " / " + renderMatrix(props.revisedSimplexIterationDto.directionVector)
+    res += renderMatrix(props.revisedSimplexIterationDto.XB) + " / " + renderMatrix(props.revisedSimplexIterationDto.directionVector)
     res += " = "
     res += renderMatrix([props.revisedSimplexIterationDto.ratioVector])
     return res

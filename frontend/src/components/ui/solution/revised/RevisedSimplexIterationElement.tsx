@@ -18,7 +18,7 @@ function renderRhsCalculation(props: RevisedSimplexIterationElementProps): strin
     let res = "x_b = B^{-1} b  = "
     res += renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse) + renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse)
     res += " = "
-    res += renderMatrix(props.revisedSimplexIterationDto.xB)
+    res += renderMatrix(props.revisedSimplexIterationDto.XB)
     return res;
 }
 
@@ -26,7 +26,7 @@ function renderYTCalculation(props: RevisedSimplexIterationElementProps): string
     let res = "y^T = c_{B}^{T} B^{-1} = "
     res += renderMatrix(props.revisedSimplexIterationDto.originalSimplexTableReducedCosts) + renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse);
     res += " = "
-    res += renderMatrix(props.revisedSimplexIterationDto.yT)
+    res += renderMatrix(props.revisedSimplexIterationDto.YT)
     return res;
 }
 
@@ -35,7 +35,7 @@ function renderNonBasicVariablesCurrentReducedCostsCalculation(props: RevisedSim
     let res = "\\bar{c}_j = c_j - y^T A_j \\ \n"
 
     props.revisedSimplexIterationDto.nonBasicVariablesCurrentReducedCosts.forEach((calculation) => {
-        res += `\\bar{c}_{${calculation.variableName}} = ${calculation.cJ} - ${renderMatrix(props.revisedSimplexIterationDto.yT)} ${renderMatrix(calculation.aJ)} = ${calculation.result} \\`;
+        res += `\\bar{c}_{${calculation.variableName}} = ${calculation.CJ} - ${renderMatrix(props.revisedSimplexIterationDto.YT)} ${renderMatrix(calculation.AJ)} = ${calculation.result} \\`;
     })
 
     return res;

@@ -4,8 +4,8 @@ import type {TwoPhaseSimplexObjectiveRowNormalizationDto} from "../two-phase/two
 import type {Rational} from "../../common/math.ts";
 
 export interface NonBasicVariableCurrentReducedCostCalculationDto {
-    cJ: Rational,
-    aJ: Rational[][],
+    CJ: Rational,
+    AJ: Rational[][],
     variableName: String
     nonBasicVariableReducedCost: Rational,
     result: Rational
@@ -16,9 +16,9 @@ export interface RevisedSimplexIterationDto {
     initialBasisMatrix: Rational[][],
     initialBasisMatrixInverse: Rational[][],
     b: Rational[][]
-    xB: Rational[][],
+    XB: Rational[][],
     originalSimplexTableReducedCosts: Rational[][],
-    yT: Rational[][],
+    YT: Rational[][],
     nonBasicVariablesCurrentReducedCosts: NonBasicVariableCurrentReducedCostCalculationDto[],
     enteringVariableIndex: number|undefined,
     enteringVariableName: string|undefined,

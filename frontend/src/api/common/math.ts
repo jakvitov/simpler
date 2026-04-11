@@ -57,7 +57,7 @@ export function renderMatrix(matrix: Rational[][]): string {
             for (let i = 1; i < row.length; i++) {
                 res += `& ${renderRationalWithNegativeSignOnly(row[i])}`;
             }
-            res += "\\ \n"
+            res += "\\\\ \n"
         }
     })
     res += "\\end{pmatrix}"
