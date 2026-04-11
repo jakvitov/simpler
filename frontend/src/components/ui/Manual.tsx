@@ -1,23 +1,61 @@
 import {Container} from "react-bootstrap";
+import {InlineMath} from "react-katex";
 
 function Manual() {
     return (
     <Container className={"pt-5 pb-5"}>
         <h2>How to use Simpler?</h2>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        Simpler <i>(Simplex solver)</i> offers two main functionalities: verification of MPS format input and its parsing to LP equations and interactive solution of linear optimizations problems. Based on your use-case choose either "Verify MPS" or "Solve LP". Enter your problem and hit submit to trigger solution/parsing. Simpler uses frontend cache and remembers inputs/outputs in your browser, so if you bump into a problem
+        or just want to invalidate all stored data, hit "Clean storage" button on the bottom of your screen.
+
         <h3 className={"mt-4"}>Input formats</h3>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <h3 className={"mt-4"}>Solver optimisations</h3>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>Main input format for Simpler is <a href={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</a>, interactive input is under current development. Original MPS format is quite restrictive, therefore for the convenience of users, Simpler ignores all row/column character restrictions and relies solely on keywords, unknown keywords and sections are skipped and do not trigger and error.</p>
+        <p>Simpler works only with rational numbers, and displays the results as natural numbers or fractions. In all input forms numbers can be entered as:</p>
+        <ul>
+            <li>Plain natural numbers like: <code>1</code> or <code>-4</code></li>
+            <li>Rational numbers like: <code>1/50</code> or <code>-5/99</code></li>
+        </ul>
+        <p>No other number input formats are supported, so <code>-0.55746</code> will trigger an error.</p>
+
+        <p>Comments in MPS inputs are possible and are started by the <code>#</code> character. Everything between the first <code>#</code> character and the end of the line is ignored.</p>
+
+        <p>In all non-error outputs, Simpler supports LaTeX formatting, so entering variable name like <code>x_1</code> will result in it being rendered as: <InlineMath math={"x_1"} />. Note, that this applies to all nameable components of the MPS input format (for example RHS names as well).</p>
+
+        <p><i>Example input MPS:</i></p>
+        <div
+            style={{
+                width: '100%',
+                backgroundColor: '#F5F5F5',
+                color: 'black',
+                fontSize: '1rem',
+                fontFamily: 'monospace',
+                lineHeight: '1.5',
+                border: '0px',
+                padding: '0.375rem 0.75rem',
+                whiteSpace: 'pre-wrap',   // ✅ preserves \n
+                overflowY: 'auto',        // optional: scroll like textarea
+            }}
+        >   {"#Simple LP example \n#Simpler compatible MPS\nNAME          ExampleMps\nROWS\nN  OBJ\nL  C1\nL  C2\nCOLUMNS\nx_1        OBJ     1\nx_1        C1      1\nx_1        C2      0\nx_2        OBJ     1\nx_2        C1      0\nx_2        C2      1\nRHS\nRHS1      C1      2\nRHS1      C2      2\nENDATA"}</div>
+
+        <h3 className={"mt-4"}>Solver variants</h3>
+        <p>Simpler offers detailed solution output for different algorithmic variants of the Simplex algorithm. You can choose your desired optimisation in the "Solve LP" section. Currently supported variants are:</p>
+
+        <ul>
+            <li>Basic simplex (primary simplex algorithm, with tableau solution)</li>
+            <li>Two phase simplex (two-phase simplex algorithm, with tableau solution)</li>
+            <li>Revised simplex algorithm (two-phase simplex algorithm, solved using the revised method)</li>
+            <li>Multiplicative simplex algorithm (two phase simplex algorithm, edited version of the revised method with basis matrix inverse calculation optimisations)</li>
+        </ul>
+
         <h3 className={"mt-4"}>Troubleshooting</h3>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>Simpler does cache backend inputs and outputs in the frontend indexed DB, this may occasionally cause minor problems. First step in troubleshooting is clicking the "Clean storage" button on the
+        bottom of your screen. If that does not help and problem persists, try restarting Simpler, opening it in different browser or in a private mode. Try and keep your application updated by downloading the newest version when it comes out.
+        </p>
         <h3 className={"mt-4"}>Bug reporting</h3>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>Reporting bugs helps Simpler to advance and provide better user experience. If any error occurs while using the application, report bug link will appear. If you click it, it will either contain prefilled
+            information about application caught error, or ask you to describe your problem, if none was caught. In case of prefilled bugreport, you get full overview of what is being sent, so that you can personally check for sensitive information.</p>
+        <p>Try to always include your Simpler version and input, that triggered the bug, so that it can be tracked down and repaired swiftly.</p>
+
     </Container>
     )
 }
