@@ -16,7 +16,7 @@ function RevisedSimplexEnteringVariableElement(props: RevisedSimplexEnteringVari
     }
     
     return (<>
-        <p className={"pt-2"}>Entering variable index: 
+        <p className={"pt-2"}>Entering variable index:
             <InlineMath math={`${props.revisedSimplexIterationDto.enteringVariableIndex}`} />
             , name:
             <InlineMath math={`${props.revisedSimplexIterationDto.enteringVariableName}`} />

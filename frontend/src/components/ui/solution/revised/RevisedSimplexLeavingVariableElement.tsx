@@ -16,7 +16,7 @@ function RevisedSimplexLeavingVariableElement(props: RevisedSimplexLeavingVariab
     }
 
     return (<>
-        <p className={"pt-2"}>Leaving variable index:
+        <p className={"pt-2"}>Leaving variable basis index:
             <InlineMath math={`${props.revisedSimplexIterationDto.leavingVariableIndex}`} />
             , name:
             <InlineMath math={`${props.revisedSimplexIterationDto.leavingVariableName}`} />
