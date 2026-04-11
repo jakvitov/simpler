@@ -2,7 +2,12 @@ import type {
     RevisedSimplexIterationDto
 } from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {BlockMath} from "react-katex";
-import {renderMatrix, renderMatrixWithName, renderTextVector} from "../../../../api/common/math.ts";
+import {
+    renderMatrix,
+    renderMatrixWithName,
+    renderRationalWithNegativeSignOnly,
+    renderTextVector
+} from "../../../../api/common/math.ts";
 import RevisedSimplexEnteringVariableElement from "./RevisedSimplexEnteringVariableElement.tsx";
 import RevisedSimplexDirectionVectorCalculationElement from "./RevisedSimplexDirectionVectorCalculationElement.tsx";
 import RevisedSimplexRatioVectorCalculationElement from "./RevisedSimplexRatioVectorCalculationElement.tsx";
@@ -32,10 +37,10 @@ function renderYTCalculation(props: RevisedSimplexIterationElementProps): string
 
 function renderNonBasicVariablesCurrentReducedCostsCalculation(props: RevisedSimplexIterationElementProps) {
 
-    let res = "\\bar{c}_j = c_j - y^T A_j \\ \n"
+    let res = "\\bar{c}_j = c_j - y^T A_j \\\\[10pt] \n"
 
     props.revisedSimplexIterationDto.nonBasicVariablesCurrentReducedCosts.forEach((calculation) => {
-        res += `\\bar{c}_{${calculation.variableName}} = ${calculation.CJ} - ${renderMatrix(props.revisedSimplexIterationDto.YT)} ${renderMatrix(calculation.AJ)} = ${calculation.result} \\`;
+        res += `\\bar{c}_{${calculation.variableName}} = ${renderRationalWithNegativeSignOnly(calculation.CJ)} - ${renderMatrix(props.revisedSimplexIterationDto.YT)} ${renderMatrix(calculation.AJ)} = ${renderRationalWithNegativeSignOnly(calculation.result)} \\\\[10pt]`;
     })
 
     return res;
