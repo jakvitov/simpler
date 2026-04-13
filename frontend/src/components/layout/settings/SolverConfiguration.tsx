@@ -1,5 +1,6 @@
 import { Container, Table } from "react-bootstrap";
 import { useState } from "react";
+import {SOLVER_CONFIGURATION_KEY} from "../../../utils/storageConstants.ts";
 
 interface SolverConfiguration {
     basicSimplexMaxIterations: number;
@@ -12,13 +13,20 @@ interface SolverConfiguration {
 
 function SolverConfiguration() {
 
-    const [configuration, setConfiguration] = useState<SolverConfiguration>({
-        basicSimplexMaxIterations: 20,
-        basicSimplexMaxBaseCycles: 4,
-        twoPhaseMaxIterations: 20,
-        twoPhaseMaxBaseCycles: 4,
-        revisedMaxIterations: 20,
-        revisedMaxBaseCycles: 4
+    const [configuration, setConfiguration] = useState<SolverConfiguration>(() => {
+        const loadedConfig = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
+        if (loadedConfig == null) {
+            return {
+                basicSimplexMaxIterations: 20,
+                basicSimplexMaxBaseCycles: 4,
+                twoPhaseMaxIterations: 20,
+                twoPhaseMaxBaseCycles: 4,
+                revisedMaxIterations: 20,
+                revisedMaxBaseCycles: 4
+            }
+        } else {
+            return JSON.parse(loadedConfig);
+        }
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +53,7 @@ function SolverConfiguration() {
         e.preventDefault();
         try {
             validateConfiguration(configuration);
+            localStorage.setItem(SOLVER_CONFIGURATION_KEY, JSON.stringify(configuration));
             console.log("Updated config:", configuration);
         } catch (err: any) {
             alert(err.message);
@@ -139,9 +148,8 @@ function SolverConfiguration() {
                         </td>
                     </tr>
                     </tbody>
+                    <button type="submit">Update configuration</button>
                 </Table>
-
-                <button type="submit">Update configuration</button>
             </form>
         </Container>
     );
