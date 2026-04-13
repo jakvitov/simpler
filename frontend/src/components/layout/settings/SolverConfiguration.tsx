@@ -1,15 +1,8 @@
 import { Container, Table } from "react-bootstrap";
 import { useState } from "react";
 import {SOLVER_CONFIGURATION_KEY} from "../../../utils/storageConstants.ts";
+import type {SolverConfiguration} from "../../../api/solver/solveLpTypes.ts";
 
-interface SolverConfiguration {
-    basicSimplexMaxIterations: number;
-    basicSimplexMaxBaseCycles: number;
-    twoPhaseMaxIterations: number;
-    twoPhaseMaxBaseCycles: number;
-    revisedMaxIterations: number;
-    revisedMaxBaseCycles: number;
-}
 
 function SolverConfiguration() {
 
