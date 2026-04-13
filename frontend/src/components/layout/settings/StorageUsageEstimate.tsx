@@ -21,9 +21,10 @@ function StorageUsageEstimate() {
     } else {
         return <Container className={"mt-2"}>
             <h3>Storage</h3>
-            Simpler uses storage in order to persist problem data and solutions for later displays. This data does not usually get
+            <p>Simpler uses storage in order to persist problem data and solutions for later displays. This data does not usually get
             cleaned up automatically. You can manually inspect all the data in your browsers <a href={"https://en.wikipedia.org/wiki/IndexedDB"}>Indexed DB</a>.
             Note that the usage will never drop to 0 since other data than this are always persisted in the browser.
+            </p>
             <Table bordered className={"mt-2"}>
                 <thead>
                 <tr>
