@@ -140,8 +140,24 @@ function SolverConfiguration() {
                             />
                         </td>
                     </tr>
+                    <tr>
+                        <td colSpan={3} style={{ textAlign: "left" }}>
+                            <button
+                                type="submit"
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    padding: 0,
+                                    color: "black",
+                                    textDecoration: "underline",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                Update configuration
+                            </button>
+                        </td>
+                    </tr>
                     </tbody>
-                    <button type="submit">Update configuration</button>
                 </Table>
             </form>
         </Container>
