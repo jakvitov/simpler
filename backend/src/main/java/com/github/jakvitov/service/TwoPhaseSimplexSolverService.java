@@ -7,6 +7,7 @@ import com.github.jakvitov.dto.solver.basic.BasicSimplexIterationDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableLeavingEnteringVariableDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableLeavingRowNormalisationDto;
 import com.github.jakvitov.dto.solver.basic.SimplexTableRowsNormalizationDto;
+import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexPhaseOneSolutionDto;
@@ -16,7 +17,7 @@ import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
-import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.hipparchus.fraction.BigFraction;
@@ -24,27 +25,27 @@ import org.hipparchus.fraction.BigFraction;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.TP_MAX_CYCLE;
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.TP_MAX_ITER;
+
 @Singleton
 public class TwoPhaseSimplexSolverService {
 
-    @Value("${simpler.simplex.two-phase.max.iterations}")
-    private Integer maxIterations;
-
-    @Value("${simpler.simplex.two-phase.max.base.cycles}")
-    private Integer maxCycles;
-
     @Inject
     private BasicSimplexSolverService basicSimplexSolverService;
+
+    @Inject
+    private SolverConfigurationService configurationService;
 
     public SolveLpTwoPhaseSimplexResponseDto handleSolveTwoPhaseSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
         MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 
-        return solveTwoPhaseSimplex(simplexTable, solveLpRequestDto.optimisationTarget());
+        return solveTwoPhaseSimplex(simplexTable, solveLpRequestDto.optimisationTarget(), solveLpRequestDto.solverConfiguration());
     }
 
-    private SolveLpTwoPhaseSimplexResponseDto solveTwoPhaseSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget) {
+    private SolveLpTwoPhaseSimplexResponseDto solveTwoPhaseSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget, @Nullable SolverConfigurationDto solverConfigurationDto) {
 
         if (optimisationTarget.equals(OptimisationTarget.MIN)) {
             basicSimplexSolverService.convertObjectiveRowForMinimalization(simplexTable);
@@ -60,12 +61,12 @@ public class TwoPhaseSimplexSolverService {
         Map<Integer, Integer> visitedBaseCount = new HashMap<>();
 
         if (simplexTable.containsArtificialVariables) {
-            boolean continueToPhaseTwo = solveTwoPhaseSimplexPhaseOne(simplexTable, optimisationTarget, responseDto, iterations, visitedBaseCount);
+            boolean continueToPhaseTwo = solveTwoPhaseSimplexPhaseOne(simplexTable, responseDto, iterations, visitedBaseCount, solverConfigurationDto);
             if (continueToPhaseTwo) {
-                solveTwoPhaseSimplexPhaseTwo(simplexTable, optimisationTarget, responseDto, iterations, visitedBaseCount, originalObjectiveRow);
+                solveTwoPhaseSimplexPhaseTwo(simplexTable, responseDto, iterations, visitedBaseCount, originalObjectiveRow, solverConfigurationDto);
             }
         } else {
-            solveTwoPhaseSimplexPhaseTwo(simplexTable, optimisationTarget, responseDto, iterations, visitedBaseCount, originalObjectiveRow);
+            solveTwoPhaseSimplexPhaseTwo(simplexTable, responseDto, iterations, visitedBaseCount, originalObjectiveRow, solverConfigurationDto);
         }
 
         if (optimisationTarget.equals(OptimisationTarget.MIN) && responseDto.getSolutionObjectiveFunctionValue() != null) {
@@ -77,13 +78,12 @@ public class TwoPhaseSimplexSolverService {
     /**
      * Perform phase one - simplex iterations until all artificial variables are eliminated from the basis
      * @param simplexTable
-     * @param optimisationTarget
      * @param result
      * @param iteration
      * @param visitedBaseCount
      * @return true if it shall be proceeded to phase 2
      */
-    private boolean solveTwoPhaseSimplexPhaseOne(SimplexTable simplexTable, OptimisationTarget optimisationTarget, SolveLpTwoPhaseSimplexResponseDto result, IntWrapper iteration, Map<Integer, Integer> visitedBaseCount) {
+    private boolean solveTwoPhaseSimplexPhaseOne(SimplexTable simplexTable, SolveLpTwoPhaseSimplexResponseDto result, IntWrapper iteration, Map<Integer, Integer> visitedBaseCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
         visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
         //Make objective row artificial variables 1/1 and others 0
         setupObjectiveRowBeforePhaseOne(simplexTable);
@@ -95,9 +95,9 @@ public class TwoPhaseSimplexSolverService {
         TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = normalizeArtificialVariables(simplexTable);
         simplexPhaseOneSolutionDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
 
-        for (; ((iteration.value-1) < maxIterations) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
+        for (; ((iteration.value-1) < configurationService.getConfig(TP_MAX_ITER, solverConfigurationInput)) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
 
-            if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > maxCycles) {
+            if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > configurationService.getConfig(TP_MAX_CYCLE, solverConfigurationInput)) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
                 simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
@@ -174,7 +174,7 @@ public class TwoPhaseSimplexSolverService {
         return true;
     }
 
-    private void solveTwoPhaseSimplexPhaseTwo(SimplexTable simplexTable, OptimisationTarget optimisationTarget, SolveLpTwoPhaseSimplexResponseDto result,  IntWrapper iteration, Map<Integer, Integer> visitedBaseCount, List<BigFraction> originalObjectiveRow) {
+    private void solveTwoPhaseSimplexPhaseTwo(SimplexTable simplexTable, SolveLpTwoPhaseSimplexResponseDto result,  IntWrapper iteration, Map<Integer, Integer> visitedBaseCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
         //Remove artificial variables from phase I
         removeArtificialVariablesAfterPhaseOne(simplexTable, originalObjectiveRow);
         TwoPhaseSimplexPhaseTwoSolutionDto simplexPhaseTwoSolutionDto = new TwoPhaseSimplexPhaseTwoSolutionDto();
@@ -189,9 +189,9 @@ public class TwoPhaseSimplexSolverService {
         //Adjust objective row to contain 0 in base variable values
         simplexPhaseTwoSolutionDto.setObjectiveRowToBaseVariablesAdjustment(objectiveRowToBaseVariablesAdjustment);
 
-        for (; ((iteration.value-1) < maxIterations) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
+        for (; ((iteration.value-1) < configurationService.getConfig(TP_MAX_ITER, solverConfigurationInput)) && (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)); iteration.value ++) {
 
-            if (visitedBaseCount.containsKey(simplexTable.baseVariables.hashCode()) && visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > maxCycles) {
+            if (visitedBaseCount.containsKey(simplexTable.baseVariables.hashCode()) && visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > configurationService.getConfig(TP_MAX_CYCLE, solverConfigurationInput)) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
                 simplexPhaseTwoSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 result.setPhaseTwoSolutionDto(simplexPhaseTwoSolutionDto);
