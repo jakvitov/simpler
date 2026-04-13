@@ -3,6 +3,7 @@ package com.github.jakvitov.service;
 import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
+import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.dto.solver.revised.*;
 import com.github.jakvitov.dto.solver.twophase.TwoPhaseSimplexObjectiveRowNormalizationDto;
 import com.github.jakvitov.math.IntWrapper;
@@ -12,7 +13,7 @@ import com.github.jakvitov.mps.MpsDataTransformedBounds;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
 import com.github.jakvitov.utils.MemoryUtils;
-import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.hipparchus.fraction.BigFraction;
@@ -20,6 +21,9 @@ import org.hipparchus.fraction.BigFraction;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.RS_MAX_CYCLE;
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.RS_MAX_ITER;
 
 @Singleton
 public class RevisedSimplexSolverService {
@@ -33,11 +37,8 @@ public class RevisedSimplexSolverService {
     @Inject
     private TwoPhaseSimplexSolverService twoPhaseSimplexSolverService;
 
-    @Value("${simpler.simplex.revised.max.iterations}")
-    private Integer maxIterations;
-
-    @Value("${simpler.simplex.revised.max.base.cycles}")
-    private Integer maxCycles;
+    @Inject
+    private SolverConfigurationService configurationService;
 
     public SolveLpRevisedSimlexResponseDto handleSolveRevisedSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
         MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
@@ -56,18 +57,18 @@ public class RevisedSimplexSolverService {
         Map<Integer, Integer> visitedBaseCount = new HashMap<>();
 
         if (simplexTable.containsArtificialVariables) {
-            boolean continueToPhaseTwo = solveRevisedSimplexPhaseOne(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations);
+            boolean continueToPhaseTwo = solveRevisedSimplexPhaseOne(simplexTable,responseDto, visitedBaseCount, iterations, solveLpRequestDto.solverConfiguration());
             if (continueToPhaseTwo) {
-                solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow);
+                solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
             }
         } else {
-            solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow);
+            solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
         }
 
         return responseDto;
     }
 
-    private boolean solveRevisedSimplexPhaseOne(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount) {
+    private boolean solveRevisedSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
 
         RevisedSimplexPhaseOneSolutionDto revisedSimplexPhaseOneSolutionDto = new RevisedSimplexPhaseOneSolutionDto();
 
@@ -83,9 +84,9 @@ public class RevisedSimplexSolverService {
         visitedBaseCount.put(currentBasis.hashCode(), 1);
 
         //Revised simplex iterations solving phase one
-        while (iterationCount.value < maxIterations) {
+        while (iterationCount.value < configurationService.getConfig(RS_MAX_ITER, solverConfigurationInput)) {
 
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
+            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
                 return false;
@@ -176,7 +177,7 @@ public class RevisedSimplexSolverService {
         return false;
     }
 
-    private void solveRevisedSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow) {
+    private void solveRevisedSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
         RevisedSimplexPhaseTwoSolutionDto revisedSimplexPhaseTwoSolutionDto = new RevisedSimplexPhaseTwoSolutionDto();
 
         twoPhaseSimplexSolverService.removeArtificialVariablesAfterPhaseOne(originalSimplexTable, originalObjectiveRow);
@@ -193,8 +194,8 @@ public class RevisedSimplexSolverService {
         }
         revisedSimplexPhaseTwoSolutionDto.setInitialFeasibleBase(new ArrayList<>(currentBasis));
 
-        while (iterationCount.value < maxIterations) {
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
+        while (iterationCount.value < configurationService.getConfig(RS_MAX_ITER, solverConfigurationInput)) {
+            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;

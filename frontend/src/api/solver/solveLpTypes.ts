@@ -15,9 +15,19 @@ export type SolutionStatus =
     | "CYCLE"
     | "UNBOUNDED"
 
+export interface SolverConfiguration {
+    basicSimplexMaxIterations: number;
+    basicSimplexMaxBaseCycles: number;
+    twoPhaseMaxIterations: number;
+    twoPhaseMaxBaseCycles: number;
+    revisedMaxIterations: number;
+    revisedMaxBaseCycles: number;
+}
+
 export interface SolveLpRequest {
     data: string,
     optimisationTarget: OptimisationTarget,
+    solverConfiguration: SolverConfiguration|null
     method: SolverMethods,
 }
 

@@ -7,7 +7,12 @@ import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
 import {useEffect, useState} from "react";
 import ConfirmButton from "../../components/ui/general/ConfirmButton.tsx";
-import type {OptimisationTarget, SolveLpRequest, SolverMethods} from "../../api/solver/solveLpTypes.ts";
+import type {
+    OptimisationTarget,
+    SolveLpRequest,
+    SolverConfiguration,
+    SolverMethods
+} from "../../api/solver/solveLpTypes.ts";
 import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
 import {get, set} from "idb-keyval";
 import {
@@ -15,7 +20,7 @@ import {
     SOLVE_LP_DATA_PREFIX,
     SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
     SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX,
-    SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX, SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX,
+    SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX, SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX, SOLVER_CONFIGURATION_KEY,
 } from "../../utils/storageConstants.ts";
 import {hashStringSHA256} from "../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";
@@ -120,10 +125,18 @@ function SolveLpMpsInput() {
 
     const handleSolveMpsButtonClick = () => {
 
+        //Null when not set in settings, backend will use defaults
+        const solverConfigurationStr: string|null = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
+        let solverConfiguration: SolverConfiguration|null = null
+        if (solverConfigurationStr != null) {
+            solverConfiguration = JSON.parse(solverConfigurationStr)
+        }
+
         const request: SolveLpRequest = {
             data: mpsInput,
             optimisationTarget: optimisationTarget,
-            method: solverMethod
+            method: solverMethod,
+            solverConfiguration: solverConfiguration
         }
 
         switch (solverMethod) {

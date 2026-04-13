@@ -2,28 +2,30 @@ package com.github.jakvitov.service;
 
 import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.SolutionStatus;
-import com.github.jakvitov.dto.solver.basic.*;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
+import com.github.jakvitov.dto.solver.basic.*;
+import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
 import com.github.jakvitov.simplex.SimplexTableTransformationError;
-import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.Nullable;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.hipparchus.fraction.BigFraction;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.BS_MAX_CYCLE;
+import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.BS_MAX_ITER;
+
 @Singleton
 public class BasicSimplexSolverService {
 
-    @Value("${simpler.simplex.basic.max.iterations}")
-    private Integer maxIterations;
-
-    @Value("${simpler.simplex.basic.simplex.max.base.cycles}")
-    private Integer maxCycles;
+    @Inject
+    private SolverConfigurationService configurationService;
 
     public SolveLpBasicSimplexResponseDto handleSolveBasicSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
         MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
@@ -34,10 +36,10 @@ public class BasicSimplexSolverService {
             throw new SimplexTableTransformationError("Problem contains G/E rows, that are not supported in basic simplex algorithm.\nConsider using duality to transform the problem or try Two-phase simplex algorithm.");
         }
 
-        return solveBasicSimplex(simplexTable, solveLpRequestDto.optimisationTarget());
+        return solveBasicSimplex(simplexTable, solveLpRequestDto.optimisationTarget(), solveLpRequestDto.solverConfiguration());
     }
 
-    private SolveLpBasicSimplexResponseDto solveBasicSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget) {
+    private SolveLpBasicSimplexResponseDto solveBasicSimplex(SimplexTable simplexTable, OptimisationTarget optimisationTarget, @Nullable SolverConfigurationDto solverConfigurationInput) {
         SolveLpBasicSimplexResponseDto result = new SolveLpBasicSimplexResponseDto();
 
         if (optimisationTarget.equals(OptimisationTarget.MIN)) {
@@ -49,9 +51,9 @@ public class BasicSimplexSolverService {
         HashMap<Integer, Integer> visitedBaseCount = new HashMap<>();
         visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
 
-        for (int iteration = 1; ((iteration-1) < maxIterations) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
+        for (int iteration = 1; ((iteration-1) < configurationService.getConfig(BS_MAX_ITER, solverConfigurationInput)) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
 
-            if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > maxCycles) {
+            if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > configurationService.getConfig(BS_MAX_CYCLE, solverConfigurationInput)) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
                 result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 return result;

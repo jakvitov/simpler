@@ -32,7 +32,7 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C2      2
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(mpsData, OptimisationTarget.MAX, SimplexVariant.REVISED);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(mpsData, OptimisationTarget.MAX, SimplexVariant.REVISED, null);
         revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
     }
 
