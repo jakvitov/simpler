@@ -74,17 +74,23 @@ export function renderMatrix(matrix: Rational[][]): string {
     }
 
     let res = "\\begin{pmatrix}\n";
-    matrix.forEach((row) => {
-        if (row.length == 0) {
+
+    for (let rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
+        if (matrix[rowIndex].length == 0) {
             res += "& \n"
         } else {
-            res += `${renderRationalWithNegativeSignOnlyNoPhantom(row[0])}`;
-            for (let i = 1; i < row.length; i++) {
-                res += `& ${renderRationalWithNegativeSignOnlyNoPhantom(row[i])}`;
+            res += `${renderRationalWithNegativeSignOnlyNoPhantom(matrix[rowIndex][0])}`;
+            for (let columnIndex = 1; columnIndex < matrix[rowIndex].length; columnIndex++) {
+                res += `& ${renderRationalWithNegativeSignOnlyNoPhantom(matrix[rowIndex][columnIndex])}`;
             }
-            res += "\\\\ \n"
+            //Add vertical spacing to all rows except for the last one
+            if (rowIndex == matrix.length-1) {
+                res += "\\\\ \n"
+            } else {
+                res += "\\\\[17px] \n"
+            }
         }
-    })
+    }
     res += "\\end{pmatrix}"
     return res;
 }
