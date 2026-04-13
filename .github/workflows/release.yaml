@@ -1,0 +1,133 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'release/*'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#release/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # -----------------------------
+      # Update backend version files
+      # -----------------------------
+      - name: Update build.gradle
+        shell: bash
+        run: |
+          sed -i.bak "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" backend/build.gradle
+
+      - name: Update application.properties
+        shell: bash
+        run: |
+          sed -i.bak "s/^simpler.backend.version=.*/simpler.backend.version=${{ steps.version.outputs.version }}/" backend/src/main/resources/application.properties
+
+      # -----------------------------
+      # Setup Node & Build Frontend
+      # -----------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install FE deps
+        working-directory: frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npx tsc -b
+          npx vite build
+
+      - name: Copy frontend to backend
+        shell: bash
+        run: |
+          rm -rf backend/src/main/resources/public
+          mkdir -p backend/src/main/resources/public
+          cp -r frontend/dist/* backend/src/main/resources/public/
+
+      # -----------------------------
+      # Setup GraalVM
+      # -----------------------------
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          components: 'native-image'
+
+      - name: Grant execute permission
+        run: chmod +x backend/gradlew
+
+      # -----------------------------
+      # Build native image
+      # -----------------------------
+      - name: Build backend native
+        working-directory: backend
+        run: ./gradlew nativeCompile
+
+      # -----------------------------
+      # Rename artifact
+      # -----------------------------
+      - name: Rename artifact
+        shell: bash
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mkdir dist
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            EXT=".exe"
+          else
+            EXT=""
+          fi
+
+          cp backend/build/native/nativeCompile/* dist/Simpler_${VERSION}${EXT}
+
+      # -----------------------------
+      # Upload artifact
+      # -----------------------------
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simpler_${{ steps.version.outputs.version }}_${{ matrix.os }}
+          path: dist/*
+
+  # -----------------------------
+  # Create GitHub Release
+  # -----------------------------
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
