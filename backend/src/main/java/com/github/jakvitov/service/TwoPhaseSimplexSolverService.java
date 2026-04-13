@@ -317,7 +317,7 @@ public class TwoPhaseSimplexSolverService {
      * @param tVec
      * @return
      */
-    private int getLeavingVariableIndexForPhaseOne(List<Optional<BigFraction>> tVec) {
+    protected int getLeavingVariableIndexForPhaseOne(List<Optional<BigFraction>> tVec) {
         Optional<Integer> minimumIndex = Optional.empty();
         for (int i = 0; i < tVec.size(); i ++) {
             if (tVec.get(i).isEmpty()) {

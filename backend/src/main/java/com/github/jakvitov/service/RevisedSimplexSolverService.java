@@ -83,6 +83,7 @@ public class RevisedSimplexSolverService {
 
             if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > maxCycles) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
+                responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
                 return false;
             }
 
@@ -123,6 +124,7 @@ public class RevisedSimplexSolverService {
             if (enteringVariableIndex.isEmpty()) {
                 revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
                 revisedSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
+                responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
                 return true;
             }
 
@@ -137,6 +139,7 @@ public class RevisedSimplexSolverService {
             //Unbounded solution
             if (isUnbounded(d)) {
                 revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+                responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
                 responseDto.setSolutionStatus(SolutionStatus.UNBOUNDED);
                 return false;
             }
@@ -145,7 +148,7 @@ public class RevisedSimplexSolverService {
             List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
             iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
 
-            int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
+            int leavingVariableIndex = twoPhaseSimplexSolverService.getLeavingVariableIndexForPhaseOne(ratioVector);
             iterationDto.setLeavingVariableIndex(leavingVariableIndex);
             iterationDto.setLeavingVariableName(currentBasis.get(leavingVariableIndex));
 
@@ -165,6 +168,7 @@ public class RevisedSimplexSolverService {
         }
 
         responseDto.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
+        responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
         return false;
     }
 
