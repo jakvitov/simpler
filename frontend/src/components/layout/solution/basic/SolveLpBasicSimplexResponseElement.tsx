@@ -1,5 +1,5 @@
 import type {SolveLpBasicSimplexResponseDto} from "../../../../api/solver/basic/basicSimplexSolveTypes.ts";
-import PageContentHeader from "../../../ui/PageContentHeader.tsx";
+import PageContentHeader from "../../../ui/general/PageContentHeader.tsx";
 import PlainSimplexTableElement from "../../../ui/solution/basic/PlainSimplexTableElement.tsx";
 import BasicSimplexIterationElement from "../../../ui/solution/basic/BasicSimplexIterationElement.tsx";
 import ResultVariableValuesElement from "../../../ui/solution/common/ResultVariableValuesElement.tsx";

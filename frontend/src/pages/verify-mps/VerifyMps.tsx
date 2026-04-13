@@ -1,7 +1,7 @@
-import MainHeader from "../../components/ui/MainHeader.tsx";
+import MainHeader from "../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../components/layout/MainNavBar.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
-import PageContentHeader from "../../components/ui/PageContentHeader.tsx";
+import PageContentHeader from "../../components/ui/general/PageContentHeader.tsx";
 import MpsVerificationInput from "../../components/layout/mps/MpsVerificationInput.tsx";
 
 function VerifyMps() {

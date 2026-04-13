@@ -1,5 +1,5 @@
 import {Container} from "react-bootstrap";
-import PageContentHeader from "../../ui/PageContentHeader.tsx";
+import PageContentHeader from "../../ui/general/PageContentHeader.tsx";
 import StorageUsageEstimate from "./StorageUsageEstimate.tsx";
 
 function SettingsBar() {

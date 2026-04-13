@@ -5,6 +5,7 @@ import TwoPhaseSimplexObjectiveRowNormalizationElement
 import RevisedSimplexIterationElement from "./RevisedSimplexIterationElement.tsx";
 import {BlockMath} from "react-katex";
 import {renderTextVector} from "../../../../api/common/math.ts";
+import DividerWithText from "../../general/DividerWithText.tsx";
 
 type RevisedSimplexPhaseOneSolutionElementProps = {
     revisedSimplexPhaseOneSolutionDto: RevisedSimplexPhaseOneSolutionDto|undefined;
@@ -33,18 +34,21 @@ function RevisedSimplexPhaseOneResultBasisElement(props: RevisedSimplexPhaseOneR
  */
 function RevisedSimplexPhaseOneSolutionElement(props: RevisedSimplexPhaseOneSolutionElementProps) {
     if (props.revisedSimplexPhaseOneSolutionDto == null) {
-        return (<h3 className={"pt-2"}>Phase I skipped.</h3>)
+        return (<DividerWithText text={"Phase I skipped"}/>)
     }
 
     return (<>
-        <h3 className={"pt-2"}>Start phase I</h3>
-        <p className={"pt-2"}>Initial simplex table:</p>
-        <PlainSimplexTableElement simplexTable={props.revisedSimplexPhaseOneSolutionDto.initialSimplexTable} />
+        <DividerWithText text={"Start phase I"}/>
+        <p className={"pt-2"}>Initial simplex table for phase I:</p>
+        <PlainSimplexTableElement simplexTable={props.revisedSimplexPhaseOneSolutionDto.initialSimplexTable}/>
         <p className={"pt-2"}>Adjusting artificial variables in objective row to base:</p>
-        <TwoPhaseSimplexObjectiveRowNormalizationElement twoPhaseSimplexObjectiveRowNormalizationDto={props.revisedSimplexPhaseOneSolutionDto.artificialVariablesNormalization} />
-        {(props.revisedSimplexPhaseOneSolutionDto.iterations != null) ? props.revisedSimplexPhaseOneSolutionDto.iterations.map((iterationDto, index) => <RevisedSimplexIterationElement revisedSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
-        <RevisedSimplexPhaseOneResultBasisElement resultBasis={props.revisedSimplexPhaseOneSolutionDto.resultBase} />
-        <h3 className={"pt-2"}>End phase I</h3>
+        <TwoPhaseSimplexObjectiveRowNormalizationElement
+            twoPhaseSimplexObjectiveRowNormalizationDto={props.revisedSimplexPhaseOneSolutionDto.artificialVariablesNormalization}/>
+        {(props.revisedSimplexPhaseOneSolutionDto.iterations != null) ? props.revisedSimplexPhaseOneSolutionDto.iterations.map((iterationDto, index) =>
+            <RevisedSimplexIterationElement revisedSimplexIterationDto={iterationDto} iterationIndex={index}/>) : <></>}
+        <RevisedSimplexPhaseOneResultBasisElement resultBasis={props.revisedSimplexPhaseOneSolutionDto.resultBase}/>
+        <DividerWithText text={"End phase I"}/>
+
     </>)
 
 }

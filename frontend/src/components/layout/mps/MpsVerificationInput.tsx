@@ -1,7 +1,7 @@
 import {Container} from "react-bootstrap";
 import {useEffect, useState} from "react";
 import MPSInput from "./MpsInput.tsx";
-import ConfirmButton from "../../ui/ConfirmButton.tsx";
+import ConfirmButton from "../../ui/general/ConfirmButton.tsx";
 import {verifyMpsCall} from "../../../api/verification/verificationApi.ts";
 import {hashStringSHA256} from "../../../utils/hash.ts";
 import {useNavigate} from "react-router-dom";

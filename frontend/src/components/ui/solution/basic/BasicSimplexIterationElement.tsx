@@ -41,7 +41,6 @@ function BasicSimplexIterationElement(props: BasicSimplexIterationElementProps) 
         <SimplexTableRowsNormalizationElement simplexTableRowNormalizationElementDto={props.basicSimplexIterationDto.simplexTableRowsNormalizationDto} />
         <p className={"pt-2"}>Final simplex after variable switch:</p>
         <PlainSimplexTableElement simplexTable={props.basicSimplexIterationDto.simplexTableAfterVariableSwitch} />
-        <p className={"pt-2"}>End iteration {props.iterationIndex + 1}</p>
         <hr/>
     </div>)
 }

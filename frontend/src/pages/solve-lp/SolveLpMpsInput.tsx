@@ -1,4 +1,4 @@
-import MainHeader from "../../components/ui/MainHeader.tsx";
+import MainHeader from "../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../components/layout/MainNavBar.tsx";
 import {Container} from "react-bootstrap";
 import SolverInputType from "../../components/layout/solve-input/SolverInputType.tsx";
@@ -6,7 +6,7 @@ import SolverAlgorithmRadial from "../../components/layout/solve-input/SolverAlg
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import MPSInput from "../../components/layout/mps/MpsInput.tsx";
 import {useEffect, useState} from "react";
-import ConfirmButton from "../../components/ui/ConfirmButton.tsx";
+import ConfirmButton from "../../components/ui/general/ConfirmButton.tsx";
 import type {OptimisationTarget, SolveLpRequest, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
 import {get, set} from "idb-keyval";

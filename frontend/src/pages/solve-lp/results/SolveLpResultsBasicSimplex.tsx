@@ -4,9 +4,9 @@ import {SOLVE_LP_DATA_PREFIX, SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX} from "../.
 import {get} from "idb-keyval";
 import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
 import type {SolveLpBasicSimplexResponseDto} from "../../../api/solver/basic/basicSimplexSolveTypes.ts";
-import MainHeader from "../../../components/ui/MainHeader.tsx";
+import MainHeader from "../../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../../components/layout/MainNavBar.tsx";
-import PageContentHeader from "../../../components/ui/PageContentHeader.tsx";
+import PageContentHeader from "../../../components/ui/general/PageContentHeader.tsx";
 import {Container} from "react-bootstrap";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
 import SolveLpBasicSimplexResponseElement

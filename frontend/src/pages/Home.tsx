@@ -1,4 +1,4 @@
-import MainHeader from "../components/ui/MainHeader.tsx";
+import MainHeader from "../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../components/layout/MainNavBar.tsx";
 import Manual from "../components/ui/Manual.tsx";
 import AboutBottomNavBar from "../components/ui/AboutBottomNavBar.tsx";
