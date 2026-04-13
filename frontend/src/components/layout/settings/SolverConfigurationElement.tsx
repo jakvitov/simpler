@@ -4,7 +4,7 @@ import {SOLVER_CONFIGURATION_KEY} from "../../../utils/storageConstants.ts";
 import type {SolverConfiguration} from "../../../api/solver/solveLpTypes.ts";
 
 
-function SolverConfiguration() {
+function SolverConfigurationElement() {
 
     const [configuration, setConfiguration] = useState<SolverConfiguration>(() => {
         const loadedConfig = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
@@ -53,8 +53,7 @@ function SolverConfiguration() {
         }
     };
 
-    return (
-        <Container className="mt-2">
+    return (<Container className="mt-2">
             <h3>Solver configuration</h3>
             <p>You can configure custom configuration for individual simplex variants below.</p>
 
@@ -160,8 +159,7 @@ function SolverConfiguration() {
                     </tbody>
                 </Table>
             </form>
-        </Container>
-    );
+        </Container>);
 }
 
-export default SolverConfiguration;
+export default SolverConfigurationElement;
