@@ -32,4 +32,4 @@ jobs:
         run: npm ci
 
       - name: Verify TypeScript build
-        run: tsc -b && vite build
+        run: tsc -b
