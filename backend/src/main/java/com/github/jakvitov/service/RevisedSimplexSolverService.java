@@ -44,6 +44,10 @@ public class RevisedSimplexSolverService {
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 
+        if (solveLpRequestDto.optimisationTarget().equals(OptimisationTarget.MIN)) {
+            basicSimplexSolverService.convertObjectiveRowForMinimalization(simplexTable);
+        }
+
         SolveLpRevisedSimlexResponseDto responseDto = new SolveLpRevisedSimlexResponseDto();
         responseDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
@@ -236,7 +240,12 @@ public class RevisedSimplexSolverService {
                 responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
                 // 1x1 matrix with the objective function value
                 List<List<BigFraction>> objectiveFunctionValueMatrixNegated = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
-                responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrixNegated.getFirst().getFirst().negate());
+
+                if (optimisationTarget.equals(OptimisationTarget.MIN)) {
+                    responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrixNegated.getFirst().getFirst());
+                } else {
+                    responseDto.setSolutionObjectiveFunctionValue(objectiveFunctionValueMatrixNegated.getFirst().getFirst().negate());
+                }
                 responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
             }
