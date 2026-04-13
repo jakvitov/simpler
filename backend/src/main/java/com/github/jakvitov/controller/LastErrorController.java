@@ -14,7 +14,7 @@ import jakarta.inject.Inject;
 
 import java.util.Optional;
 
-@Controller("/error/last")
+@Controller("/be/simpler/error/last")
 public class LastErrorController {
 
     @Inject

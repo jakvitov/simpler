@@ -6,7 +6,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 
-@Controller("/health")
+@Controller("/be/simpler/health")
 public class HealthCheckController {
 
     @Value("${simpler.backend.version:UNKNOWN}")

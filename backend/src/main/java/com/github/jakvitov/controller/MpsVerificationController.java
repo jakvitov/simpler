@@ -9,7 +9,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 import jakarta.inject.Inject;
 
-@Controller("/mps/verify")
+@Controller("/be/simpler/mps/verify")
 public class MpsVerificationController {
 
     @Inject
