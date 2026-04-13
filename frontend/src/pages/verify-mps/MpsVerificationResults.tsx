@@ -1,6 +1,6 @@
-import MainHeader from "../../components/ui/MainHeader.tsx";
+import MainHeader from "../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../components/layout/MainNavBar.tsx";
-import PageContentHeader from "../../components/ui/PageContentHeader.tsx";
+import PageContentHeader from "../../components/ui/general/PageContentHeader.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../utils/storageConstants.ts";

@@ -12,6 +12,7 @@ import SolveLpResultsBasicSimplex from "./pages/solve-lp/results/SolveLpResultsB
 import SolveLpResultsError from "./pages/solve-lp/results/SolveLpResultsError.tsx";
 import SolveLpResultsTwoPhaseSimplex from "./pages/solve-lp/results/SolveLpResultsTwoPhaseSimplex.tsx";
 import ReportBug from "./pages/bugreport/ReportBug.tsx";
+import SolveLpResultsRevisedSimplex from "./pages/solve-lp/results/SolveLpResultsRevisedSimplex.tsx";
 
 function App() {
     return (
@@ -34,6 +35,7 @@ function App() {
 
                 <Route path="results/basic-simplex/:key" element={<SolveLpResultsBasicSimplex/>}></Route>
                 <Route path="results/two-phase-simplex/:key" element={<SolveLpResultsTwoPhaseSimplex/>}></Route>
+                <Route path="results/revised-simplex/:key" element={<SolveLpResultsRevisedSimplex/>}></Route>
                 <Route path="results/error/:key" element={<SolveLpResultsError/>}></Route>
             </Route>
         </Routes>

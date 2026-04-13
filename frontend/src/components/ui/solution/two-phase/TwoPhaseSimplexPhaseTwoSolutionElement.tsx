@@ -2,6 +2,7 @@ import type {TwoPhaseSimplexPhaseTwoSolutionDto} from "../../../../api/solver/tw
 import PlainSimplexTableElement from "../basic/PlainSimplexTableElement.tsx";
 import TwoPhaseSimplexObjectiveRowNormalizationElement from "./TwoPhaseSimplexObjectiveRowNormalizationElement.tsx";
 import BasicSimplexIterationElement from "../basic/BasicSimplexIterationElement.tsx";
+import DividerWithText from "../../general/DividerWithText.tsx";
 
 type TwoPhaseSimplexPhaseTwoSolutionElementProps = {
     twoPhaseSimplexPhaseTwoSolutionDto: TwoPhaseSimplexPhaseTwoSolutionDto|undefined
@@ -9,10 +10,10 @@ type TwoPhaseSimplexPhaseTwoSolutionElementProps = {
 
 function TwoPhaseSimplexPhaseTwoSolutionElement(props: TwoPhaseSimplexPhaseTwoSolutionElementProps) {
     if (props.twoPhaseSimplexPhaseTwoSolutionDto == null) {
-        return (<h3 className={"pt-2"}>Phase II skipped.</h3>)
+        return (<DividerWithText text={"Phase II skipped"}/>)
     }
     return (<>
-        <h3 className={"pt-2"}>Start phase II</h3>
+        <DividerWithText text={"Start phase II"}/>
         <p className={"pt-2"}>Initial simplex table:</p>
         <PlainSimplexTableElement simplexTable={props.twoPhaseSimplexPhaseTwoSolutionDto.initialSimplexTable} />
         <p className={"pt-2"}>Simplex table with restored original objective row:</p>
@@ -22,6 +23,7 @@ function TwoPhaseSimplexPhaseTwoSolutionElement(props: TwoPhaseSimplexPhaseTwoSo
         {(props.twoPhaseSimplexPhaseTwoSolutionDto.iterations != null) ? props.twoPhaseSimplexPhaseTwoSolutionDto.iterations.map((iterationDto, index) => <BasicSimplexIterationElement basicSimplexIterationDto={iterationDto} iterationIndex={index} />) : <></>}
         <p className={"pt-2"}>Final simplex table after phase II:</p>
         <PlainSimplexTableElement simplexTable={props.twoPhaseSimplexPhaseTwoSolutionDto.finalSimplexTable} />
+        <DividerWithText text={"End phase II"}/>
     </>)
 }
 

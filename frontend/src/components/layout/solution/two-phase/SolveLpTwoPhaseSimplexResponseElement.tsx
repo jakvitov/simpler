@@ -15,7 +15,7 @@ type SolveLpTwoPhaseSimplexResponseElementProps = {
 
 function SolveLpTwoPhaseSimplexResponseElement(props: SolveLpTwoPhaseSimplexResponseElementProps) {
     if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "SOLVED") {
-        return (<div className="basicSimplexSolution">
+        return (<div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
@@ -26,7 +26,7 @@ function SolveLpTwoPhaseSimplexResponseElement(props: SolveLpTwoPhaseSimplexResp
             <BlockMath math={renderRationalWithNegativeSignOnly(props.solveLpTwoPhaseSimplexResponseDto.solutionObjectiveFunctionValue)} />
         </div>)
     } else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "UNBOUNDED") {
-        return (<div className="basicSimplexSolution">
+        return (<div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
@@ -36,14 +36,14 @@ function SolveLpTwoPhaseSimplexResponseElement(props: SolveLpTwoPhaseSimplexResp
         </div>)
     }
     else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "MAX_ITERATIONS") {
-        <div className="basicSimplexSolution">
+        <div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
             <TwoPhaseSimplexPhaseTwoSolutionElement twoPhaseSimplexPhaseTwoSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseTwoSolutionDto} />
         </div>
     } else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "CYCLE") {
-        <div className="basicSimplexSolution">
+        <div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />

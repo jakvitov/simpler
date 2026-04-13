@@ -1,9 +1,9 @@
-import MainHeader from "../../components/ui/MainHeader.tsx";
+import MainHeader from "../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../components/layout/MainNavBar.tsx";
 import {Container} from "react-bootstrap";
 import SolverInputType from "../../components/layout/solve-input/SolverInputType.tsx";
 import SolverAlgorithmRadial from "../../components/layout/solve-input/SolverAlgorithmRadial.tsx";
-import ConfirmButton from "../../components/ui/ConfirmButton.tsx";
+import ConfirmButton from "../../components/ui/general/ConfirmButton.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import {useState} from "react";
 import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";

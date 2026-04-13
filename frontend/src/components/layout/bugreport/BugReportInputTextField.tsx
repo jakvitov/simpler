@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type {LastErrorResponseDto} from "../../../api/bugreport/lastErrorTypes.ts";
-import ConfirmButton from "../../ui/ConfirmButton.tsx";
+import ConfirmButton from "../../ui/general/ConfirmButton.tsx";
 import {Container} from "react-bootstrap";
 
 type BugReportTextInputFieldProps = {

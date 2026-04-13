@@ -18,6 +18,8 @@ public class SimplexTable {
 
     //Metadata - not transformed to out DTOS
     public boolean containsArtificialVariables;
+    //Computed dynamically, since not being used in all algorithms
+    private final Map<String, Integer> columnVariableIndexes = new HashMap<>();
 
     public static SimplexTable fromMpsData(MpsDataTransformedBounds mpsData) {
         SimplexTable result = new SimplexTable();
@@ -247,5 +249,54 @@ public class SimplexTable {
         objRow.append(center.apply(objVal, colWidth)).append("|");
         System.out.println(objRow);
         System.out.println(horizontalLine);
+    }
+
+    /**
+     * Get column index of variable by name
+     * Cached dynamically, since it is required only by some algorithms
+     * @param variableName
+     * @return
+     */
+    public Optional<Integer> getVariableColumnIndex(String variableName) {
+        if (this.columnVariableIndexes.containsKey(variableName)) {
+            return Optional.of(this.columnVariableIndexes.get(variableName));
+        }
+        int result = this.variables.indexOf(variableName);
+        if (result == -1) {
+            return Optional.empty();
+        } else {
+            this.columnVariableIndexes.put(variableName, result);
+            return Optional.of(result);
+        }
+    }
+
+    /**
+     * Return RHS of the current simplex table in a matrix form. Instead of [1,2,3]
+     * [[1],[2],[3]]
+     * @return
+     */
+    public List<List<BigFraction>> getRhsInMatrixForm() {
+        List<List<BigFraction>> result = new ArrayList<>(this.rhs.size());
+        this.rhs.forEach(rhsValue -> {
+            result.add(List.of(rhsValue));
+        });
+        return result;
+    }
+
+    /**
+     * Return column from matrix data in matrix format [[1], [2], [3]]
+     * @param columnIndex
+     * @return
+     */
+    public List<List<BigFraction>> getDataColumnInMatrixForm(int columnIndex) {
+        if (this.data.isEmpty() || columnIndex >= this.data.getFirst().size()) {
+            throw new IndexOutOfBoundsException("Cannot obtain data column " + columnIndex + " from matrix with " + this.data.size() + " columns.");
+        }
+
+        List<List<BigFraction>> result = new ArrayList<>(this.rhs.size());
+        for (int rowIndex = 0; rowIndex < this.rhs.size(); rowIndex++) {
+            result.add(List.of(this.data.get(rowIndex).get(columnIndex)));
+        }
+        return result;
     }
 }

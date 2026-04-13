@@ -39,6 +39,75 @@ export function renderRationalWithNegativeSignOnly(r: Rational|undefined): strin
     }
 }
 
+/**
+ * Render rational number without any phantom charancters around it
+ * Used in matrix rendering
+ * @param r
+ */
+function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefined): string {
+    if (r == undefined) {
+        return "ERROR_UNDEFINED"
+    }
+    if (r.sign === "P") {
+        if (r.denominator == 1) {
+            return r.numerator.toString()
+        } else {
+            //Phantom + makes alignment with - in matrices possible
+            return "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
+    } else {
+        if (r.denominator == 1) {
+            return "- " + r.numerator;
+        } else {
+            return "- \\dfrac{" + r.numerator + "}{" + r.denominator + "}";
+        }
+    }
+}
+
+export function renderMatrixWithName(name: string, matrix: Rational[][]): string {
+    return name + " = " + renderMatrix(matrix)
+}
+
+export function renderMatrix(matrix: Rational[][]): string {
+    if (matrix.length == 0) {
+        return "";
+    }
+
+    let res = "\\begin{pmatrix}\n";
+
+    for (let rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
+        if (matrix[rowIndex].length == 0) {
+            res += "& \n"
+        } else {
+            res += `${renderRationalWithNegativeSignOnlyNoPhantom(matrix[rowIndex][0])}`;
+            for (let columnIndex = 1; columnIndex < matrix[rowIndex].length; columnIndex++) {
+                res += `& ${renderRationalWithNegativeSignOnlyNoPhantom(matrix[rowIndex][columnIndex])}`;
+            }
+            //Add vertical spacing to all rows except for the last one
+            if (rowIndex == matrix.length-1) {
+                res += "\\\\ \n"
+            } else {
+                res += "\\\\[17px] \n"
+            }
+        }
+    }
+    res += "\\end{pmatrix}"
+    return res;
+}
+
+export function renderTextVector(textVector: string[]): string {
+    if (textVector.length == 0) {
+        return "\\begin{pmatrix}\n\\end{pmatrix}";
+    }
+    let res = "\\begin{pmatrix}\n";
+    res += `${textVector[0]}`
+    for (let i = 1; i < textVector.length; i++) {
+        res += `& ${textVector[i]}`
+    }
+    res += "\\end{pmatrix}"
+    return res;
+}
+
 export function demoRational(): Rational {
     let diceRoll = Math.floor(Math.random() * 6)
     if (diceRoll > 3) {
