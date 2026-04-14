@@ -29,12 +29,4 @@ public class LastErrorController {
         }
     }
 
-    @Post("/generate")
-    public HttpResponse<?> generateTestLastError() {
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto("Error generation test data.", OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null);
-        Throwable a = new RuntimeException("Test error exception");
-        errorManagementService.registerLastExceptionAndLog(a, solveLpRequestDto);
-        return HttpResponse.ok();
-    }
-
 }
