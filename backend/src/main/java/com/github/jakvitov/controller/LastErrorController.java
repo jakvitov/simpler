@@ -1,6 +1,5 @@
 package com.github.jakvitov.controller;
 
-import com.github.jakvitov.dto.HealthCheckResponseDto;
 import com.github.jakvitov.dto.error.LastErrorResponseDto;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.service.ErrorManagementService;
@@ -14,7 +13,7 @@ import jakarta.inject.Inject;
 
 import java.util.Optional;
 
-@Controller("/be/simpler/error/last")
+@Controller("/api/simpler/error/last")
 public class LastErrorController {
 
     @Inject

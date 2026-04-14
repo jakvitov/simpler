@@ -15,7 +15,7 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller("/be/simpler/solve-lp/revised")
+@Controller("/api/simpler/solve-lp/revised")
 public class SolveRevisedSimplexController {
 
     @Inject
