@@ -78,6 +78,15 @@ jobs:
         run: chmod +x backend/gradlew
 
       # -----------------------------
+      # Prevents Path.relativize to fail
+      # -----------------------------
+      - name: Setup temp dir
+        shell: bash
+        run: |
+          mkdir -p tmp
+          echo "org.gradle.jvmargs=-Djava.io.tmpdir=$(pwd)/tmp" >> gradle.properties
+
+      # -----------------------------
       # Build native image
       # -----------------------------
       - name: Build backend native
