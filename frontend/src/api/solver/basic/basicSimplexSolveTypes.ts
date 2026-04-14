@@ -1,15 +1,10 @@
 import type {SimplexTable} from "../../common/lpDefinitionTypes.ts";
 import type {Rational} from "../../common/math.ts";
-import type {SolutionStatus} from "../solveLpTypes.ts";
+import type {AbstractSolutionResponseDto} from "../solveLpTypes.ts";
 
-export interface SolveLpBasicSimplexResponseDto {
-    solutionStatus: SolutionStatus
-    initialSimplexTable: SimplexTable
+export interface SolveLpBasicSimplexResponseDto extends AbstractSolutionResponseDto{
     iterations: BasicSimplexIterationDto[]
     finalSimplexTable: SimplexTable
-    resultVariableValues: Record<string, Rational>
-    solutionObjectiveFunctionValue: Rational,
-    success: boolean
 }
 
 export interface BasicSimplexIterationDto {

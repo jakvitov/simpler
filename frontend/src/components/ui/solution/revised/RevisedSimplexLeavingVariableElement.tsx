@@ -1,8 +1,11 @@
 import type {RevisedSimplexIterationDto} from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {InlineMath} from "react-katex";
+import type {
+    MultiplicativeSimplexIterationDto
+} from "../../../../api/solver/multiplicative/multiplicativeSimplexSolveTypes.ts";
 
 type RevisedSimplexLeavingVariableElementProps = {
-    revisedSimplexIterationDto: RevisedSimplexIterationDto
+    iterationDto: RevisedSimplexIterationDto|MultiplicativeSimplexIterationDto
 }
 
 /**
@@ -11,15 +14,15 @@ type RevisedSimplexLeavingVariableElementProps = {
  * @constructor
  */
 function RevisedSimplexLeavingVariableElement(props: RevisedSimplexLeavingVariableElementProps) {
-    if (props.revisedSimplexIterationDto.leavingVariableIndex == null || props.revisedSimplexIterationDto.leavingVariableName == null) {
+    if (props.iterationDto.leavingVariableIndex == null || props.iterationDto.leavingVariableName == null) {
         return (<></>)
     }
 
     return (<>
         <p className={"pt-2"}>Leaving variable basis index:
-            <InlineMath math={`${props.revisedSimplexIterationDto.leavingVariableIndex}`} />
+            <InlineMath math={`${props.iterationDto.leavingVariableIndex}`} />
             , name:
-            <InlineMath math={`${props.revisedSimplexIterationDto.leavingVariableName}`} />
+            <InlineMath math={`${props.iterationDto.leavingVariableName}`} />
         </p>
     </>)
 }

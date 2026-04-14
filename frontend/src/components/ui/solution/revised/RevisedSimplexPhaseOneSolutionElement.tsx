@@ -3,27 +3,11 @@ import PlainSimplexTableElement from "../basic/PlainSimplexTableElement.tsx";
 import TwoPhaseSimplexObjectiveRowNormalizationElement
     from "../two-phase/TwoPhaseSimplexObjectiveRowNormalizationElement.tsx";
 import RevisedSimplexIterationElement from "./RevisedSimplexIterationElement.tsx";
-import {BlockMath} from "react-katex";
-import {renderTextVector} from "../../../../api/common/math.ts";
 import DividerWithText from "../../general/DividerWithText.tsx";
+import RevisedSimplexPhaseOneResultBasisElement from "./RevisedSimplexPhaseOneResultBasisElement.tsx";
 
 type RevisedSimplexPhaseOneSolutionElementProps = {
     revisedSimplexPhaseOneSolutionDto: RevisedSimplexPhaseOneSolutionDto|undefined;
-}
-
-type RevisedSimplexPhaseOneResultBasisElementProps = {
-    resultBasis: string[]|undefined
-}
-
-function RevisedSimplexPhaseOneResultBasisElement(props: RevisedSimplexPhaseOneResultBasisElementProps) {
-    if (props.resultBasis == null) {
-        return (<></>)
-    }
-
-    return (<>
-        <p className={"pt-2"}>Result base after iteration:</p>
-        <BlockMath math={renderTextVector(props.resultBasis)} />
-    </>)
 }
 
 /**

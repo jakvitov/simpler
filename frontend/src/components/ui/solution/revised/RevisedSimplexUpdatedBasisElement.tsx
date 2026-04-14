@@ -1,9 +1,12 @@
 import type {RevisedSimplexIterationDto} from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {BlockMath} from "react-katex";
 import {renderTextVector} from "../../../../api/common/math.ts";
+import type {
+    MultiplicativeSimplexIterationDto
+} from "../../../../api/solver/multiplicative/multiplicativeSimplexSolveTypes.ts";
 
 type RevisedSimplexUpdatedBasisElementProps = {
-    revisedSimplexIterationDto: RevisedSimplexIterationDto
+    iterationDto: RevisedSimplexIterationDto|MultiplicativeSimplexIterationDto
 }
 
 /**
@@ -12,13 +15,13 @@ type RevisedSimplexUpdatedBasisElementProps = {
  * @constructor
  */
 function RevisedSimplexUpdatedBasisElement(props: RevisedSimplexUpdatedBasisElementProps) {
-    if (props.revisedSimplexIterationDto.updatedBasis == null) {
+    if (props.iterationDto.updatedBasis == null) {
         return (<></>)
     }
 
     return (<>
         <p className={"pt-2"}>Updated basis after variable switch:</p>
-        <BlockMath math={renderTextVector(props.revisedSimplexIterationDto.updatedBasis)} />
+        <BlockMath math={renderTextVector(props.iterationDto.updatedBasis)} />
     </>)
 }
 

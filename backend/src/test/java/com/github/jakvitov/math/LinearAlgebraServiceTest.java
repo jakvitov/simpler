@@ -157,4 +157,23 @@ public class LinearAlgebraServiceTest {
         assert testData.get(1).equals(originalRow2);
     }
 
+    @Test
+    public void create_identity_matrix_with_positive_dim_succeeds() {
+        List<List<BigFraction>> im = linearAlgebraService.createIdentityMatrix(2);
+        assert im.getFirst().getFirst().equals(BigFraction.ONE);
+        assert im.getFirst().get(1).equals(BigFraction.ZERO);
+        assert im.get(1).getFirst().equals(BigFraction.ZERO);
+        assert im.get(1).get(1).equals(BigFraction.ONE);
+    }
+
+    @Test
+    public void create_identity_matrix_with_negative_dim_fails() {
+        try {
+            List<List<BigFraction>> im = linearAlgebraService.createIdentityMatrix(-2);
+        } catch (IllegalArgumentException iea) {
+            return;
+        }
+        assert false;
+    }
+
 }

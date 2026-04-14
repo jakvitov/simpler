@@ -1,4 +1,4 @@
-import type {SolutionStatus} from "../solveLpTypes.ts";
+import type {AbstractSolutionResponseDto} from "../solveLpTypes.ts";
 import type {SimplexTable} from "../../common/lpDefinitionTypes.ts";
 import type {TwoPhaseSimplexObjectiveRowNormalizationDto} from "../two-phase/twoPhaseSimplexSolveTypes.ts";
 import type {Rational} from "../../common/math.ts";
@@ -42,12 +42,7 @@ export interface RevisedSimplexPhaseTwoSolutionDto {
     iterations: RevisedSimplexIterationDto[],
 }
 
-export interface SolveLpRevisedSimlexResponseDto {
-    solutionStatus: SolutionStatus;
-    initialSimplexTable: SimplexTable;
+export interface SolveLpRevisedSimlexResponseDto extends AbstractSolutionResponseDto {
     revisedSimplexPhaseOneSolution: RevisedSimplexPhaseOneSolutionDto|undefined;
     revisedSimplexPhaseTwoSolutionDto: RevisedSimplexPhaseTwoSolutionDto|undefined;
-    resultVariableValues: Record<string, Rational>|undefined;
-    solutionObjectiveFunctionValue: Rational|undefined;
-    success: boolean
 }

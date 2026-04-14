@@ -1,20 +1,23 @@
 import type {RevisedSimplexIterationDto} from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {renderMatrix} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
+import type {
+    MultiplicativeSimplexIterationDto
+} from "../../../../api/solver/multiplicative/multiplicativeSimplexSolveTypes.ts";
 
 type RevisedSimplexDirectionVectorCalculationElementProps = {
-    revisedSimplexIterationDto: RevisedSimplexIterationDto
+    iterationDto: RevisedSimplexIterationDto|MultiplicativeSimplexIterationDto
 }
 
 function renderDirectionVectorCalculation(props: RevisedSimplexDirectionVectorCalculationElementProps): string {
-    if (props.revisedSimplexIterationDto.directionVector == null || props.revisedSimplexIterationDto.enteringVariableColumnInOriginalSimplexTable == null) {
+    if (props.iterationDto.directionVector == null || props.iterationDto.enteringVariableColumnInOriginalSimplexTable == null) {
         throw new Error("Direction vector or entering variable column are null, while being rendred.")
     }
 
     let res = "d = B^{-1} A_{j} = "
-    res += renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse) + renderMatrix(props.revisedSimplexIterationDto.enteringVariableColumnInOriginalSimplexTable)
+    res += renderMatrix(props.iterationDto.initialBasisMatrixInverse) + renderMatrix(props.iterationDto.enteringVariableColumnInOriginalSimplexTable)
     res += " = "
-    res += renderMatrix(props.revisedSimplexIterationDto.directionVector)
+    res += renderMatrix(props.iterationDto.directionVector)
     return res
 }
 
@@ -24,7 +27,7 @@ function renderDirectionVectorCalculation(props: RevisedSimplexDirectionVectorCa
  * @constructor
  */
 function RevisedSimplexDirectionVectorCalculationElement(props: RevisedSimplexDirectionVectorCalculationElementProps) {
-    if (props.revisedSimplexIterationDto.directionVector == null || props.revisedSimplexIterationDto.enteringVariableColumnInOriginalSimplexTable == null) {
+    if (props.iterationDto.directionVector == null || props.iterationDto.enteringVariableColumnInOriginalSimplexTable == null) {
         return (<></>)
     }
 
