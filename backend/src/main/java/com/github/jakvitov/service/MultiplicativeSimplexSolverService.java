@@ -71,7 +71,7 @@ public class MultiplicativeSimplexSolverService {
             solveMultiplicativeSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
         }
 
-        return null;
+        return responseDto;
     }
 
     private boolean solveMultiplicativeSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpMultiplicativeSimplexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
