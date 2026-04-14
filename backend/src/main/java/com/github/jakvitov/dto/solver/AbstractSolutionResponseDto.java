@@ -1,7 +1,6 @@
-package com.github.jakvitov.dto.solver.multiplicative;
+package com.github.jakvitov.dto.solver;
 
 import com.github.jakvitov.dto.SimplexTableDto;
-import com.github.jakvitov.dto.solver.SolutionStatus;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
@@ -11,17 +10,20 @@ import java.util.Map;
 
 @Data
 @Serdeable
-public class SolveLpMultiplicativeSimplexResponseDto {
+public class AbstractSolutionResponseDto {
 
     private SolutionStatus solutionStatus;
+
     private SimplexTableDto initialSimplexTable;
 
+    //Null when SolutionStatus is not SOLVED
     @Nullable
     private Map<String, BigFraction> resultVariableValues;
+
+    //Null when SolutionStatus is not SOLVED
     @Nullable
     private BigFraction solutionObjectiveFunctionValue;
 
-    //Artificial field for FE rendering
     private boolean success = true;
 
 }
