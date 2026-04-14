@@ -6,9 +6,9 @@ import type {Rational} from "../../common/math.ts";
 
 
 export interface MultiplicativeSimplexIterationDto extends RevisedSimplexIterationDto {
-    elementaryMatrix: Rational[]|undefined,
-    elementaryMatrixInverse: Rational[]|undefined,
-    nextIterationBasisInverse: Rational[]|undefined,
+    elementaryMatrix: Rational[][]|undefined,
+    elementaryMatrixInverse: Rational[][]|undefined,
+    nextIterationBasisInverse: Rational[][]|undefined,
 }
 
 export interface MultiplicativeSimplexPhaseOneSolutionDto {

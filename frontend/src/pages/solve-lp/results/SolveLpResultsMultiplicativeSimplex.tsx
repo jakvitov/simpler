@@ -4,27 +4,29 @@ import type {SolveLpRequest} from "../../../api/solver/solveLpTypes.ts";
 import {get} from "idb-keyval";
 import {
     SOLVE_LP_DATA_PREFIX,
-    SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX,
+    SOLVE_LP_SOLUTION_MULTIPLICATIVE_SIMPLEX_PREFIX,
 } from "../../../utils/storageConstants.ts";
+import type {
+    SolveLpMultiplicativeSimplexResponseDto
+} from "../../../api/solver/multiplicative/multiplicativeSimplexSolveTypes.ts";
 import MainHeader from "../../../components/ui/general/MainHeader.tsx";
 import MainNavBar from "../../../components/layout/MainNavBar.tsx";
 import PageContentHeader from "../../../components/ui/general/PageContentHeader.tsx";
 import {Container} from "react-bootstrap";
 import CommonErrorBoundary from "../../../components/ui/error/CommonErrorBoundary.tsx";
 import BottomNavBar from "../../../components/layout/BottomNavBar.tsx";
-import type {SolveLpRevisedSimlexResponseDto} from "../../../api/solver/revised/revisedSimplexSolveTypes.ts";
-import SolveLpRevisedSimlexResponseElement
-    from "../../../components/layout/solution/revised/SolveLpRevisedSimplexResponseElement.tsx";
+import SolveLpMultiplicativeSimplexResponseElement
+    from "../../../components/layout/solution/multiplicative/SolveLpMultiplicativeSimplexResponseElement.tsx";
 
-function SolveLpResultsRevisedSimplex() {
+function SolveLpResultsMultiplicativeSimplex() {
     const { key } = useParams<{ key: string }>();
 
     const [solverInput, setSolverInput] = useState<SolveLpRequest|null>(null)
-    const [solverResults, setSolverRestults] = useState<SolveLpRevisedSimlexResponseDto|null>(null)
+    const [solverResults, setSolverRestults] = useState<SolveLpMultiplicativeSimplexResponseDto|null>(null)
 
     useEffect(() => {
         get(SOLVE_LP_DATA_PREFIX + key).then(i => JSON.parse(i) as SolveLpRequest).then(setSolverInput)
-        get(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + key).then(i => JSON.parse(i) as SolveLpRevisedSimlexResponseDto).then(setSolverRestults)
+        get(SOLVE_LP_SOLUTION_MULTIPLICATIVE_SIMPLEX_PREFIX + key).then(i => JSON.parse(i) as SolveLpMultiplicativeSimplexResponseDto).then(setSolverRestults)
     }, [])
 
     if (solverInput === null || solverResults === null) {
@@ -45,7 +47,7 @@ function SolveLpResultsRevisedSimplex() {
                     <Container>
                         <Container style={{ backgroundColor: '#F5F5F5'}}>
                             <CommonErrorBoundary>
-                                <SolveLpRevisedSimlexResponseElement solveLpRevisedSimlexResponseDto={solverResults} />
+                                <SolveLpMultiplicativeSimplexResponseElement solveLpMultiplicativeSimplexResponseElementProps={solverResults} />
                             </CommonErrorBoundary>
                         </Container>
                     </Container>
@@ -56,4 +58,4 @@ function SolveLpResultsRevisedSimplex() {
     }
 }
 
-export default SolveLpResultsRevisedSimplex
+export default SolveLpResultsMultiplicativeSimplex;
