@@ -26,6 +26,12 @@ public class SolverConfigurationService {
     @Value("${simpler.simplex.revised.max.base.cycles}")
     private Long rsMaxCycles;
 
+    @Value("${simpler.simplex.multiplicative.max.iterations}")
+    private Long msMaxIterations;
+
+    @Value("${simpler.simplex.multiplicative.max.base.cycles}")
+    private Long msMaxCycles;
+
     public Long getConfig(SolverConfigurationConstants type, @Nullable SolverConfigurationDto inputConfiguration) {
         return switch (type) {
             case BS_MAX_ITER -> {
@@ -70,6 +76,20 @@ public class SolverConfigurationService {
                     yield inputConfiguration.getRevisedMaxBaseCycles();
                 }
             }
+            case MS_MAX_ITER -> {
+                if (inputConfiguration == null || inputConfiguration.getMultiplicativeMaxIterations() == null) {
+                    yield msMaxIterations;
+                } else {
+                    yield inputConfiguration.getMultiplicativeMaxIterations();
+                }
+            }
+            case MS_MAX_CYCLE -> {
+                if (inputConfiguration == null || inputConfiguration.getMultiplicativeMaxBaseCycles() == null) {
+                    yield msMaxCycles;
+                } else {
+                    yield inputConfiguration.getMultiplicativeMaxBaseCycles();
+                }
+            }
         };
     }
 
@@ -80,6 +100,8 @@ public class SolverConfigurationService {
         TP_MAX_CYCLE,
         RS_MAX_ITER,
         RS_MAX_CYCLE,
+        MS_MAX_ITER,
+        MS_MAX_CYCLE,
     }
 
 }
