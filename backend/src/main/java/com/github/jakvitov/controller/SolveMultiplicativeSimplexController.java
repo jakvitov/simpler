@@ -27,7 +27,7 @@ public class SolveMultiplicativeSimplexController {
     @Post
     public HttpResponse<?> solveTwoPhaseSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
-            return HttpResponse.ok(multiplicativeSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto));
+            return HttpResponse.ok(multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto));
         }
         catch (MpsParsingException mpe) {
             SolveLpErrorResponse errorResponse = new SolveLpErrorResponse(List.of(mpe.reasons), false);

@@ -1,27 +1,20 @@
 package com.github.jakvitov.dto.solver.multiplicative;
 
-import com.github.jakvitov.dto.SimplexTableDto;
-import com.github.jakvitov.dto.solver.SolutionStatus;
+import com.github.jakvitov.dto.solver.AbstractSolutionResponseDto;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
-import org.hipparchus.fraction.BigFraction;
+import lombok.EqualsAndHashCode;
 
-import java.util.Map;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Serdeable
-public class SolveLpMultiplicativeSimplexResponseDto {
-
-    private SolutionStatus solutionStatus;
-    private SimplexTableDto initialSimplexTable;
+public class SolveLpMultiplicativeSimplexResponseDto extends AbstractSolutionResponseDto {
 
     @Nullable
-    private Map<String, BigFraction> resultVariableValues;
-    @Nullable
-    private BigFraction solutionObjectiveFunctionValue;
+    private MultiplicativeSimplexPhaseOneSolutionDto multiplicativeSimplexPhaseOneSolutionDto;
 
-    //Artificial field for FE rendering
-    private boolean success = true;
+    @Nullable
+    private MultiplicativeSimplexPhaseTwoSolutionDto multiplicativeSimplexPhaseTwoSolutionDto;
 
 }
