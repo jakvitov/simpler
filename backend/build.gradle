@@ -43,10 +43,20 @@ java {
     }
 }
 
+tasks.register("prepareTmpDir") {
+    doLast {
+        file("$buildDir/tmp").mkdirs()
+    }
+}
+
+tasks.named("nativeCompile") {
+    dependsOn("prepareTmpDir")
+}
+
 tasks.matching { it.name == "nativeCompile" }.configureEach {
     doFirst {
-        environment("TMP", "${buildDir}/tmp")
-        environment("TEMP", "${buildDir}/tmp")
+        environment["TMP"] = file("$buildDir/tmp").absolutePath
+        environment["TEMP"] = file("$buildDir/tmp").absolutePath
     }
 }
 
