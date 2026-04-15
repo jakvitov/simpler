@@ -82,4 +82,8 @@ tasks.named("dockerfileNative") {
     jdkVersion = "21"
 }
 
+tasks.shadowJar {
+    archiveClassifier.set("")
+}
+
 

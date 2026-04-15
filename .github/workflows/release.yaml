@@ -60,14 +60,13 @@ jobs:
       # Build JAR
       - name: Build JAR
         working-directory: backend
-        run: ./gradlew bootJar
+        run: ./gradlew shadowJar
 
       # Rename
       - name: Rename JAR
         run: |
           mkdir dist
-          cp backend/build/libs/*.jar dist/Simpler_${{ steps.version.outputs.version }}.jar
-
+          cp backend/build/libs/*-all.jar dist/Simpler_${{ steps.version.outputs.version }}.jar
       # Upload artifact
       - name: Upload JAR
         uses: actions/upload-artifact@v4
