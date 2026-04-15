@@ -45,18 +45,6 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
                     </label>
 
                     <input
-                        checked={props.currentSelectedSolverMethod === "MULTIPLICATIVE"}
-                        onChange={() => props.onSelectedSolverMethod("MULTIPLICATIVE")}
-                        className="form-check-input me-1"
-                        type="radio"
-                        name="solverAlgorithm"
-                        id="multiplicative"
-                    />
-                    <label className="form-check-label me-4" htmlFor="multiplicative">
-                        Multiplicative
-                    </label>
-
-                    <input
                         checked={props.currentSelectedSolverMethod === "REVISED"}
                         onChange={() => props.onSelectedSolverMethod("REVISED")}
                         className="form-check-input me-1"
@@ -66,6 +54,18 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
                     />
                     <label className="form-check-label me-4" htmlFor="revised">
                         Revised
+                    </label>
+
+                    <input
+                        checked={props.currentSelectedSolverMethod === "MULTIPLICATIVE"}
+                        onChange={() => props.onSelectedSolverMethod("MULTIPLICATIVE")}
+                        className="form-check-input me-1"
+                        type="radio"
+                        name="solverAlgorithm"
+                        id="multiplicative"
+                    />
+                    <label className="form-check-label me-4" htmlFor="multiplicative">
+                        Multiplicative
                     </label>
 
                     <input
