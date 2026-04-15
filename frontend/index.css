@@ -1,4 +1,4 @@
-body,h1, h2, h3, .btn, .form-control, .nav, .navbar, .navbar-text {
+body,h1, h2, h3, h4, .btn, .form-control, .nav, .navbar, .navbar-text {
     font-family: 'Inter', sans-serif !important;
     color: black !important;
     font-weight: 350;
@@ -10,6 +10,10 @@ h2 {
 
 h3 {
     font-size: 20px;
+}
+
+h4 {
+    font-size: 17px;
 }
 
 .page-content {
