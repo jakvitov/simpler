@@ -1,6 +1,5 @@
 package com.github.jakvitov.controller;
 
-import com.github.jakvitov.dto.HealthCheckResponseDto;
 import com.github.jakvitov.dto.error.LastErrorResponseDto;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.service.ErrorManagementService;
@@ -14,7 +13,7 @@ import jakarta.inject.Inject;
 
 import java.util.Optional;
 
-@Controller("/error/last")
+@Controller("/api/simpler/error/last")
 public class LastErrorController {
 
     @Inject
@@ -28,14 +27,6 @@ public class LastErrorController {
         } else {
             return HttpResponse.notFound();
         }
-    }
-
-    @Post("/generate")
-    public HttpResponse<?> generateTestLastError() {
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto("Error generation test data.", OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null);
-        Throwable a = new RuntimeException("Test error exception");
-        errorManagementService.registerLastExceptionAndLog(a, solveLpRequestDto);
-        return HttpResponse.ok();
     }
 
 }
