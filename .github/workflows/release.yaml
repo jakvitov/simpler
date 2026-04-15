@@ -105,12 +105,12 @@ jobs:
           mkdir dist
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            EXT=".exe"
+            BINARY=$(find backend/build/native/nativeCompile -maxdepth 1 -name "*.exe" | head -1)
+            cp "$BINARY" dist/Simpler_${VERSION}.exe
           else
-            EXT=""
+            BINARY=$(find backend/build/native/nativeCompile -maxdepth 1 -type f -perm -u+x | head -1)
+            cp "$BINARY" dist/Simpler_${VERSION}_${{ matrix.os }}
           fi
-
-          cp backend/build/native/nativeCompile/* dist/Simpler_${VERSION}${EXT}
 
       # -----------------------------
       # Upload artifact
@@ -139,7 +139,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Simpler ${{ github.ref_name }}
-          files: artifacts/**/*
+          name: Release ${{ github.ref_name }}
+          files: artifacts/*/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
