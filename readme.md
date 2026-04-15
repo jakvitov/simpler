@@ -10,4 +10,7 @@ Student friendly linear optimisations solver supporting different algorithmic va
 2. Make sure port 8080 is free
 3. Run downloaded binary
 
+### Allow run on MacOS
+Mac does usually not allow running internet downloaded binaries like this from the internet. In case of OS not allowing you to run Simpler, visit Settings/Privacy&Security and in Security part, you should be able to allow Simpler to run.
+
 
