@@ -1,7 +1,7 @@
 import {Container} from "react-bootstrap";
 import {InlineMath} from "react-katex";
 
-function Manual() {
+function IntroManual() {
     return (
     <Container className={"pt-5 pb-5"}>
         <h2>How to use Simpler?</h2>
@@ -60,4 +60,4 @@ function Manual() {
     )
 }
 
-export default Manual
+export default IntroManual
