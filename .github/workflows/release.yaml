@@ -6,13 +6,13 @@ on:
       - 'release/*'
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+  # -----------------------------
+  # Build JAR release
+  # -----------------------------
+  build-jar:
+    name: Build JAR
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -26,22 +26,16 @@ jobs:
           VERSION=${TAG#release/}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # -----------------------------
-      # Update backend version files
-      # -----------------------------
+      # Keep versions consistent
       - name: Update build.gradle
-        shell: bash
         run: |
-          sed -i.bak "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" backend/build.gradle
+          sed -i "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" backend/build.gradle
 
       - name: Update application.properties
-        shell: bash
         run: |
-          sed -i.bak "s/^simpler.backend.version=.*/simpler.backend.version=${{ steps.version.outputs.version }}/" backend/src/main/resources/application.properties
+          sed -i "s/^simpler.backend.version=.*/simpler.backend.version=${{ steps.version.outputs.version }}/" backend/src/main/resources/application.properties
 
-      # -----------------------------
-      # Setup Node & Build Frontend
-      # -----------------------------
+      # Build frontend (same as other job)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -58,74 +52,34 @@ jobs:
           npx vite build
 
       - name: Copy frontend to backend
-        shell: bash
         run: |
           rm -rf backend/src/main/resources/public
           mkdir -p backend/src/main/resources/public
           cp -r frontend/dist/* backend/src/main/resources/public/
 
-      # -----------------------------
-      # Setup GraalVM
-      # -----------------------------
-      - name: Setup GraalVM
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '21'
-          distribution: 'graalvm'
-          components: 'native-image'
-
-      - name: Grant execute permission
-        run: chmod +x backend/gradlew
-
-      # -----------------------------
-      # Fix temp dir (Windows)
-      # -----------------------------
-      - name: Set temp dir (Windows fix)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          echo "TEMP=D:\\a\\simpler\\simpler\\backend\\build\\tmp" >> $GITHUB_ENV
-          echo "TMP=D:\\a\\simpler\\simpler\\backend\\build\\tmp" >> $GITHUB_ENV
-          mkdir -p backend/build/tmp
-
-      # -----------------------------
-      # Build native image
-      # -----------------------------
-      - name: Build backend native
+      # Build JAR
+      - name: Build JAR
         working-directory: backend
-        run: ./gradlew nativeCompile
+        run: ./gradlew bootJar
 
-      # -----------------------------
-      # Rename artifact
-      # -----------------------------
-      - name: Rename artifact
-        shell: bash
+      # Rename
+      - name: Rename JAR
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           mkdir dist
+          cp backend/build/libs/*.jar dist/Simpler_${{ steps.version.outputs.version }}.jar
 
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            BINARY=$(find backend/build/native/nativeCompile -maxdepth 1 -name "*.exe" | head -1)
-            cp "$BINARY" dist/Simpler_${VERSION}.exe
-          else
-            BINARY=$(find backend/build/native/nativeCompile -maxdepth 1 -type f -perm -u+x | head -1)
-            cp "$BINARY" dist/Simpler_${VERSION}_${{ matrix.os }}
-          fi
-
-      # -----------------------------
       # Upload artifact
-      # -----------------------------
-      - name: Upload artifact
+      - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
-          name: Simpler_${{ steps.version.outputs.version }}_${{ matrix.os }}
+          name: Simpler_${{ steps.version.outputs.version }}_jar
           path: dist/*
 
   # -----------------------------
   # Create GitHub Release
   # -----------------------------
   release:
-    needs: build
+    needs: [build-jar]
     runs-on: ubuntu-latest
     permissions:
       contents: write
