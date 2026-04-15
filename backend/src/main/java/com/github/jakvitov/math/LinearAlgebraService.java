@@ -192,4 +192,24 @@ public class LinearAlgebraService {
         return Optional.of(transposed);
     }
 
+    public List<List<BigFraction>> createIdentityMatrix(int dim) {
+        if (dim < 0) {
+            throw new IllegalArgumentException("Cannot construct identity matrix with negative dimensions");
+        }
+
+        List<List<BigFraction>> res = new ArrayList<>(dim);
+        for (int i = 0; i < dim; i++) {
+            List<BigFraction> row = new ArrayList<>(dim);
+            for (int j = 0; j < dim; j++) {
+                if (i == j) {
+                    row.add(BigFraction.ONE);
+                } else {
+                    row.add(BigFraction.ZERO);
+                }
+            }
+            res.add(row);
+        }
+        return res;
+    }
+
 }

@@ -13,5 +13,7 @@ public class SolverConfigurationDto {
     private Long twoPhaseMaxBaseCycles;
     private Long revisedMaxIterations;
     private Long revisedMaxBaseCycles;
+    private Long multiplicativeMaxIterations;
+    private Long multiplicativeMaxBaseCycles;
 
 }

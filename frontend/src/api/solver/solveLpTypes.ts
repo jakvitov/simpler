@@ -1,3 +1,6 @@
+import type {SimplexTable} from "../common/lpDefinitionTypes.ts";
+import type {Rational} from "../common/math.ts";
+
 export type SolverMethods =
     | "BASIC_SIMPLEX"
     | "TWO_PHASE"
@@ -34,5 +37,13 @@ export interface SolveLpRequest {
 export interface SolveLpErrorResponse {
     errors: string[],
     //common discriminator for responses
+    success: boolean
+}
+
+export interface AbstractSolutionResponseDto {
+    solutionStatus: SolutionStatus,
+    initialSimplexTable: SimplexTable,
+    resultVariableValues: Record<string, Rational>|undefined,
+    solutionObjectiveFunctionValue: Rational|undefined,
     success: boolean
 }

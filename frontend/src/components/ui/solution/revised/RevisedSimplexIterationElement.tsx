@@ -1,8 +1,10 @@
 import type {
+    NonBasicVariableCurrentReducedCostCalculationDto,
     RevisedSimplexIterationDto
 } from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {BlockMath} from "react-katex";
 import {
+    type Rational,
     renderMatrix,
     renderMatrixWithName,
     renderRationalWithNegativeSignOnly,
@@ -19,28 +21,28 @@ type RevisedSimplexIterationElementProps = {
     iterationIndex: number
 }
 
-function renderRhsCalculation(props: RevisedSimplexIterationElementProps): string {
+export function renderRevisedSimplexRhsCalculation(initialBasisMatrixInverse: Rational[][], b: Rational[][], xB: Rational[][]): string {
     let res = "x_b = B^{-1} b  = "
-    res += renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse) + renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse)
+    res += renderMatrix(initialBasisMatrixInverse) + renderMatrix(b)
     res += " = "
-    res += renderMatrix(props.revisedSimplexIterationDto.XB)
+    res += renderMatrix(xB)
     return res;
 }
 
-function renderYTCalculation(props: RevisedSimplexIterationElementProps): string {
+export function renderRevisedSimplexYTCalculation(originalSimplexTableReducedCosts: Rational[][], initialBasisMatrixInverse: Rational[][], yT: Rational[][]): string {
     let res = "y^T = c_{B}^{T} B^{-1} = "
-    res += renderMatrix(props.revisedSimplexIterationDto.originalSimplexTableReducedCosts) + renderMatrix(props.revisedSimplexIterationDto.initialBasisMatrixInverse);
+    res += renderMatrix(originalSimplexTableReducedCosts) + renderMatrix(initialBasisMatrixInverse);
     res += " = "
-    res += renderMatrix(props.revisedSimplexIterationDto.YT)
+    res += renderMatrix(yT)
     return res;
 }
 
-function renderNonBasicVariablesCurrentReducedCostsCalculation(props: RevisedSimplexIterationElementProps) {
+export function renderRevisedSimplexNonBasicVariablesCurrentReducedCostsCalculation(nonBasicVariablesCurrentReducedCosts: NonBasicVariableCurrentReducedCostCalculationDto[], yT: Rational[][]) {
 
     let res = "\\bar{c}_j = c_j - y^T A_j \\\\[10pt] \n"
 
-    props.revisedSimplexIterationDto.nonBasicVariablesCurrentReducedCosts.forEach((calculation) => {
-        res += `\\bar{c}_{${calculation.variableName}} = ${renderRationalWithNegativeSignOnly(calculation.CJ)} - ${renderMatrix(props.revisedSimplexIterationDto.YT)} ${renderMatrix(calculation.AJ)} = ${renderRationalWithNegativeSignOnly(calculation.result)} \\\\[10pt]`;
+    nonBasicVariablesCurrentReducedCosts.forEach((calculation) => {
+        res += `\\bar{c}_{${calculation.variableName}} = ${renderRationalWithNegativeSignOnly(calculation.CJ)} - ${renderMatrix(yT)} ${renderMatrix(calculation.AJ)} = ${renderRationalWithNegativeSignOnly(calculation.result)} \\\\[10pt]`;
     })
 
     return res;
@@ -62,18 +64,18 @@ function RevisedSimplexIterationElement(props: RevisedSimplexIterationElementPro
         <BlockMath math={renderMatrixWithName("B", props.revisedSimplexIterationDto.initialBasisMatrix)} />
         <BlockMath math={renderMatrixWithName("B^{-1}", props.revisedSimplexIterationDto.initialBasisMatrixInverse)} />
         <p className={"pt-2"}>Calculate RHS:</p>
-        <BlockMath math={renderRhsCalculation(props)} />
+        <BlockMath math={renderRevisedSimplexRhsCalculation(props.revisedSimplexIterationDto.initialBasisMatrixInverse, props.revisedSimplexIterationDto.b, props.revisedSimplexIterationDto.XB)} />
         <p className={"pt-2"}>Get reduced cost of current basis variables in the original simplex table:</p>
         <BlockMath math={renderMatrixWithName("c_{B}^{T}", props.revisedSimplexIterationDto.originalSimplexTableReducedCosts)} />
         <p className={"pt-2"}>Calculate y vector for non basis variables reduced costs calculation:</p>
-        <BlockMath math={renderYTCalculation(props)} />
+        <BlockMath math={renderRevisedSimplexYTCalculation(props.revisedSimplexIterationDto.originalSimplexTableReducedCosts, props.revisedSimplexIterationDto.initialBasisMatrixInverse, props.revisedSimplexIterationDto.YT)} />
         <p className={"pt-2"}>Calculate reduced cost for each non basic variable:</p>
-        <BlockMath math={renderNonBasicVariablesCurrentReducedCostsCalculation(props)} />
-        <RevisedSimplexEnteringVariableElement revisedSimplexIterationDto={props.revisedSimplexIterationDto} />
-        <RevisedSimplexDirectionVectorCalculationElement revisedSimplexIterationDto={props.revisedSimplexIterationDto} />
-        <RevisedSimplexRatioVectorCalculationElement revisedSimplexIterationDto={props.revisedSimplexIterationDto} />
-        <RevisedSimplexLeavingVariableElement revisedSimplexIterationDto={props.revisedSimplexIterationDto} />
-        <RevisedSimplexUpdatedBasisElement revisedSimplexIterationDto={props.revisedSimplexIterationDto} />
+        <BlockMath math={renderRevisedSimplexNonBasicVariablesCurrentReducedCostsCalculation(props.revisedSimplexIterationDto.nonBasicVariablesCurrentReducedCosts, props.revisedSimplexIterationDto.YT)} />
+        <RevisedSimplexEnteringVariableElement iterationDto={props.revisedSimplexIterationDto} />
+        <RevisedSimplexDirectionVectorCalculationElement iterationDto={props.revisedSimplexIterationDto} />
+        <RevisedSimplexRatioVectorCalculationElement iterationDto={props.revisedSimplexIterationDto} />
+        <RevisedSimplexLeavingVariableElement iterationDto={props.revisedSimplexIterationDto} />
+        <RevisedSimplexUpdatedBasisElement iterationDto={props.revisedSimplexIterationDto} />
     </>)
 }
 

@@ -1,21 +1,24 @@
 import type {RevisedSimplexIterationDto} from "../../../../api/solver/revised/revisedSimplexSolveTypes.ts";
 import {renderMatrix} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
+import type {
+    MultiplicativeSimplexIterationDto
+} from "../../../../api/solver/multiplicative/multiplicativeSimplexSolveTypes.ts";
 
 type RevisedSimplexRatioVectorCalculationElementProps = {
-    revisedSimplexIterationDto: RevisedSimplexIterationDto
+    iterationDto: RevisedSimplexIterationDto|MultiplicativeSimplexIterationDto
 }
 
 function renderRatioVectorCalculation(props: RevisedSimplexRatioVectorCalculationElementProps): string {
-    if (props.revisedSimplexIterationDto.ratioVector == null || props.revisedSimplexIterationDto.directionVector == null) {
+    if (props.iterationDto.ratioVector == null || props.iterationDto.directionVector == null) {
         throw new Error("Ratio vector or d vector are being rendered while being null!");
     }
 
 
     let res = "\\theta = x_B / d = "
-    res += renderMatrix(props.revisedSimplexIterationDto.XB) + " / " + renderMatrix(props.revisedSimplexIterationDto.directionVector)
+    res += renderMatrix(props.iterationDto.XB) + " / " + renderMatrix(props.iterationDto.directionVector)
     res += " = "
-    res += renderMatrix([props.revisedSimplexIterationDto.ratioVector])
+    res += renderMatrix([props.iterationDto.ratioVector])
     return res
 }
 
@@ -25,7 +28,7 @@ function renderRatioVectorCalculation(props: RevisedSimplexRatioVectorCalculatio
  * @constructor
  */
 function RevisedSimplexRatioVectorCalculationElement(props: RevisedSimplexRatioVectorCalculationElementProps) {
-    if (props.revisedSimplexIterationDto.ratioVector == null || props.revisedSimplexIterationDto.directionVector == null) {
+    if (props.iterationDto.ratioVector == null || props.iterationDto.directionVector == null) {
         return (<></>)
     }
 

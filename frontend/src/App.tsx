@@ -1,4 +1,4 @@
-import {Route, Routes } from "react-router-dom";
+import {Route, Routes} from "react-router-dom";
 import Home from "./pages/Home.tsx";
 import About from "./pages/About.tsx";
 import VerifyMps from "./pages/verify-mps/VerifyMps.tsx";
@@ -13,6 +13,7 @@ import SolveLpResultsError from "./pages/solve-lp/results/SolveLpResultsError.ts
 import SolveLpResultsTwoPhaseSimplex from "./pages/solve-lp/results/SolveLpResultsTwoPhaseSimplex.tsx";
 import ReportBug from "./pages/bugreport/ReportBug.tsx";
 import SolveLpResultsRevisedSimplex from "./pages/solve-lp/results/SolveLpResultsRevisedSimplex.tsx";
+import SolveLpResultsMultiplicativeSimplex from "./pages/solve-lp/results/SolveLpResultsMultiplicativeSimplex.tsx";
 
 function App() {
     return (
@@ -36,6 +37,7 @@ function App() {
                 <Route path="results/basic-simplex/:key" element={<SolveLpResultsBasicSimplex/>}></Route>
                 <Route path="results/two-phase-simplex/:key" element={<SolveLpResultsTwoPhaseSimplex/>}></Route>
                 <Route path="results/revised-simplex/:key" element={<SolveLpResultsRevisedSimplex/>}></Route>
+                <Route path="results/multiplicative-simplex/:key" element={<SolveLpResultsMultiplicativeSimplex />}></Route>
                 <Route path="results/error/:key" element={<SolveLpResultsError/>}></Route>
             </Route>
         </Routes>
