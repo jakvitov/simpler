@@ -5,6 +5,8 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.6"
 }
 
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
+
 version = "0.1"
 group = "com.github.jakvitov"
 
@@ -38,6 +40,13 @@ java {
 
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.matching { it.name == "nativeCompile" }.configureEach {
+    doFirst {
+        environment("TMP", "${buildDir}/tmp")
+        environment("TEMP", "${buildDir}/tmp")
     }
 }
 
