@@ -7,6 +7,7 @@ import ConfirmButton from "../../components/ui/general/ConfirmButton.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import {useState} from "react";
 import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
+import LinearOptimizationTable from "../../components/layout/solve-input/LinearOptimizationTable.tsx";
 
 function SolveLpInteractiveInput() {
 
@@ -31,6 +32,9 @@ function SolveLpInteractiveInput() {
                         onSelectedOptimisationTarget={setOptimisationTarget}
                         currentSelectedOptimisationTarget={optimisationTarget}
                     />
+                    <Container style={{ backgroundColor: '#F5F5F5'}}>
+                        <LinearOptimizationTable />
+                    </Container>
                     <ConfirmButton onChange={handleSolveInteractiveButtonClick}></ConfirmButton>
                 </Container>
             </div>
