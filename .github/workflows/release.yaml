@@ -77,23 +77,6 @@ jobs:
       - name: Grant execute permission
         run: chmod +x backend/gradlew
 
-      # -----------------------------
-      # Prevents Path.relativize to fail
-      # -----------------------------
-      - name: Setup temp dir
-        shell: bash
-        run: |
-          mkdir -p tmp
-          echo "org.gradle.jvmargs=-Djava.io.tmpdir=$(pwd)/tmp" >> gradle.properties
-          
-      - name: Fix temp dirs (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          mkdir -p tmp
-          echo "TMP=$(pwd)/tmp" >> $GITHUB_ENV
-          echo "TEMP=$(pwd)/tmp" >> $GITHUB_ENV
-          echo "JAVA_TOOL_OPTIONS=-Djava.io.tmpdir=$(pwd)/tmp" >> $GITHUB_ENV
 
       # -----------------------------
       # Build native image

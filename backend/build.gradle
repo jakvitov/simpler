@@ -43,23 +43,6 @@ java {
     }
 }
 
-tasks.register("prepareTmpDir") {
-    doLast {
-        file("$buildDir/tmp").mkdirs()
-    }
-}
-
-tasks.named("nativeCompile") {
-    dependsOn("prepareTmpDir")
-}
-
-tasks.matching { it.name == "nativeCompile" }.configureEach {
-    doFirst {
-        environment["TMP"] = file("$buildDir/tmp").absolutePath
-        environment["TEMP"] = file("$buildDir/tmp").absolutePath
-    }
-}
-
 graalvmNative {
     toolchainDetection = false
     binaries {
