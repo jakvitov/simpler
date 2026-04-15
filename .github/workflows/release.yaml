@@ -66,7 +66,7 @@ jobs:
       - name: Rename JAR
         run: |
           mkdir dist
-          cp backend/build/libs/*-all.jar dist/Simpler_${{ steps.version.outputs.version }}.jar
+          cp backend/build/libs/Simpler-${VERSION}.jar dist/
       # Upload artifact
       - name: Upload JAR
         uses: actions/upload-artifact@v4

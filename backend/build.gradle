@@ -83,6 +83,8 @@ tasks.named("dockerfileNative") {
 }
 
 tasks.shadowJar {
+    archiveBaseName.set("Simpler")
+    archiveVersion.set(version.toString())
     archiveClassifier.set("")
 }
 
