@@ -136,4 +136,41 @@ public class SolveBasicSimplexIntegrationTest {
         assert response.getResultVariableValues() == null;
     }
 
+    @Test
+    public void solve_basic_simplex_maximalization_large_succeeds() {
+        String input = """
+                NAME          LARGE
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                 L  C3
+                COLUMNS
+                    X1        OBJ       2
+                    X1        C1        1
+                    X1        C2        1
+                    X1        C3       -1
+                    X2        OBJ       1
+                    X2        C1        1
+                    X2        C2       -1
+                    X2        C3        1
+                    X3        OBJ       1
+                    X3        C1        1
+                    X3        C2       -1
+                    X3        C3        1
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2        5
+                    RHS1      C3      100
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(35, 2));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(15, 2));
+        assert response.getResultVariableValues().get("X2").equals(new BigFraction(5, 2));
+        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(105));
+    }
+
 }
