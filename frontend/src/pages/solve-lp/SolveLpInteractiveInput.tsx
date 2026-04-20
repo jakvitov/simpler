@@ -6,11 +6,19 @@ import SolverAlgorithmRadial from "../../components/layout/solve-input/SolverAlg
 import ConfirmButton from "../../components/ui/general/ConfirmButton.tsx";
 import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import {useRef, useState} from "react";
-import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
+import type {
+    OptimisationTarget,
+    SolveLpRequest,
+    SolverConfiguration,
+    SolverMethods
+} from "../../api/solver/solveLpTypes.ts";
 import InteractiveLpInput, {
     type LPInteractiveInputHandle,
     type LPInteractiveInputState
 } from "../../components/layout/solve-input/InteractiveLpInput.tsx";
+import {SOLVER_CONFIGURATION_KEY} from "../../utils/storageConstants.ts";
+import {handleSolveRequestBasedOnSolverMethod} from "../../api/solver/solverApiFacade.tsx";
+import {useNavigate} from "react-router-dom";
 
 function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInputState|undefined): string {
 
@@ -27,9 +35,9 @@ function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInput
         if (operator === "=") {
             res += "E ROW_" + i + "\n";
         } else if (operator === ">=") {
-            res += "GE ROW_" + i + "\n";
+            res += "G ROW_" + i + "\n";
         } else if (operator === "<=") {
-            res += "LE ROW_" + i + "\n";
+            res += "L ROW_" + i + "\n";
         }
     })
 
@@ -51,6 +59,7 @@ function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInput
     })
 
     res += "ENDATA"
+    console.log(res)
     return res
 }
 
@@ -58,13 +67,28 @@ function SolveLpInteractiveInput() {
 
     const [solverMethod, setSolverMethod] = useState<SolverMethods>("BASIC_SIMPLEX")
     const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
+    const navigate = useNavigate()
 
     const ref = useRef<LPInteractiveInputHandle>(null);
 
     const handleExtract = () => {
         const data = ref.current?.getData();
-        console.log("LP Data:", data);
-        console.log("Transformed MPS: " + lPInteractiveInputStateToMps(data))
+
+        //Null when not set in settings, backend will use defaults
+        const solverConfigurationStr: string|null = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
+        let solverConfiguration: SolverConfiguration|null = null
+        if (solverConfigurationStr != null) {
+            solverConfiguration = JSON.parse(solverConfigurationStr)
+        }
+
+        const request: SolveLpRequest = {
+            data: lPInteractiveInputStateToMps(data),
+            optimisationTarget: optimisationTarget,
+            method: solverMethod,
+            solverConfiguration: solverConfiguration
+        }
+
+        handleSolveRequestBasedOnSolverMethod(request, navigate)
     };
 
     return (
