@@ -16,6 +16,7 @@ import type {
 import {LAST_MPS_INPUT_DATA, SOLVER_CONFIGURATION_KEY,} from "../../utils/storageConstants.ts";
 import {useNavigate} from "react-router-dom";
 import {handleSolveRequestBasedOnSolverMethod} from "../../api/solver/solverApiFacade.tsx";
+import {fetchHealthCheck} from "../../api/manage/healthApi.ts";
 
 function SolveLpMpsInput() {
 
@@ -32,7 +33,7 @@ function SolveLpMpsInput() {
         }
     }, []);
 
-    const handleSolveMpsButtonClick = () => {
+    const handleSolveMpsButtonClick = async () => {
 
         //Null when not set in settings, backend will use defaults
         const solverConfigurationStr: string|null = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
@@ -41,11 +42,23 @@ function SolveLpMpsInput() {
             solverConfiguration = JSON.parse(solverConfigurationStr)
         }
 
+        //Get current BE version
+        const healthResponse = await fetchHealthCheck();
+        let requestVersion: string;
+        if (healthResponse == null || healthResponse.version == null) {
+            //BE version in request is used for FE hash creation, this forces new unknown hash to be created
+            //causes cache miss
+            requestVersion = "ERROR_OBTAINING_REQUEST_VERSION" + Math.random().toString(32);
+        } else {
+            requestVersion = healthResponse.version;
+        }
+
         const request: SolveLpRequest = {
             data: mpsInput,
             optimisationTarget: optimisationTarget,
             method: solverMethod,
-            solverConfiguration: solverConfiguration
+            solverConfiguration: solverConfiguration,
+            version: requestVersion
         }
 
         handleSolveRequestBasedOnSolverMethod(request, navigate);
