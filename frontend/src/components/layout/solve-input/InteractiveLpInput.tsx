@@ -205,6 +205,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                     </tbody>
                 </table>
             </div>
+            <p className={"pt-4 text-black-50"}>Interactive input is still under development and not yet finished.</p>
         </div>
     );
 });
