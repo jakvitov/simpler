@@ -210,4 +210,40 @@ public class SolveBasicSimplexIntegrationTest {
         assert response.getSolutionStatus().equals(SolutionStatus.MAX_ITERATIONS);
     }
 
+    @Test
+    public void solve_basic_simplex_max_base_cycles_integration_test() {
+        String input = """
+                NAME          LARGE
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                 L  C3
+                COLUMNS
+                    X1        OBJ       2
+                    X1        C1        1
+                    X1        C2        1
+                    X1        C3       -1
+                    X2        OBJ       1
+                    X2        C1        1
+                    X2        C2       -1
+                    X2        C3        1
+                    X3        OBJ       1
+                    X3        C1        1
+                    X3        C2       -1
+                    X3        C3        1
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2        5
+                    RHS1      C3      100
+                ENDATA
+                """;
+        SolverConfigurationDto config = new SolverConfigurationDto();
+        config.setBasicSimplexMaxIterations(10L);
+        config.setBasicSimplexMaxBaseCycles(0L);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, config, null);
+        SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.CYCLE);
+    }
+
 }
