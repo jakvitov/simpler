@@ -82,4 +82,58 @@ public class SolveBasicSimplexIntegrationTest {
         assert response.getResultVariableValues().get("S_3").equals(new BigFraction(7));
     }
 
+    @Test
+    public void solve_basic_simplex_maximalization_simplecase_succeeds() {
+        String input = """
+                #Simple LP with x1=2, x2=2, z=4
+                #Two iterations solution
+                NAME          SIMPLELP
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                COLUMNS
+                    X1        OBJ     1
+                    X1        C1      1
+                    X1        C2      0
+                    X2        OBJ     1
+                    X2        C1      0
+                    X2        C2      1
+                RHS
+                    RHS1      C1      2
+                    RHS1      C2      2
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(4));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(2));
+        assert response.getResultVariableValues().get("X2").equals(new BigFraction(2));
+    }
+
+    @Test
+    public void solve_basic_simplex_unbounded_succeeds() {
+        String input = """
+                #Unbounded case reached in first iteration
+                NAME          UNBOUNDED
+                ROWS
+                 N  OBJ
+                 L  C1
+                COLUMNS
+                    X1        OBJ     1
+                    X1        C1     -1
+                    X2        OBJ     0
+                    X2        C1      1
+                RHS
+                    RHS1      C1      1
+                ENDATA
+               """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.UNBOUNDED);
+        assert response.getSolutionObjectiveFunctionValue() == null;
+        assert response.getResultVariableValues() == null;
+    }
+
 }
