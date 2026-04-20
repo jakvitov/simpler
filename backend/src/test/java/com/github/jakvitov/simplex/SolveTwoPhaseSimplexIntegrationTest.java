@@ -37,7 +37,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                           RHS1    C3      5/2
                       ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
 
         SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         System.out.println(response);
