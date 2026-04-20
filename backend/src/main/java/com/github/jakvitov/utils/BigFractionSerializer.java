@@ -40,7 +40,8 @@ public class BigFractionSerializer implements Serializer<BigFraction>, Deseriali
 
     @Override
     public BigFraction deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super BigFraction> type) throws IOException {
-        return null;
+        String input = decoder.decodeString();
+        return StringUtils.parseBigFraction(input);
     }
 }
 
