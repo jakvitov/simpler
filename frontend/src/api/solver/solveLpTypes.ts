@@ -29,6 +29,7 @@ export interface SolverConfiguration {
 
 export interface SolveLpRequest {
     data: string,
+    version: string,
     optimisationTarget: OptimisationTarget,
     solverConfiguration: SolverConfiguration|null
     method: SolverMethods,

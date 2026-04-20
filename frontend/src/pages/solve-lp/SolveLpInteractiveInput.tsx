@@ -19,6 +19,7 @@ import LPInteractiveInputForm, {
 import {SOLVER_CONFIGURATION_KEY} from "../../utils/storageConstants.ts";
 import {handleSolveRequestBasedOnSolverMethod} from "../../api/solver/solverApiFacade.tsx";
 import {useNavigate} from "react-router-dom";
+import {fetchHealthCheck} from "../../api/manage/healthApi.ts";
 
 function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInputState|undefined): string {
 
@@ -71,24 +72,37 @@ function SolveLpInteractiveInput() {
 
     const ref = useRef<LPInteractiveInputHandle>(null);
 
-    const handleExtract = () => {
+    const handleExtract = async () => {
         const data = ref.current?.getData();
 
         //Null when not set in settings, backend will use defaults
-        const solverConfigurationStr: string|null = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
-        let solverConfiguration: SolverConfiguration|null = null
+        const solverConfigurationStr: string | null = localStorage.getItem(SOLVER_CONFIGURATION_KEY);
+        let solverConfiguration: SolverConfiguration | null = null
         if (solverConfigurationStr != null) {
             solverConfiguration = JSON.parse(solverConfigurationStr)
+        }
+
+        //Get current BE version
+        const healthResponse = await fetchHealthCheck();
+        let requestVersion: string;
+
+        if (healthResponse == null || healthResponse.version == null) {
+            //BE version in request is used for FE hash creation, this forces new unknown hash to be created
+            //causes cache miss
+            requestVersion = "ERROR_OBTAINING_REQUEST_VERSION" + Math.random().toString(32);
+        } else {
+            requestVersion = healthResponse.version;
         }
 
         const request: SolveLpRequest = {
             data: lPInteractiveInputStateToMps(data),
             optimisationTarget: optimisationTarget,
             method: solverMethod,
-            solverConfiguration: solverConfiguration
-        }
+            solverConfiguration: solverConfiguration,
+            version: requestVersion
+        };
+        handleSolveRequestBasedOnSolverMethod(request, navigate);
 
-        handleSolveRequestBasedOnSolverMethod(request, navigate)
     };
 
     return (

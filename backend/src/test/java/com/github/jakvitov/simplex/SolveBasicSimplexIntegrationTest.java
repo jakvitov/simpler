@@ -38,7 +38,7 @@ public class SolveBasicSimplexIntegrationTest {
                  UP BND1      YTWO                 1
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
         try {
             basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
         } catch (SimplexTableTransformationError stte) {
@@ -72,7 +72,7 @@ public class SolveBasicSimplexIntegrationTest {
                 ENDATA
                 """;
 
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
         SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
         System.out.println(response);
     }
