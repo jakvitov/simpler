@@ -8,11 +8,11 @@ import BottomNavBar from "../../components/layout/BottomNavBar.tsx";
 import {useRef, useState} from "react";
 import type {OptimisationTarget, SolverMethods} from "../../api/solver/solveLpTypes.ts";
 import InteractiveLpInput, {
-    type LinearOptimizationHandle,
-    type LPState
+    type LPInteractiveInputHandle,
+    type LPInteractiveInputState
 } from "../../components/layout/solve-input/InteractiveLpInput.tsx";
 
-function toMpsInput(interactiveLpInputData: LPState|undefined): string {
+function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInputState|undefined): string {
 
     if (interactiveLpInputData == null) {
         alert("Cannot work with empty interactive input data!")
@@ -59,12 +59,12 @@ function SolveLpInteractiveInput() {
     const [solverMethod, setSolverMethod] = useState<SolverMethods>("BASIC_SIMPLEX")
     const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
 
-    const ref = useRef<LinearOptimizationHandle>(null);
+    const ref = useRef<LPInteractiveInputHandle>(null);
 
     const handleExtract = () => {
         const data = ref.current?.getData();
         console.log("LP Data:", data);
-        console.log("Transformed MPS: " + toMpsInput(data))
+        console.log("Transformed MPS: " + lPInteractiveInputStateToMps(data))
     };
 
     return (

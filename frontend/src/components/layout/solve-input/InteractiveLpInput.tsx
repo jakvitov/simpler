@@ -2,7 +2,7 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 
 type Operator = ">=" | "<=" | "=";
 
-export type LPState = {
+export type LPInteractiveInputState = {
     variables: string[];
     objective: string[];
     rows: string[][];
@@ -10,12 +10,12 @@ export type LPState = {
     rhs: string[];
 };
 
-export type LinearOptimizationHandle = {
-    getData: () => LPState;
+export type LPInteractiveInputHandle = {
+    getData: () => LPInteractiveInputState;
 };
 
-const LinearOptimizationTable = forwardRef<LinearOptimizationHandle>((_props: any, ref) => {
-    const [state, setState] = useState<LPState>({
+const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any, ref) => {
+    const [state, setState] = useState<LPInteractiveInputState>({
         variables: ["x1", "x2"],
         objective: ["0", "0"],
         rows: [
@@ -209,4 +209,4 @@ const LinearOptimizationTable = forwardRef<LinearOptimizationHandle>((_props: an
     );
 });
 
-export default LinearOptimizationTable;
+export default LPInteractiveInputForm;
