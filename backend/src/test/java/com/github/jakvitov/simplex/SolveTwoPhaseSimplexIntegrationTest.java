@@ -40,7 +40,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                  UP BND1      YTWO                 1
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(inputMps, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
         twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
     }
 
@@ -68,7 +68,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                     RHS1      C3        7
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.TWO_PHASE, null, null);
         SolveLpTwoPhaseSimplexResponseDto response =
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
@@ -100,7 +100,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                     RHS1      C2      2
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
         SolveLpTwoPhaseSimplexResponseDto response =
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
@@ -126,7 +126,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                     RHS1      C1      1
                 ENDATA
                """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
         SolveLpTwoPhaseSimplexResponseDto response =
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.UNBOUNDED);
@@ -162,7 +162,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                     RHS1      C3      100
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
         SolveLpTwoPhaseSimplexResponseDto response =
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
@@ -203,6 +203,59 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         assert response.getResultVariableValues().get("X2").equals(new BigFraction(11, 3));
         assert response.getResultVariableValues().get("X3").equals(new BigFraction(13, 3));
         assert response.getResultVariableValues().get("S_1").equals(new BigFraction(47, 6));
+    }
+
+    @Test
+    public void solve_two_phase_mintp_succeeds() {
+        String input = """
+                NAME          MINLP
+                ROWS
+                 N  OBJ
+                 G  C1
+                 G  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2        2
+                    X2        OBJ       1
+                    X2        C1        1
+                    X2        C2       -3
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2        5
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.TWO_PHASE, null, null);
+        SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(7));
+        assert response.getResultVariableValues().get("X2").equals(new BigFraction(3));
+    }
+
+    @Test
+    public void solve_two_phase_unboundedtp_succeeds() {
+        String input = """
+                NAME          MINLP
+                ROWS
+                 N  OBJ
+                 G  C1
+                 G  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2        2
+                    X2        OBJ       1
+                    X2        C1        1
+                    X2        C2       -3
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2        5
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.TWO_PHASE, null, null);
+        SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.UNBOUNDED);
     }
 
 }
