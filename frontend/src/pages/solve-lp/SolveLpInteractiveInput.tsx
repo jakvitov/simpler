@@ -67,7 +67,7 @@ function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInput
 function SolveLpInteractiveInput() {
 
     const [solverMethod, setSolverMethod] = useState<SolverMethods>("BASIC_SIMPLEX")
-    const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
+    const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MAX")
     const navigate = useNavigate()
 
     const ref = useRef<LPInteractiveInputHandle>(null);
