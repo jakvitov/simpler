@@ -104,15 +104,15 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
     return (
         <div className="p-4 space-y-4">
             <div className="flex gap-2">
-                <button onClick={addVariable} className="px-3 py-1 bg-blue-500 text-white rounded">
+                <button onClick={addVariable} className={"mb-2 border-0"}>
                     + Variable
                 </button>
-                <button onClick={addRow} className="px-3 py-1 bg-green-500 text-white rounded">
+                <button onClick={addRow} className="ms-2 mb-2 border-0">
                     + Constraint
                 </button>
             </div>
 
-            <div className="overflow-auto border rounded">
+            <div className="overflow-auto">
                 <table className="min-w-full border-collapse">
                     <thead>
                     <tr>
@@ -120,7 +120,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                             <th key={i} className="border p-2">
                                 <div className="flex items-center justify-center gap-1">
                                     <input
-                                        className="w-20 text-center border rounded"
+                                        className="w-20 text-center border"
                                         value={v}
                                         onChange={(e) => {
                                             setState((prev) => {
@@ -130,7 +130,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                                             });
                                         }}
                                     />
-                                    <button onClick={() => removeVariable(i)} className="text-red-500 font-bold px-1">
+                                    <button onClick={() => removeVariable(i)} className="font-bold border-0 ms-2">
                                         -
                                     </button>
                                 </div>
@@ -150,7 +150,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                                 <td key={cIdx} className="border p-2">
                                     <input
                                         type="text"
-                                        className="w-20 border rounded text-center"
+                                        className="w-20 border text-center"
                                         value={cell}
                                         onChange={(e) => updateCell(rIdx, cIdx, e.target.value)}
                                     />
@@ -161,7 +161,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                                 <select
                                     value={state.operators[rIdx]}
                                     onChange={(e) => updateOp(rIdx, e.target.value as Operator)}
-                                    className="border rounded"
+                                    className="border"
                                 >
                                     <option value=">=">≥</option>
                                     <option value="<=">≤</option>
@@ -172,14 +172,14 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                             <td className="border p-2">
                                 <input
                                     type="text"
-                                    className="w-24 border rounded text-center"
+                                    className="w-24 border text-center"
                                     value={state.rhs[rIdx]}
                                     onChange={(e) => updateRhs(rIdx, e.target.value)}
                                 />
                             </td>
 
                             <td className="border p-2 text-center">
-                                <button onClick={() => removeRow(rIdx)} className="text-red-500 font-bold">
+                                <button onClick={() => removeRow(rIdx)} className="font-bold border-0">
                                     -
                                 </button>
                             </td>
@@ -192,7 +192,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                             <td key={i} className="border p-2">
                                 <input
                                     type="text"
-                                    className="w-20 border rounded text-center"
+                                    className="w-20 border text-center"
                                     value={val}
                                     onChange={(e) => updateObjective(i, e.target.value)}
                                 />
