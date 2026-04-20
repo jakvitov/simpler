@@ -32,9 +32,8 @@ public class MpsDataTransformedBoundsTest {
                 """;
 
         MpsData mpsData = MpsData.parse(mpsInput);
-
+        mpsData.validate();
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
-        System.out.println(mpsDataTransformedBounds);
     }
 
 }
