@@ -138,10 +138,7 @@ public class MpsData {
         }
         String nameLine = nameLines.getFirst();
         String[] parts = nameLine.split("\\s+");
-        if (parts.length != 2) {
-            throw new MpsParsingException(MpsSections.NAME, "Name section must contain only the name of the problem.", nameLine);
-        }
-        return parts[1];
+        return String.join(" ", Arrays.stream(parts).toList().subList(1, parts.length));
     }
 
     private LinkedHashMap<String, RowType> parseRows(List<String> prefilteredLines) {

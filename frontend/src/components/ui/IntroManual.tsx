@@ -15,8 +15,10 @@ function IntroManual() {
 
 
         <h3 className={"mt-4"}>Input formats</h3>
+        <h4 className={"mt-4"}>Interactive input</h4>
+        <p><Link to={"/solve-lp/interactive"} >Interactive input</Link> offers simplified and user friendly way of entering linear optimisation problems. Just enter variable coefficients into the given table and hit the submit button. Resizing of the input table can be achieved by clicking the <i>+ Variable</i>, <i>+ Constraint</i> and <i>-</i> buttons. Accepted number formats are similar across MPS and interactive input.</p>
         <h4 className={"mt-4"}>MPS</h4>
-        <p>Main input format for Simpler is <a href={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</a>, interactive input is under current development. Original MPS format is quite restrictive, therefore for the convenience of users Simpler ignores all row/column character restrictions and relies solely on keywords, unknown keywords and sections are skipped and mostly do not trigger and error.</p>
+        <p>Main input format for Simpler is <a href={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</a>. Original MPS format is quite restrictive, therefore for the convenience of users Simpler ignores all row/column character restrictions and relies solely on keywords, unknown keywords and sections are skipped and mostly do not trigger and error.</p>
         <h4 className={"mt-4"}>Numbers</h4>
         <p>Simpler works only with rational numbers and displays the results as natural numbers or fractions. In all input forms numbers can be entered as:</p>
         <ul>

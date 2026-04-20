@@ -13,20 +13,9 @@ import type {
     SolverConfiguration,
     SolverMethods
 } from "../../api/solver/solveLpTypes.ts";
-import {fetchSolveBasicSimplex} from "../../api/solver/basic/basicSimplexSolveApi.ts";
-import {get, set} from "idb-keyval";
-import {
-    LAST_MPS_INPUT_DATA,
-    SOLVE_LP_DATA_PREFIX,
-    SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX,
-    SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX, SOLVE_LP_SOLUTION_MULTIPLICATIVE_SIMPLEX_PREFIX,
-    SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX, SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX, SOLVER_CONFIGURATION_KEY,
-} from "../../utils/storageConstants.ts";
-import {hashStringSHA256} from "../../utils/hash.ts";
+import {LAST_MPS_INPUT_DATA, SOLVER_CONFIGURATION_KEY,} from "../../utils/storageConstants.ts";
 import {useNavigate} from "react-router-dom";
-import {fetchSolveTwoPhaseSimplex} from "../../api/solver/two-phase/twoPhaseSimplexSolveApi.ts";
-import {fetchSolveRevisedSimplex} from "../../api/solver/revised/revisedSimlexSolveApi.ts";
-import {fetchSolveMultiplicativeSimplex} from "../../api/solver/multiplicative/multiplicativeSimplexSolveApi.ts";
+import {handleSolveRequestBasedOnSolverMethod} from "../../api/solver/solverApiFacade.tsx";
 
 function SolveLpMpsInput() {
 
@@ -42,114 +31,6 @@ function SolveLpMpsInput() {
             setMpsInput(previousInput)
         }
     }, []);
-
-    const handleSolveBasicSimplex = async(request: SolveLpRequest) => {
-        try {
-            const requestHash =  await hashStringSHA256(JSON.stringify(request))
-            const response = await fetchSolveBasicSimplex(request)
-
-            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
-                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
-            }
-
-            if (response.success) {
-                if (await get(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_BASIC_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/basic-simplex/${requestHash}`)
-            } else {
-                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/error/${requestHash}`)
-            }
-
-
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    const handleSolveTwoPhaseSimplex = async(request: SolveLpRequest) => {
-        try {
-            const requestHash =  await hashStringSHA256(JSON.stringify(request))
-            const response = await fetchSolveTwoPhaseSimplex(request)
-
-            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
-                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
-            }
-
-            if (response.success) {
-                if (await get(SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_TWO_PHASE_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/two-phase-simplex/${requestHash}`)
-            } else {
-                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/error/${requestHash}`)
-            }
-
-
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    const handleSolveRevisedSimplex = async(request: SolveLpRequest) => {
-        try {
-            const requestHash =  await hashStringSHA256(JSON.stringify(request))
-            const response = await fetchSolveRevisedSimplex(request)
-
-            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
-                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
-            }
-
-            if (response.success) {
-                if (await get(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/revised-simplex/${requestHash}`)
-            } else {
-                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/error/${requestHash}`)
-            }
-
-
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    const handleSolveMultiplicativeSimplex = async(request: SolveLpRequest) => {
-        try {
-            const requestHash =  await hashStringSHA256(JSON.stringify(request))
-            const response = await fetchSolveMultiplicativeSimplex(request)
-
-            if (await get(SOLVE_LP_DATA_PREFIX + requestHash) === undefined) {
-                await set(SOLVE_LP_DATA_PREFIX + requestHash, JSON.stringify(request))
-            }
-
-            if (response.success) {
-                if (await get(SOLVE_LP_SOLUTION_MULTIPLICATIVE_SIMPLEX_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_MULTIPLICATIVE_SIMPLEX_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/multiplicative-simplex/${requestHash}`)
-            } else {
-                if (await get(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash) === undefined) {
-                    await set(SOLVE_LP_SOLUTION_ERROR_DATA_PREFIX + requestHash, JSON.stringify(response))
-                }
-                navigate(`/solve-lp/results/error/${requestHash}`)
-            }
-
-
-        } catch (error) {
-            console.error(error)
-        }
-    }
 
     const handleSolveMpsButtonClick = () => {
 
@@ -167,26 +48,7 @@ function SolveLpMpsInput() {
             solverConfiguration: solverConfiguration
         }
 
-        switch (solverMethod) {
-            case "BASIC_SIMPLEX":
-                handleSolveBasicSimplex(request);
-                return;
-            case "TWO_PHASE":
-                handleSolveTwoPhaseSimplex(request);
-                return;
-            case "REVISED":
-                handleSolveRevisedSimplex(request);
-                return;
-            case "MULTIPLICATIVE":
-                handleSolveMultiplicativeSimplex(request);
-                return;
-            case "BOUNDS_OPTIMISATION":
-                alert("Not implemented");
-                return;
-            default:
-                console.error("Unknown solver method encountered " + solverMethod)
-                return;
-        }
+        handleSolveRequestBasedOnSolverMethod(request, navigate);
     }
 
     return (
