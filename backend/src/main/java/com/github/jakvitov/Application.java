@@ -1,5 +1,6 @@
 package com.github.jakvitov;
 
+import io.micronaut.context.env.Environment;
 import io.micronaut.runtime.Micronaut;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,8 +13,14 @@ public class Application {
     private final static String APPLICATION_URL = "http://localhost:8080/";
 
     public static void main(String[] args) {
-        Micronaut.run(Application.class, args);
-        startBrowserWindowOrShowRef();
+        var context = Micronaut.build(args).start();
+
+        Environment env = context.getEnvironment();
+        if (env.getActiveNames().contains("prod")) {
+            startBrowserWindowOrShowRef();
+        } else {
+            log.info("Running in development mode.");
+        }
     }
 
     private static void startBrowserWindowOrShowRef() {
