@@ -22,7 +22,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
             ["0", "0"],
             ["0", "0"],
         ],
-        operators: [">=", "<="] as Operator[],
+        operators: ["<=", "<="] as Operator[],
         rhs: ["0", "0"],
     });
 

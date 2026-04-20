@@ -12,7 +12,7 @@ import type {
     SolverConfiguration,
     SolverMethods
 } from "../../api/solver/solveLpTypes.ts";
-import InteractiveLpInput, {
+import LPInteractiveInputForm, {
     type LPInteractiveInputHandle,
     type LPInteractiveInputState
 } from "../../components/layout/solve-input/InteractiveLpInput.tsx";
@@ -105,7 +105,7 @@ function SolveLpInteractiveInput() {
                         currentSelectedOptimisationTarget={optimisationTarget}
                     />
                     <Container style={{ backgroundColor: '#F5F5F5'}}>
-                        <InteractiveLpInput ref={ref}/>
+                        <LPInteractiveInputForm ref={ref}/>
                     </Container>
                     <ConfirmButton onChange={handleExtract}></ConfirmButton>
                 </Container>
