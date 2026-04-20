@@ -20,12 +20,13 @@ function IntroManual() {
         <h4 className={"mt-4"}>MPS</h4>
         <p>Main input format for Simpler is <a href={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</a>. Original MPS format is quite restrictive, therefore for the convenience of users Simpler ignores all row/column character restrictions and relies solely on keywords, unknown keywords and sections are skipped and mostly do not trigger and error.</p>
         <h4 className={"mt-4"}>Numbers</h4>
-        <p>Simpler works only with rational numbers and displays the results as natural numbers or fractions. In all input forms numbers can be entered as:</p>
+        <p>Simpler works mainly with rational numbers and displays the results as whole numbers or fractions. In all input forms numbers can be entered as:</p>
         <ul>
-            <li>Plain natural numbers like: <code>1</code> or <code>-4</code></li>
+            <li>Plain whole numbers like: <code>1</code> or <code>-4</code></li>
             <li>Rational numbers like: <code>1/50</code> or <code>-5/99</code></li>
+            <li>Floating point numbers with delimiter <code>.</code> like: <code>1.5</code></li>
         </ul>
-        <p>No other number input formats are supported, for example <code>-0.55746</code> will trigger an error.</p>
+        <p>No other number input formats are supported, for example <code>-0,55746</code> will trigger an error.</p>
 
         <h4 className={"mt-4"}>Comments</h4>
         <p>Comments in MPS inputs are supported and are started with the <code>#</code> character. Everything between the first <code>#</code> character and the end of the line is ignored. For example line: <code>x_1        OBJ   #  1\n</code> will be processed as <code>x_1        OBJ</code>.</p>

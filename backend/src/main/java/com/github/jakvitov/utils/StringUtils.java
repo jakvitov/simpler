@@ -3,6 +3,7 @@ package com.github.jakvitov.utils;
 import jakarta.annotation.Nonnull;
 import org.hipparchus.fraction.BigFraction;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,10 @@ public class StringUtils {
                 BigInteger numerator = new BigInteger(parts[0]);
                 BigInteger denominator = new BigInteger(parts[1]);
                 return new BigFraction(numerator, denominator);
+            }
+            else if (input.contains(".")) {
+                double bd = Double.parseDouble(input);
+                return new BigFraction(bd);
             }
             else {
                 return new BigFraction(new BigInteger(input));
