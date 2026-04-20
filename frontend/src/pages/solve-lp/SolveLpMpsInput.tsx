@@ -21,7 +21,7 @@ function SolveLpMpsInput() {
 
     const [mpsInput, setMpsInput] = useState("Enter your MPS code here...")
     const [solverMethod, setSolverMethod] = useState<SolverMethods>("BASIC_SIMPLEX")
-    const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MIN")
+    const [optimisationTarget, setOptimisationTarget] = useState<OptimisationTarget>("MAX")
 
     const navigate = useNavigate()
 
