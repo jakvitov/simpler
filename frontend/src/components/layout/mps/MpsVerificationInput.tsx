@@ -8,6 +8,7 @@ import {useNavigate} from "react-router-dom";
 import {LAST_MPS_INPUT_DATA, MPS_DATA_SS_PREFIX, MPS_VERIF_SS_PREFIX} from "../../../utils/storageConstants.ts";
 import type {MpsVerificationResponse} from "../../../api/verification/verificationTypes.ts";
 import {get, set} from 'idb-keyval';
+import {fetchHealthCheck} from "../../../api/manage/healthApi.ts";
 
 type MpsVerificationInputProps = {
     initialText?: string
@@ -35,9 +36,17 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
         }
 
         const verifyMps = async() => {
-            console.log("TRRIGGERED  MPS VERIFICATION")
             try {
-                let dataHash = await hashStringSHA256(mpsCode)
+                const healthResponse = await fetchHealthCheck();
+                let requestVersion: string;
+                if (healthResponse == null || healthResponse.version == null) {
+                    //BE version in request is used for FE hash creation, this forces new unknown hash to be created
+                    //causes cache miss
+                    requestVersion = "ERROR_OBTAINING_REQUEST_VERSION" + Math.random().toString(32);
+                } else {
+                    requestVersion = healthResponse.version;
+                }
+                let dataHash = await hashStringSHA256(mpsCode + requestVersion);
 
                 if (await get(MPS_VERIF_SS_PREFIX + dataHash) === undefined) {
                     const verificationResponse: MpsVerificationResponse  = await verifyMpsCall({data: mpsCode})
@@ -49,7 +58,7 @@ function MpsVerificationInput(props: MpsVerificationInputProps) {
                 navigate(`/verify-mps/results/${dataHash}`)
             }
             catch (error) {
-                console.log("Error during MPS verification: ", error)
+                console.error("Error during MPS verification: ", error)
             }
         }
         verifyMps()
