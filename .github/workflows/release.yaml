@@ -93,7 +93,7 @@ jobs:
       # -----------------------------
       - name: Build backend native
         working-directory: backend
-        run: ./gradlew nativeCompile
+        run: ./gradlew nativeCompile -Dmicronaut.environments=prod
 
       # -----------------------------
       # Rename artifact
@@ -120,56 +120,6 @@ jobs:
         with:
           name: Simpler_${{ steps.version.outputs.version }}_${{ matrix.os }}
           path: dist/*
-
-  # -----------------------------
-  # Build JAR release
-  # -----------------------------
-  build-jar:
-    name: Build JAR
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Extract version
-        id: version
-        shell: bash
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG#release/}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      # Keep versions consistent
-      - name: Update build.gradle
-        run: |
-          sed -i "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" backend/build.gradle
-
-      - name: Update application.properties
-        run: |
-          sed -i "s/^simpler.backend.version=.*/simpler.backend.version=${{ steps.version.outputs.version }}/" backend/src/main/resources/application.properties
-
-      # Build frontend (same as other job)
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install FE deps
-        working-directory: frontend
-        run: npm install
-
-      - name: Build frontend
-        working-directory: frontend
-        run: |
-          npx tsc -b
-          npx vite build
-
-      - name: Copy frontend to backend
-        run: |
-          rm -rf backend/src/main/resources/public
-          mkdir -p backend/src/main/resources/public
-          cp -r frontend/dist/* backend/src/main/resources/public/
 
   # -----------------------------
   # Create GitHub Release
