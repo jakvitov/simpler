@@ -7,4 +7,4 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-public record SolveLpRequestDto(String data, OptimisationTarget optimisationTarget, SimplexVariant method, @Nullable SolverConfigurationDto solverConfiguration) {}
+public record SolveLpRequestDto(String data, OptimisationTarget optimisationTarget, SimplexVariant method, @Nullable SolverConfigurationDto solverConfiguration, String version) {}
