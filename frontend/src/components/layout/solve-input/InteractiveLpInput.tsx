@@ -1,4 +1,5 @@
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
+import {LAST_INTERACTIVE_INPUT_LP_DATA} from "../../../utils/storageConstants.ts";
 
 type Operator = ">=" | "<=" | "=";
 
@@ -14,17 +15,33 @@ export type LPInteractiveInputHandle = {
     getData: () => LPInteractiveInputState;
 };
 
+const defaultState: LPInteractiveInputState = {
+    variables: ["x1", "x2"],
+    objective: ["0", "0"],
+    rows: [
+        ["0", "0"],
+        ["0", "0"],
+    ],
+    operators: ["<=", "<="],
+    rhs: ["0", "0"],
+};
+
+function loadFromStorage(): LPInteractiveInputState {
+    try {
+        const raw = localStorage.getItem(LAST_INTERACTIVE_INPUT_LP_DATA);
+        if (!raw) return defaultState;
+        return JSON.parse(raw) as LPInteractiveInputState;
+    } catch {
+        return defaultState;
+    }
+}
+
 const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any, ref) => {
-    const [state, setState] = useState<LPInteractiveInputState>({
-        variables: ["x1", "x2"],
-        objective: ["0", "0"],
-        rows: [
-            ["0", "0"],
-            ["0", "0"],
-        ],
-        operators: ["<=", "<="] as Operator[],
-        rhs: ["0", "0"],
-    });
+    const [state, setState] = useState<LPInteractiveInputState>(loadFromStorage);
+
+    useEffect(() => {
+        localStorage.setItem(LAST_INTERACTIVE_INPUT_LP_DATA, JSON.stringify(state));
+    }, [state]);
 
     useImperativeHandle(ref, () => ({
         getData: () => state,
