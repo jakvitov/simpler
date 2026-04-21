@@ -14,7 +14,7 @@ public class Application {
     private final static String APPLICATION_URL = "http://localhost:8080/";
 
     public static void main(String[] args) {
-        var context = Micronaut.build(args).start();
+        var context = Micronaut.build(args).defaultEnvironments("prod").start();
 
         Environment env = context.getEnvironment();
         if (env.getActiveNames().contains("prod")) {
