@@ -177,7 +177,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
     @Test
     public void solve_two_phase_simplex_largetp_succeeds() {
         String input = """
-                NAME          TEST1
+                NAME          LARGETP
                                       ROWS
                                        N  OBJ
                                        E  C1

@@ -4,6 +4,7 @@ import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
+import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
 import com.github.jakvitov.service.RevisedSimplexSolverService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -241,7 +242,41 @@ public class SolveRevisedSimplexIntegrationTest {
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(10));
         assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
         assert response.getResultVariableValues().get("S_3").equals(new BigFraction(90));
-
     }
+
+    @Test
+    public void solve_revised_phase_simplex_largetp_succeeds() {
+        String input = """
+                NAME          LARGETP
+                                      ROWS
+                                       N  OBJ
+                                       E  C1
+                                       G  C2
+                                       L  C3
+                                      COLUMNS
+                                          X1      OBJ     1/2    C1      1      C2      -1/3
+                                          X1      C3      2
+                                          X2      OBJ     -3/4   C1      2      C2      1
+                                          X2      C3      -1/2
+                                          X3      OBJ     1      C1      -1     C2      1/2
+                                          X3      C3      1
+                                          X4      OBJ     -2     C1      1/3    C2      2
+                                          X4      C3      -1
+                                      RHS
+                                          RHS1    C1      3
+                                          RHS1    C2      -2
+                                          RHS1    C3      5/2
+                                      ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
+        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(19, 12));
+        assert response.getResultVariableValues().get("X2").equals(new BigFraction(11, 3));
+        assert response.getResultVariableValues().get("X3").equals(new BigFraction(13, 3));
+        assert response.getResultVariableValues().get("S_1").equals(new BigFraction(47, 6));
+    }
+
+
 
 }
