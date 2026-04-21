@@ -96,7 +96,7 @@ jobs:
       # -----------------------------
       - name: Build backend native
         working-directory: backend
-        run: ./gradlew nativeCompile -Dmicronaut.environments=prod
+        run: ./gradlew nativeCompile
 
       # -----------------------------
       # Rename artifact
