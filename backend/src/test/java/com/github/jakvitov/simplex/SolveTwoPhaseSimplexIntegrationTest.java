@@ -238,7 +238,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
     @Test
     public void solve_two_phase_unboundedtp_succeeds() {
         String input = """
-                NAME          MINLP
+                NAME          unboundedtp
                 ROWS
                  N  OBJ
                  G  C1
