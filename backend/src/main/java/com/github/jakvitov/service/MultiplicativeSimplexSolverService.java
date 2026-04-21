@@ -202,16 +202,17 @@ public class MultiplicativeSimplexSolverService {
         originalSimplexTable.objectiveValue = BigFraction.ZERO;
 
         List<String> currentBasis;
+        List<List<BigFraction>> inverseBasisMatrix;
         if (responseDto.getMultiplicativeSimplexPhaseOneSolutionDto() == null) {
             currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
+            inverseBasisMatrix = linearAlgebraService.createIdentityMatrix(originalSimplexTable.baseVariables.size());
         } else {
             //Current initial basis is result basis from phase I
             currentBasis = new ArrayList<>(responseDto.getMultiplicativeSimplexPhaseOneSolutionDto().getResultBase());
+            inverseBasisMatrix = MemoryUtils.copyMatrix(responseDto.getMultiplicativeSimplexPhaseOneSolutionDto().getIterations().getLast().getInitialBasisMatrixInverse());
         }
 
         multiplicativeSimplexPhaseTwoSolutionDto.setInitialFeasibleBase(new ArrayList<>(currentBasis));
-
-        List<List<BigFraction>> inverseBasisMatrix = linearAlgebraService.createIdentityMatrix(originalSimplexTable.baseVariables.size());
 
         while (iterationCount.value < configurationService.getConfig(MS_MAX_ITER, solverConfigurationInput)) {
             if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
