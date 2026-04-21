@@ -88,14 +88,13 @@ jobs:
           echo "TMP=D:\\a\\simpler\\simpler\\backend\\build\\tmp" >> $GITHUB_ENV
           mkdir -p backend/build/tmp
 
-      - name: Set micronaut prod environment var
-        run: echo "MICRONAUT_ENVIRONMENTS=prod" >> $GITHUB_ENV
-
       # -----------------------------
       # Build native image
       # -----------------------------
       - name: Build backend native
         working-directory: backend
+        env:
+          MICRONAUT_ENVIRONMENTS: prod
         run: ./gradlew nativeCompile
 
       # -----------------------------
