@@ -30,7 +30,9 @@ public class Application {
                 Desktop desktop = Desktop.getDesktop();
                 desktop.browse(new URI(APPLICATION_URL));
             }
-        } catch (Exception ignored) {}
+        }
+        //May throw dirty throwables on different systems here
+        catch (Throwable ignored) {}
         log.info("Simpler successfully started up and is available at: " + APPLICATION_URL);
     }
 }
