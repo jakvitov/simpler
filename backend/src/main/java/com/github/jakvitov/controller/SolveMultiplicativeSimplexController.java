@@ -15,7 +15,7 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller("/solve-lp/multiplicative")
+@Controller("/api/simpler/solve-lp/multiplicative")
 public class SolveMultiplicativeSimplexController {
 
     @Inject
