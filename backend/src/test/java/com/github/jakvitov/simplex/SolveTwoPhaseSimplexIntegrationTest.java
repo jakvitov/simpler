@@ -332,4 +332,71 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         assert response.getSolutionStatus().equals(SolutionStatus.CYCLE);
     }
 
+    @Test
+    public void solve_two_phase_simplex_bounds_integration_test() {
+        String input = """
+                NAME          BOUNDSBS
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2       -1
+                    X2        OBJ      -1
+                    X2        C1        1
+                    X2        C2       -1
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2       50
+                BOUNDS
+                 UP BND1      X1      100
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
+        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(90));
+    }
+
+    @Test
+    public void solve_two_phase_simplex_boundstp_integration_test() {
+        String input = """
+                NAME          BOUNDSTP
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2       -1
+                    X2        OBJ      -1
+                    X2        C1        1
+                    X2        C2       -1
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2       50
+                BOUNDS
+                 LO BND1      X1        1
+                 UP BND1      X1      100
+                 LO BND1      X2        1
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(8));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(9));
+        assert response.getResultVariableValues().get("X2").equals(BigFraction.ONE);
+        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
+        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(91));
+        assert response.getResultVariableValues().get("S_4").equals(new BigFraction(8));
+    }
+
+
 }

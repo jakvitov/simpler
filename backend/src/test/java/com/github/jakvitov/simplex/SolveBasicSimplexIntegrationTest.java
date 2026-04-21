@@ -249,7 +249,7 @@ public class SolveBasicSimplexIntegrationTest {
     @Test
     public void solve_basic_simplex_bounds_integration_test() {
         String input = """
-                NAME          LP3
+                NAME          BOUNDSBS
                 ROWS
                  N  OBJ
                  L  C1
