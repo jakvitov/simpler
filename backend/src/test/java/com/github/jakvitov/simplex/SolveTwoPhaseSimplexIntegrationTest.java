@@ -210,7 +210,7 @@ public class SolveTwoPhaseSimplexIntegrationTest {
     @Test
     public void solve_two_phase_mintp_succeeds() {
         String input = """
-                NAME          MINLP
+                NAME          MINTP
                 ROWS
                  N  OBJ
                  G  C1

@@ -245,7 +245,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_phase_simplex_largetp_succeeds() {
+    public void solve_revised_simplex_largetp_succeeds() {
         String input = """
                 NAME          LARGETP
                                       ROWS
@@ -277,6 +277,32 @@ public class SolveRevisedSimplexIntegrationTest {
         assert response.getResultVariableValues().get("S_1").equals(new BigFraction(47, 6));
     }
 
-
+    @Test
+    public void solve_revised_simplex_mintp_succeeds() {
+        String input = """
+                NAME          MINTP
+                ROWS
+                 N  OBJ
+                 G  C1
+                 G  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2        2
+                    X2        OBJ       1
+                    X2        C1        1
+                    X2        C2       -3
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2        5
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.REVISED, null, null);
+        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(7));
+        assert response.getResultVariableValues().get("X2").equals(new BigFraction(3));
+    }
 
 }
