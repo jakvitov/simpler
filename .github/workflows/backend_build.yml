@@ -1,6 +1,11 @@
 name: Backend build
 
 on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/build.gradle'
+      - 'backend/src/**'
   pull_request:
     paths:
       - 'backend/build.gradle'
