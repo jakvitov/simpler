@@ -246,4 +246,36 @@ public class SolveBasicSimplexIntegrationTest {
         assert response.getSolutionStatus().equals(SolutionStatus.CYCLE);
     }
 
+    @Test
+    public void solve_basic_simplex_bounds_integration_test() {
+        String input = """
+                NAME          LP3
+                ROWS
+                 N  OBJ
+                 L  C1
+                 L  C2
+                COLUMNS
+                    X1        OBJ       1
+                    X1        C1        1
+                    X1        C2       -1
+                    X2        OBJ      -1
+                    X2        C1        1
+                    X2        C2       -1
+                RHS
+                    RHS1      C1       10
+                    RHS1      C2       50
+                BOUNDS
+                 UP BND1      X1      100
+                ENDATA
+                """;
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.BASIC_SIMPLEX, null, null);
+        SolveLpBasicSimplexResponseDto response = basicSimplexSolverService.handleSolveBasicSimplexRequest(solveLpRequestDto);
+        assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
+        assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("X1").equals(new BigFraction(10));
+        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
+        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(90));
+
+    }
+
 }
