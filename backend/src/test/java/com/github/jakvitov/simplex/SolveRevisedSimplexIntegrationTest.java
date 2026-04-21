@@ -4,7 +4,6 @@ import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
-import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
 import com.github.jakvitov.service.RevisedSimplexSolverService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
