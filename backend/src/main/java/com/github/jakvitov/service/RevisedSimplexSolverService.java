@@ -53,7 +53,7 @@ public class RevisedSimplexSolverService {
         responseDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
         List<BigFraction> originalObjectiveRow = new ArrayList<>(simplexTable.objectiveFunctionRow);
-        IntWrapper iterations = IntWrapper.of(0);
+        IntWrapper iterations = IntWrapper.of(1);
         Map<Integer, Integer> visitedBaseCount = new HashMap<>();
 
         if (simplexTable.containsArtificialVariables) {

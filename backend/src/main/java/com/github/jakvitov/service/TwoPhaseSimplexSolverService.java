@@ -57,7 +57,7 @@ public class TwoPhaseSimplexSolverService {
 
         responseDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
-        IntWrapper iterations = IntWrapper.of(0);
+        IntWrapper iterations = IntWrapper.of(1);
         Map<Integer, Integer> visitedBaseCount = new HashMap<>();
 
         if (simplexTable.containsArtificialVariables) {

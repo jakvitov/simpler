@@ -7,7 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchSolveMultiplicativeSimplex = async (request: SolveLpRequest): Promise<SolveLpMultiplicativeSimplexResponseDto|SolveLpErrorResponse> => {
     try {
         const response = await axios.post<SolveLpMultiplicativeSimplexResponseDto> (
-            `${API_BASE_URL}/be/simpler/solve-lp/multiplicative`,
+            `${API_BASE_URL}/api/simpler/solve-lp/multiplicative`,
             request
         );
 
