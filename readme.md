@@ -12,7 +12,7 @@ Student friendly linear optimisations solver supporting different algorithmic va
 
 ### Windows specific instructions
 - Download .exe and start it up with double click
-- It might be neccessary to explicitly allow it to run in a system prompt window, since it's downloaded from the internet. 
+- It might be neccessary to explicitly allow it to run in a system prompt window since it's downloaded from the internet. 
 
 ### Mac specific instructions
 Mac instructions show application running from downloads directory. If you move it somewhere else, adjust your commands accordingly.
@@ -47,7 +47,7 @@ cd $HOME/Downloads
 chmod +x ./Simpler_0.1.0-aplha.1_ubuntu
 ```
 - Run application
-```zsh
+```bash
 ./Simpler_0.1.0-aplha.1_ubuntu
 ```
 - To exit the application use CTRL + C in terminal
