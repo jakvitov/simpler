@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.net.URI;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Application {
@@ -19,7 +20,7 @@ public class Application {
         if (env.getActiveNames().contains("prod")) {
             startBrowserWindowOrShowRef();
         } else {
-            log.info("Running in development mode.");
+            log.info("Running in  mode {}", String.join(", ", env.getActiveNames()));
         }
     }
 
