@@ -89,7 +89,7 @@ public class TwoPhaseSimplexSolverService {
         setupObjectiveRowBeforePhaseOne(simplexTable);
 
         TwoPhaseSimplexPhaseOneSolutionDto simplexPhaseOneSolutionDto = new TwoPhaseSimplexPhaseOneSolutionDto();
-        simplexPhaseOneSolutionDto.setInitialSimplexTable(new SimplexTableDto(simplexTable));
+        simplexPhaseOneSolutionDto.setInitialSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
 
         //Add artificial variable values to the objective row adjusting them to the actual base
         TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = normalizeArtificialVariables(simplexTable);
@@ -99,7 +99,7 @@ public class TwoPhaseSimplexSolverService {
 
             if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > configurationService.getConfig(TP_MAX_CYCLE, solverConfigurationInput)) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
-                simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
+                simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
                 result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
                 //Cycled solution - we shall not continue
                 return false;
@@ -111,9 +111,9 @@ public class TwoPhaseSimplexSolverService {
 
             if (basicSimplexSolverService.isUnbounded(simplexTable, enteringVariableIndex)) {
                 result.setSolutionStatus(SolutionStatus.UNBOUNDED);
-                simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
+                simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
                 SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
-                simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
+                simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
                 simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(null);
                 simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
                 basicSimplexIterationDto.setSimplexTableLeavingEnteringVariableDto(simplexTableLeavingEnteringVariableDto);
@@ -130,7 +130,7 @@ public class TwoPhaseSimplexSolverService {
             int leavingVariableIndex = getLeavingVariableIndexForPhaseOne(tVector);
 
             SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
-            simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
+            simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
             simplexTableLeavingEnteringVariableDto.setTVector(tVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
             simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(leavingVariableIndex);
             simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
@@ -141,17 +141,18 @@ public class TwoPhaseSimplexSolverService {
 
             SimplexTableLeavingRowNormalisationDto simplexTableLeavingRowNormalisationDto = new SimplexTableLeavingRowNormalisationDto();
             simplexTableLeavingRowNormalisationDto.setRowNormalizationIndex(leavingVariableIndex);
-            simplexTableLeavingRowNormalisationDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
+            simplexTableLeavingRowNormalisationDto.setSimplexTableDto(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
             simplexTableLeavingRowNormalisationDto.setBy(normalizationCoefficient);
 
             basicSimplexIterationDto.setSimplexTableLeavingRowNormalisationDto(simplexTableLeavingRowNormalisationDto);
             SimplexTableRowsNormalizationDto simplexTableRowsNormalizationDto = basicSimplexSolverService.normaliseRowsByLeavingVariableRow(leavingVariableIndex, enteringVariableIndex, simplexTable);
+            simplexTableRowsNormalizationDto.getSimplexTableDto().setObjectiveValue(computeArtificialObjectiveFunctionRowValue(simplexTable));
 
             basicSimplexIterationDto.setSimplexTableRowsNormalizationDto(simplexTableRowsNormalizationDto);
 
             basicSimplexSolverService.switchLeavingEnteringVariables(leavingVariableIndex, enteringVariableIndex, simplexTable);
 
-            basicSimplexIterationDto.setSimplexTableAfterVariableSwitch(new SimplexTableDto(simplexTable));
+            basicSimplexIterationDto.setSimplexTableAfterVariableSwitch(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
 
             if (visitedBaseCount.containsKey(simplexTable.baseVariables.hashCode())) {
                 visitedBaseCount.put(simplexTable.baseVariables.hashCode(), visitedBaseCount.get(simplexTable.baseVariables.hashCode()) + 1);
@@ -163,13 +164,13 @@ public class TwoPhaseSimplexSolverService {
 
         //Not solved after loop means max iterations were achieved
         if (!basicSimplexSolverService.isSimplexTableSolved(simplexTable)) {
-            simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
+            simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
             result.setSolutionStatus(SolutionStatus.MAX_ITERATIONS);
             result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
             return false;
         }
 
-        simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
+        simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
         result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
         return true;
     }
@@ -266,6 +267,21 @@ public class TwoPhaseSimplexSolverService {
         simplexPhaseTwoSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable));
         result.setPhaseTwoSolutionDto(simplexPhaseTwoSolutionDto);
         result.setSolutionObjectiveFunctionValue(simplexTable.objectiveValue);
+    }
+
+    /**
+     * Given simplex table with artificial objective row, return its current value
+     * @param simplexTable
+     * @return
+     */
+    private BigFraction computeArtificialObjectiveFunctionRowValue(SimplexTable simplexTable) {
+        BigFraction res = BigFraction.ZERO;
+        for (int i = 0; i < simplexTable.baseVariables.size(); i ++) {
+            if (simplexTable.baseVariables.get(i).startsWith("A_")) {
+                res = res.add(simplexTable.rhs.get(i));
+            }
+        }
+        return res;
     }
 
     /**
@@ -401,7 +417,7 @@ public class TwoPhaseSimplexSolverService {
 
         TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization = new TwoPhaseSimplexObjectiveRowNormalizationDto();
         artificialVariablesNormalization.setCoefficients(coefficients);
-        artificialVariablesNormalization.setSimplexTableDto(new SimplexTableDto(simplexTable));
+        artificialVariablesNormalization.setSimplexTableDto(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
         return artificialVariablesNormalization;
     }
 

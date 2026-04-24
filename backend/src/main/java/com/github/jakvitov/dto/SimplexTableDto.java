@@ -41,6 +41,25 @@ public class SimplexTableDto {
         this.objectiveValue = other.objectiveValue;
     }
 
+    public SimplexTableDto(SimplexTable other, BigFraction objectiveValue) {
+        // Deep copy simple lists
+        this.variables = new ArrayList<>(other.variables);
+        this.baseVariables = new ArrayList<>(other.baseVariables);
+
+        // Deep copy 2D list
+        this.data = new ArrayList<>();
+        for (List<BigFraction> row : other.data) {
+            this.data.add(new ArrayList<>(row));
+        }
+
+        // Deep copy remaining lists
+        this.rhs = new ArrayList<>(other.rhs);
+        this.objectiveFunctionRow = new ArrayList<>(other.objectiveFunctionRow);
+
+        // Copy value
+        this.objectiveValue = objectiveValue;
+    }
+
     public SimplexTableDto() {
     }
 
