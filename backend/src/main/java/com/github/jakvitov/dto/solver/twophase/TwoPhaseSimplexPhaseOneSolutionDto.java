@@ -2,6 +2,7 @@ package com.github.jakvitov.dto.solver.twophase;
 
 import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.basic.BasicSimplexIterationDto;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
 
@@ -15,6 +16,7 @@ public class TwoPhaseSimplexPhaseOneSolutionDto {
     private SimplexTableDto initialSimplexTable;
     private TwoPhaseSimplexObjectiveRowNormalizationDto artificialVariablesNormalization;
     private List<BasicSimplexIterationDto> iterations = new ArrayList<>();
+    @Nullable
     private SimplexTableDto finalSimplexTable;
 
 }
