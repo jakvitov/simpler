@@ -1,6 +1,9 @@
 import {BlockMath} from 'react-katex';
 import type {Bound, LpDefinitionLine, ParsedLpDefinition} from "../../../api/common/lpDefinitionTypes.ts";
-import {renderRationalWithNegativeSignOnly, renderRationalWithSign} from "../../../api/common/math.ts";
+import {
+    renderRationalWithNegativeSignOnlyNoPhantom,
+    renderRationalWithSign
+} from "../../../api/common/math.ts";
 
 type ParsedLpDefinitionElementProps = {
     parsedLpDefinition: ParsedLpDefinition
@@ -8,15 +11,15 @@ type ParsedLpDefinitionElementProps = {
 
 function renderParsedLpDefinitionBound(bound: Bound, index: number) {
     let res = "\\tag{" + (index + 1) + "}";
-    if (bound.lowerbound === null || bound.lowerbound === undefined) {
+    if (bound.lowerbound == null) {
         res += "0 \\leq "+  bound.variableName
     } else {
-        res += renderRationalWithNegativeSignOnly(bound.lowerbound) + " \\leq "  + bound.variableName
+        res += renderRationalWithNegativeSignOnlyNoPhantom(bound.lowerbound) + " \\leq "  + bound.variableName
     }
-    if (bound.upperbound !== null && res.length > 0) {
-        res += " \\leq " + renderRationalWithNegativeSignOnly(bound.upperbound)
-    } else if (bound.upperbound !== null) {
-        res += bound.variableName + " \\leq " + renderRationalWithNegativeSignOnly(bound.upperbound)
+    if (bound.upperbound != null && res.length > 0) {
+        res += " \\leq " + renderRationalWithNegativeSignOnlyNoPhantom(bound.upperbound)
+    } else if (bound.upperbound != null) {
+        res += bound.variableName + " \\leq " + renderRationalWithNegativeSignOnlyNoPhantom(bound.upperbound)
     }
     return res;
 }
@@ -26,7 +29,7 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
 
     //Render first variable with rational coefficient without + sign
     if (lpDefinitionLine.variableValues.length !== 0) {
-        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.variableValues[0].value) + lpDefinitionLine.variableValues[0].variableName
+        res += renderRationalWithNegativeSignOnlyNoPhantom(lpDefinitionLine.variableValues[0].value) + lpDefinitionLine.variableValues[0].variableName
     }
 
     //Render the rest with any sign
@@ -36,13 +39,13 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
 
     if (lpDefinitionLine.inequalitySign === "GE") {
         res += "\\geq"
-        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
+        res += renderRationalWithNegativeSignOnlyNoPhantom(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "LE") {
         res += "\\leq"
-        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
+        res += renderRationalWithNegativeSignOnlyNoPhantom(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "EQ") {
         res += "="
-        res += renderRationalWithNegativeSignOnly(lpDefinitionLine.rhs)
+        res += renderRationalWithNegativeSignOnlyNoPhantom(lpDefinitionLine.rhs)
     } else if (lpDefinitionLine.inequalitySign === "N") {
         res += "\\rightarrow OBJECTIVE"
     }
@@ -52,7 +55,7 @@ function renderParsedLpDefinitionLine(lpDefinitionLine: LpDefinitionLine, i: num
 
 function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
 
-    if (props.parsedLpDefinition.warningMessage !== null && props.parsedLpDefinition.warningMessage !== undefined) {
+    if (props.parsedLpDefinition.warningMessage != null) {
         return (<>
             <h3 className={"pt-2"}>Parsed linear problem:</h3>
             <h3 className={"pt-2"}>Warning:</h3>
@@ -60,7 +63,7 @@ function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
             <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
             {props.parsedLpDefinition.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
             <BlockMath key={"2"} math={"\\text{Bounds:}"}></BlockMath>
-            {(props.parsedLpDefinition.bounds !== null && props.parsedLpDefinition.bounds !== undefined) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
+            {(props.parsedLpDefinition.bounds != null) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
             </>
             )
     }
@@ -70,7 +73,7 @@ function ParsedLpDefinitionElement(props: ParsedLpDefinitionElementProps){
                 <BlockMath key={"1"} math={"\\text{Equations:}"}></BlockMath>
                 {props.parsedLpDefinition.lines.map((line: LpDefinitionLine, i: number) => <BlockMath key={"l" + i} math={renderParsedLpDefinitionLine(line, i)} />)}
                 <BlockMath key={"2"} math={"\\text{Bounds:}"}></BlockMath>
-                {(props.parsedLpDefinition.bounds !== null && props.parsedLpDefinition.bounds !== undefined) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
+                {(props.parsedLpDefinition.bounds != null) ? props.parsedLpDefinition.bounds.map((bound: Bound, i: number) => <BlockMath key={"b" + i} math={renderParsedLpDefinitionBound(bound, i)}/>) : <></>}
             </>
         )
 }

@@ -44,7 +44,7 @@ export function renderRationalWithNegativeSignOnly(r: Rational|undefined): strin
  * Used in matrix rendering
  * @param r
  */
-function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefined): string {
+export function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefined): string {
     if (r == undefined) {
         return "ERROR_UNDEFINED"
     }
