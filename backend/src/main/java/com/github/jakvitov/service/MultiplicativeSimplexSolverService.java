@@ -48,6 +48,7 @@ public class MultiplicativeSimplexSolverService {
 
     public SolveLpMultiplicativeSimplexResponseDto handleSolveMultiplicativeSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
         MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
+        mpsData.validate();
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 

@@ -39,6 +39,7 @@ public class TwoPhaseSimplexSolverService {
 
     public SolveLpTwoPhaseSimplexResponseDto handleSolveTwoPhaseSimplexRequest(SolveLpRequestDto solveLpRequestDto) {
         MpsData mpsData = MpsData.parse(solveLpRequestDto.data());
+        mpsData.validate();
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 
