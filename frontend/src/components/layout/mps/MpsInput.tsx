@@ -62,7 +62,7 @@ export default function MPSInput({
 
         // Highlight numbers
         highlighted = highlighted.replace(
-            /\b(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\b/g,
+            /\b(\d+\.?\d*|\.\d+|\/)([eE][+-]?\d+)?\b/g,
             '<span style="color: #098658;">$&</span>'
         );
 
