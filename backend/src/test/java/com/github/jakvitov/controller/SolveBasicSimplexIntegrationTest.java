@@ -1,10 +1,13 @@
-package com.github.jakvitov.simplex;
+package com.github.jakvitov.controller;
 
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.basic.SolveLpBasicSimplexResponseDto;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.service.BasicSimplexSolverService;
+import com.github.jakvitov.simplex.OptimisationTarget;
+import com.github.jakvitov.simplex.SimplexTableTransformationError;
+import com.github.jakvitov.simplex.SimplexVariant;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.hipparchus.fraction.BigFraction;

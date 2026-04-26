@@ -70,6 +70,39 @@ public class MpsDataTest {
     }
 
     @Test
+    public void parse_incorrect_mps_fails() {
+        final String mpsInput = """
+                NAME          TESTPROB
+                ROWOWWPWPPWPWPWS
+                 N  COST
+                 L  LIM1
+                 G  LIM2
+                 E  MYEQN
+                COLUMNS
+                    XONE      COST                 1/2   LIM1                 1
+                    XONE      LIM2                 1
+                    YTWO      COST                 4   LIM1                 1
+                    YTWO      MYEQN               -1/2
+                    ZTHREE    COST                 9   LIM2                 1
+                    ZTHREE    MYEQN                1
+                RHS
+                    RHS1      LIM1                 5   LIM2                10
+                    RHS1      MYEQN                7
+                BOUNDS
+                 UP BND1      XONE                 4
+                 LO BND1      YTWO                -1
+                 UP BND1      YTWO                 1
+                ENDATA
+                """;
+        try {
+            MpsData mpsData = MpsData.parse(mpsInput);
+        } catch (MpsParsingException e) {
+            return;
+        }
+        assert false;
+    }
+
+    @Test
     public void verify_correct_mps_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
@@ -97,6 +130,40 @@ public class MpsDataTest {
 
         MpsData mpsData = MpsData.parse(mpsInput);
         mpsData.validate();
+    }
+
+    @Test
+    public void verify_incorrect_data_fails() {
+        final String mpsInput = """
+                NAME          TESTPROB
+                ROWS
+                 N  COST
+                 L  LIM1
+                 G  LIM2
+                 E  MYEQN
+                COLUMNS
+                    XONE      FAKE_ROW                 1/2   LIM1                 1
+                    XONE      LIM2                 1
+                    YTWO      COST                 4   LIM1                 1
+                    YTWO      MYEQN               -1/2
+                    ZTHREE    COST                 9   LIM2                 1
+                    ZTHREE    MYEQN                1
+                RHS
+                    RHS1      LIM1                 5   LIM2                10
+                    RHS1      MYEQN                7
+                BOUNDS
+                 UP BND1      XONE                 4
+                 LO BND1      YTWO                -1
+                 UP BND1      YTWO                 1
+                ENDATA
+                """;
+        MpsData mpsData = MpsData.parse(mpsInput);
+        try {
+            mpsData.validate();
+        } catch (MpsValidationException e) {
+            return;
+        }
+        assert false;
     }
 
 }

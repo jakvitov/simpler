@@ -275,7 +275,7 @@ public class TwoPhaseSimplexSolverService {
      * @param simplexTable
      * @return
      */
-    private BigFraction computeArtificialObjectiveFunctionRowValue(SimplexTable simplexTable) {
+    protected BigFraction computeArtificialObjectiveFunctionRowValue(SimplexTable simplexTable) {
         BigFraction res = BigFraction.ZERO;
         for (int i = 0; i < simplexTable.baseVariables.size(); i ++) {
             if (simplexTable.baseVariables.get(i).startsWith("A_")) {

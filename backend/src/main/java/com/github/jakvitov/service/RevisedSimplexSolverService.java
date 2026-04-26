@@ -151,7 +151,7 @@ public class RevisedSimplexSolverService {
             }
 
             //Compute ratio vector test
-            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
+            List<Optional<BigFraction>> ratioVector = computeRatioVector(d, xB);
             iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
 
             int leavingVariableIndex = twoPhaseSimplexSolverService.getLeavingVariableIndexForPhaseOne(ratioVector);
@@ -269,7 +269,7 @@ public class RevisedSimplexSolverService {
             }
 
             //Compute ratio vector test
-            List<Optional<BigFraction>> ratioVector = computeRatioVector(originalSimplexTable, d, xB);
+            List<Optional<BigFraction>> ratioVector = computeRatioVector(d, xB);
             iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
 
             int leavingVariableIndex = basicSimplexSolverService.getLeavingVariableIndex(ratioVector);
@@ -329,14 +329,13 @@ public class RevisedSimplexSolverService {
 
     /**
      * Calculate ratio vector (t-vec)
-     * @param originalSimplexTable
      * @param d
      * @param xB
      * @return
      */
-    protected List<Optional<BigFraction>> computeRatioVector(SimplexTable originalSimplexTable, List<List<BigFraction>> d, List<List<BigFraction>> xB) {
-        List<Optional<BigFraction>> ratioVector = new ArrayList<>(originalSimplexTable.baseVariables.size());
-        IntStream.range(0, originalSimplexTable.baseVariables.size()).boxed().forEach((i) -> {
+    protected List<Optional<BigFraction>> computeRatioVector(List<List<BigFraction>> d, List<List<BigFraction>> xB) {
+        List<Optional<BigFraction>> ratioVector = new ArrayList<>(d.size());
+        IntStream.range(0, d.size()).boxed().forEach((i) -> {
             //Column vector
             BigFraction dItem = d.get(i).getFirst();
             BigFraction xBItem = xB.get(i).getFirst();
@@ -403,7 +402,7 @@ public class RevisedSimplexSolverService {
      * @param currentBasisVariables
      * @return
      */
-    private List<Integer> getNonBasicVariablesColumnIndexes(SimplexTable originalSimplexTable, List<String> currentBasisVariables) {
+    protected List<Integer> getNonBasicVariablesColumnIndexes(SimplexTable originalSimplexTable, List<String> currentBasisVariables) {
         Set<Integer> basicVariableColumnIndexes = currentBasisVariables.stream().map(baseVariableName -> originalSimplexTable.getVariableColumnIndex(baseVariableName).orElseThrow(() -> new IllegalStateException("Base variable " + baseVariableName + " not found among original simplex table variables!"))).collect(Collectors.toSet());
         return IntStream.range(0, originalSimplexTable.variables.size()).filter(i -> !basicVariableColumnIndexes.contains(i)).boxed().collect(Collectors.toList());
     }
