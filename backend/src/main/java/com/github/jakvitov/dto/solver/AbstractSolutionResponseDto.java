@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Data
 @Serdeable
-public class AbstractSolutionResponseDto {
+public abstract class AbstractSolutionResponseDto {
 
     private SolutionStatus solutionStatus;
 
