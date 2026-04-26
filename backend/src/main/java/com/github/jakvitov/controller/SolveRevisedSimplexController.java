@@ -2,6 +2,8 @@ package com.github.jakvitov.controller;
 
 import com.github.jakvitov.dto.solver.SolveLpErrorResponse;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
+import com.github.jakvitov.dto.solver.basic.SolveLpBasicSimplexResponseDto;
+import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
 import com.github.jakvitov.mps.MpsParsingException;
 import com.github.jakvitov.service.ErrorManagementService;
 import com.github.jakvitov.service.RevisedSimplexSolverService;
@@ -10,6 +12,11 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
@@ -25,6 +32,28 @@ public class SolveRevisedSimplexController {
     private ErrorManagementService errorManagementService;
 
     @Post
+    @Operation(summary = "Solve LP using revised simplex")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful solution",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SolveLpRevisedSimlexResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid input"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Server error",
+                    content = @Content(
+                            schema = @Schema(implementation = SolveLpErrorResponse.class)
+                    )
+            )
+    })
     public HttpResponse<?> solveBasicSimplex(@Body SolveLpRequestDto solveLpRequestDto) {
         try {
             var res = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
