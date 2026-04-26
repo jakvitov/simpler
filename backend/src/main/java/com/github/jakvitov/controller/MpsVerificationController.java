@@ -7,6 +7,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.inject.Inject;
 
 @Controller("/api/simpler/mps/verify")
@@ -16,6 +17,7 @@ public class MpsVerificationController {
     private MpsVerificationService mpsVerificationService;
 
     @Post
+    @Operation(summary = "Verify MPS and parse it to eq form")
     public HttpResponse<MpsVerificationResponseDto> verifyMps(@Body MpsVerificationInputDto mpsVerificationInputDto) {
         return HttpResponse.ok(mpsVerificationService.verifyMps(mpsVerificationInputDto));
     }
