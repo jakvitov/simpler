@@ -288,16 +288,24 @@ public class BasicSimplexSolverService {
 
     /**
      * Given non solved simplex table, return index of the entering variable in variables list
+     * @param simplexTable
      * @return
      */
     protected int getEnteringVariableIndex(SimplexTable simplexTable) {
+        Optional<BigFraction> min = Optional.empty();
         int minIndex = 0;
-        BigFraction min = simplexTable.objectiveFunctionRow.getFirst();
-        for (int i = 1; i < simplexTable.objectiveFunctionRow.size(); i ++) {
-            if (simplexTable.objectiveFunctionRow.get(i).compareTo(min) < 0) {
+        for (int i = 0; i < simplexTable.objectiveFunctionRow.size(); i ++) {
+            if (min.isEmpty() && simplexTable.objectiveFunctionRow.get(i).signum() < 0) {
                 minIndex = i;
-                min = simplexTable.objectiveFunctionRow.get(i);
+                min = Optional.of(simplexTable.objectiveFunctionRow.get(i));
+            } else if (min.isPresent() && simplexTable.objectiveFunctionRow.get(i).compareTo(min.get()) < 0) {
+                minIndex = i;
+                min = Optional.of(simplexTable.objectiveFunctionRow.get(i));
             }
+        }
+        if (min.isEmpty()) {
+            //Should not occur, since optimality check is always performed before
+            throw new IllegalStateException("Entering variable index could not be found for non-solved simplex table!");
         }
         return minIndex;
     }
