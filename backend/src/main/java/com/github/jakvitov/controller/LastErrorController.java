@@ -28,6 +28,20 @@ public class LastErrorController {
 
     @Get
     @Operation(summary = "Return information about last error")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Error found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LastErrorResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No last error found"
+            ),
+    })
     public HttpResponse<LastErrorResponseDto> getHealthCheckResponseDto() {
         Optional<LastErrorResponseDto> lastErrorResponseDto = errorManagementService.getLastErrorResponse();
         if (lastErrorResponseDto.isPresent()) {
