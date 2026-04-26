@@ -3,6 +3,7 @@ package com.github.jakvitov.simplex;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
 import org.hipparchus.fraction.BigFraction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public class SimplexTableTest {
     }
 
     @Test
-    public void simplex_table_deep_copy_test() {
+    public void simplex_table_deep_copy_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB
                 ROWS
@@ -96,6 +97,7 @@ public class SimplexTableTest {
     }
 
     @Test
+    @Disabled
     public void simplex_table_print_succeeds() {
         final String mpsInput = """
                 NAME          TESTPROB

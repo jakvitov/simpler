@@ -1,23 +1,25 @@
-package com.github.jakvitov.simplex;
+package com.github.jakvitov.controller;
 
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
-import com.github.jakvitov.dto.solver.revised.SolveLpRevisedSimlexResponseDto;
-import com.github.jakvitov.service.RevisedSimplexSolverService;
+import com.github.jakvitov.dto.solver.multiplicative.SolveLpMultiplicativeSimplexResponseDto;
+import com.github.jakvitov.service.MultiplicativeSimplexSolverService;
+import com.github.jakvitov.simplex.OptimisationTarget;
+import com.github.jakvitov.simplex.SimplexVariant;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.hipparchus.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-public class SolveRevisedSimplexIntegrationTest {
+public class SolveMultiplicativeSimplexIntegrationTest {
 
     @Inject
-    private RevisedSimplexSolverService revisedSimplexSolverService;
+    private MultiplicativeSimplexSolverService multiplicativeSimplexSolverService;
 
     @Test
-    public void solve_revised_simplex_minimalization_testmin_succeeds() {
+    public void solve_multiplicative_simplex_minimalization_testmin_succeeds() {
         String input = """
                 NAME          TESTMIN
                 ROWS
@@ -40,8 +42,8 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C3        7
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(BigFraction.ZERO);
         assert response.getResultVariableValues().get("S_1").equals(new BigFraction(4));
@@ -50,7 +52,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_maximalization_simplecase_succeeds() {
+    public void solve_multiplicative_simplex_maximalization_simplecase_succeeds() {
         String input = """
                 #Simple LP with x1=2, x2=2, z=4
                 #Two iterations solution
@@ -71,8 +73,8 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C2      2
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(4));
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(2));
@@ -80,7 +82,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_unbounded_succeeds() {
+    public void solve_multiplicative_simplex_unbounded_succeeds() {
         String input = """
                 #Unbounded case reached in first iteration
                 NAME          UNBOUNDED
@@ -96,15 +98,15 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C1      1
                 ENDATA
                """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.UNBOUNDED);
         assert response.getSolutionObjectiveFunctionValue() == null;
         assert response.getResultVariableValues() == null;
     }
 
     @Test
-    public void solve_revised_simplex_maximalization_large_succeeds() {
+    public void solve_multiplicative_simplex_maximalization_large_succeeds() {
         String input = """
                 NAME          LARGE
                 ROWS
@@ -131,8 +133,8 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C3      100
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(35, 2));
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(15, 2));
@@ -141,7 +143,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_max_iterations_integration_test() {
+    public void solve_multiplicative_simplex_max_iterations_integration_test() {
         String input = """
                 NAME          LARGE
                 ROWS
@@ -169,15 +171,15 @@ public class SolveRevisedSimplexIntegrationTest {
                 ENDATA
                 """;
         SolverConfigurationDto config = new SolverConfigurationDto();
-        config.setRevisedMaxIterations(1L);
+        config.setMultiplicativeMaxIterations(1L);
         config.setRevisedMaxBaseCycles(5L);
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, config, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, config, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.MAX_ITERATIONS);
     }
 
     @Test
-    public void solve_revised_simplex_max_base_cycles_integration_test() {
+    public void solve_multiplicative_simplex_max_base_cycles_integration_test() {
         String input = """
                 NAME          LARGE
                 ROWS
@@ -207,13 +209,13 @@ public class SolveRevisedSimplexIntegrationTest {
         SolverConfigurationDto config = new SolverConfigurationDto();
         config.setRevisedMaxIterations(10L);
         config.setRevisedMaxBaseCycles(0L);
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, config, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, config, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.CYCLE);
     }
 
     @Test
-    public void solve_revised_simplex_bounds_integration_test() {
+    public void solve_multiplicative_simplex_bounds_integration_test() {
         String input = """
                 NAME          BOUNDSBS
                 ROWS
@@ -234,8 +236,8 @@ public class SolveRevisedSimplexIntegrationTest {
                  UP BND1      X1      100
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(10));
@@ -244,7 +246,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_largetp_succeeds() {
+    public void solve_multiplicative_simplex_largetp_succeeds() {
         String input = """
                 NAME          LARGETP
                                       ROWS
@@ -267,8 +269,8 @@ public class SolveRevisedSimplexIntegrationTest {
                                           RHS1    C3      5/2
                                       ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(19, 12));
         assert response.getResultVariableValues().get("X2").equals(new BigFraction(11, 3));
@@ -277,7 +279,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_mintp_succeeds() {
+    public void solve_multiplicative_simplex_mintp_succeeds() {
         String input = """
                 NAME          MINTP
                 ROWS
@@ -296,8 +298,8 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C2        5
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MIN, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(7));
@@ -305,7 +307,7 @@ public class SolveRevisedSimplexIntegrationTest {
     }
 
     @Test
-    public void solve_revised_simplex_unboundedtp_succeeds() {
+    public void solve_multiplicative_simplex_unboundedtp_succeeds() {
         String input = """
                 NAME          unboundedtp
                 ROWS
@@ -324,13 +326,13 @@ public class SolveRevisedSimplexIntegrationTest {
                     RHS1      C2        5
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.UNBOUNDED);
     }
 
     @Test
-    public void solve_revised_simplex_boundstp_integration_test() {
+    public void solve_multiplicative_simplex_boundstp_integration_test() {
         String input = """
                 NAME          BOUNDSTP
                 ROWS
@@ -353,8 +355,8 @@ public class SolveRevisedSimplexIntegrationTest {
                  LO BND1      X2        1
                 ENDATA
                 """;
-        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.REVISED, null, null);
-        SolveLpRevisedSimlexResponseDto response = revisedSimplexSolverService.handleSolveRevisedSimplexRequest(solveLpRequestDto);
+        SolveLpRequestDto solveLpRequestDto = new SolveLpRequestDto(input, OptimisationTarget.MAX, SimplexVariant.MULTIPLICATIVE, null, null);
+        SolveLpMultiplicativeSimplexResponseDto response = multiplicativeSimplexSolverService.handleSolveMultiplicativeSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(8));
         assert response.getResultVariableValues().get("X1").equals(new BigFraction(9));
