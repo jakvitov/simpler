@@ -1,6 +1,5 @@
 package com.github.jakvitov.dto.lpdefinition;
 
-import com.github.jakvitov.simplex.OptimisationTarget;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
