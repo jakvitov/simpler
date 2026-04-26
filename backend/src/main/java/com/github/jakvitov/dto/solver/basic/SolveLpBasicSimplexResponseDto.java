@@ -2,6 +2,7 @@ package com.github.jakvitov.dto.solver.basic;
 
 import com.github.jakvitov.dto.SimplexTableDto;
 import com.github.jakvitov.dto.solver.AbstractSolutionResponseDto;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +17,7 @@ public class SolveLpBasicSimplexResponseDto extends AbstractSolutionResponseDto 
 
     private List<BasicSimplexIterationDto> iterations = new ArrayList<>();
 
+    @Nullable
     private SimplexTableDto finalSimplexTable;
 
 }

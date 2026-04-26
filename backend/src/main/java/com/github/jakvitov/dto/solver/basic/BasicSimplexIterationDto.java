@@ -10,6 +10,7 @@ import lombok.Data;
 public class BasicSimplexIterationDto {
 
     SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto;
+    @Nullable
     SimplexTableLeavingRowNormalisationDto simplexTableLeavingRowNormalisationDto;
     @Nullable
     SimplexTableRowsNormalizationDto simplexTableRowsNormalizationDto;
