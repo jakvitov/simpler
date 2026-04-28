@@ -9,6 +9,8 @@
 ./frontend/dist-ssr
 ./frontend/*.local
 
+./testing/libs
+
 
 
 
