@@ -2,7 +2,9 @@ package com.github.jakvitov.mps;
 
 import org.hipparchus.fraction.BigFraction;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,6 +31,7 @@ public class MpsDataTransformedBounds {
         this.rhs = originalMpsData.rhs.entrySet().iterator().next().getValue();
 
         transformBoundsIntoNewRows(originalMpsData);
+        flipNegativeRows();
     }
 
     private void transformBoundsIntoNewRows(MpsData mpsData) {
@@ -62,6 +65,36 @@ public class MpsDataTransformedBounds {
         }
 
     }
+
+    /**
+     * Flip all negative RHS rows
+     */
+    public void flipNegativeRows() {
+        List<String> rowsToFlip = new ArrayList<>();
+        for (Map.Entry<String, RowType> row : rows.entrySet()) {
+            if (row.getValue() == RowType.N) {
+                continue;
+            }
+            if(!rhs.containsKey(row.getKey())) {
+                throw new MpsParsingException(MpsSections.RHS, "RHS does not contain row " + row.getKey());
+            }
+            //If row has negative RHS - sign needs to be flipped and rhs negated
+            if (rhs.get(row.getKey()).compareTo(BigFraction.ZERO) < 0) {
+                rowsToFlip.add(row.getKey());
+            }
+        }
+
+        rowsToFlip.forEach(rowNameToFlip -> {
+            this.rows.put(rowNameToFlip, this.rows.get(rowNameToFlip).flip());
+            this.rhs.put(rowNameToFlip, this.rhs.get(rowNameToFlip).negate());
+            this.columns.values().forEach(variableValues -> {
+                if (variableValues.containsKey(rowNameToFlip)) {
+                    variableValues.put(rowNameToFlip, variableValues.get(rowNameToFlip).negate());
+                }
+            });
+        });
+    }
+
 
 
 }

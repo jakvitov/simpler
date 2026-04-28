@@ -38,15 +38,15 @@ public class MpsDataTransformedBoundsTest {
 
         assert mpsDataTransformedBounds.rows.get("XONE-UP").equals(RowType.L);
         assert mpsDataTransformedBounds.rows.get("YTWO-UP").equals(RowType.L);
-        assert mpsDataTransformedBounds.rows.get("YTWO-LO").equals(RowType.G);
+        assert mpsDataTransformedBounds.rows.get("YTWO-LO").equals(RowType.L);
 
         assert mpsDataTransformedBounds.columns.get("XONE").get("XONE-UP").equals(BigFraction.ONE);
         assert mpsDataTransformedBounds.columns.get("YTWO").get("YTWO-UP").equals(BigFraction.ONE);
-        assert mpsDataTransformedBounds.columns.get("YTWO").get("YTWO-LO").equals(BigFraction.ONE);
+        assert mpsDataTransformedBounds.columns.get("YTWO").get("YTWO-LO").equals(BigFraction.ONE.negate());
 
         assert mpsDataTransformedBounds.rhs.get("XONE-UP").equals(new BigFraction(4));
         assert mpsDataTransformedBounds.rhs.get("YTWO-UP").equals(BigFraction.ONE);
-        assert mpsDataTransformedBounds.rhs.get("YTWO-LO").equals(BigFraction.ONE.negate());
+        assert mpsDataTransformedBounds.rhs.get("YTWO-LO").equals(BigFraction.ONE);
     }
 
     @Test

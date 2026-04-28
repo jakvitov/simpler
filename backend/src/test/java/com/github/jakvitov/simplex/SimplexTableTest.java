@@ -40,13 +40,13 @@ public class SimplexTableTest {
         MpsDataTransformedBounds mpsDataTransformedBounds = new MpsDataTransformedBounds(mpsData);
 
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
-        List<String> correctBaseVariables = List.of("S_1", "A_1", "A_2", "S_3", "S_4", "A_3");
+        List<String> correctBaseVariables = List.of("S_1", "A_1", "A_2", "S_3", "S_4", "S_5");
         assert simplexTable.baseVariables.equals(correctBaseVariables);
         simplexTable.data.forEach(row -> {
-            assert row.size() == 11;
+            assert row.size() == 10;
         });
-        assert simplexTable.rhs.equals(List.of(new BigFraction(5), new BigFraction(10), new BigFraction(7), new BigFraction(4), new BigFraction(1), new BigFraction(-1)));
-        assert simplexTable.objectiveFunctionRow.size() == 11;
+        assert simplexTable.rhs.equals(List.of(new BigFraction(5), new BigFraction(10), new BigFraction(7), new BigFraction(4), new BigFraction(1), new BigFraction(1)));
+        assert simplexTable.objectiveFunctionRow.size() == 10;
         assert simplexTable.objectiveValue.equals(BigFraction.ZERO);
     }
 
@@ -81,7 +81,7 @@ public class SimplexTableTest {
 
         SimplexTable simplexTable = SimplexTable.fromMpsData(mpsDataTransformedBounds);
 
-        assert simplexTable.data.getFirst().size() == 11;
+        assert simplexTable.data.getFirst().size() == 10;
         assert simplexTable.data.getFirst().get(0).equals(BigFraction.ONE);
 
         SimplexTable simplexTableCopy = new SimplexTable(simplexTable);
@@ -89,10 +89,10 @@ public class SimplexTableTest {
         simplexTable.data.getFirst().set(0, BigFraction.MINUS_ONE);
         simplexTable.data.getFirst().add(BigFraction.ZERO);
 
-        assert simplexTableCopy.data.getFirst().size() == 11;
+        assert simplexTableCopy.data.getFirst().size() == 10;
         assert simplexTableCopy.data.getFirst().get(0).equals(BigFraction.ONE);
 
-        assert simplexTable.data.getFirst().size() == 12;
+        assert simplexTable.data.getFirst().size() == 11;
         assert simplexTable.data.getFirst().get(0).equals(BigFraction.MINUS_ONE);
     }
 
