@@ -29,6 +29,18 @@ class SolverResponse(Enum):
 BE_URL = "http://localhost:8080/api/simpler/solve-lp/"
 EVALUATION_THRESHOLD_MS = 10000 
 
+solverConfiguration = {
+    "basicSimplexMaxIterations": 100000,
+    "basicSimplexMaxBaseCycles": 100000,
+    "twoPhaseMaxIterations": 100000,
+    "twoPhaseMaxBaseCycles": 100000,
+    "revisedMaxIterations": 100000,
+    "revisedMaxBaseCycles": 100000,
+    "multiplicativeMaxIterations": 100000,
+    "multiplicativeMaxBaseCycles": 100000,
+}
+
+
 def call_solve_api_with_mps(mps: str, filename: str, results):
     for variant in SolverType:
         for optimisationTarget in OptimisationTarget:
@@ -37,12 +49,13 @@ def call_solve_api_with_mps(mps: str, filename: str, results):
                 "optimisationTarget": optimisationTarget.value,
                 #Ignored, since this is used only for hash com. on FE
                 "method": "REVISED",
-                "version": "test"
+                "version": "test",
+                "solverConfiguration": solverConfiguration
             }             
             url = BE_URL + variant.value
 
             response = requests.post(url, json=request_data)
-            if response.status_code == 200:
+            if response.status_code == 200 and response.json()["solutionStatus"] == "SOLVED":
                 results[variant.value].append({
                     "status": SolverResponse.OK,
                     "time": response.elapsed,
