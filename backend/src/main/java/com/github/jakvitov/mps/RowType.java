@@ -4,5 +4,14 @@ public enum RowType {
     N,
     L,
     G,
-    E
+    E;
+
+    public RowType flip() {
+        return switch (this) {
+            case N -> N;
+            case L -> G;
+            case G -> L;
+            case E -> E;
+        };
+    }
 }
