@@ -10,6 +10,7 @@ import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.math.LinearAlgebraService;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
+import com.github.jakvitov.simplex.BaseCycleTracker;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
 import com.github.jakvitov.utils.MemoryUtils;
@@ -55,21 +56,21 @@ public class RevisedSimplexSolverService {
 
         List<BigFraction> originalObjectiveRow = new ArrayList<>(simplexTable.objectiveFunctionRow);
         IntWrapper iterations = IntWrapper.of(1);
-        Map<Integer, Integer> visitedBaseCount = new HashMap<>();
+        BaseCycleTracker baseCycleTracker = new BaseCycleTracker(configurationService.getConfig(RS_MAX_CYCLE, solveLpRequestDto.solverConfiguration()));
 
         if (simplexTable.containsArtificialVariables) {
-            boolean continueToPhaseTwo = solveRevisedSimplexPhaseOne(simplexTable,responseDto, visitedBaseCount, iterations, solveLpRequestDto.solverConfiguration());
+            boolean continueToPhaseTwo = solveRevisedSimplexPhaseOne(simplexTable,responseDto, baseCycleTracker, iterations, solveLpRequestDto.solverConfiguration());
             if (continueToPhaseTwo) {
-                solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
+                solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, baseCycleTracker, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
             }
         } else {
-            solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
+            solveRevisedSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, baseCycleTracker, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
         }
 
         return responseDto;
     }
 
-    private boolean solveRevisedSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
+    private boolean solveRevisedSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpRevisedSimlexResponseDto responseDto, BaseCycleTracker baseCycleTracker, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
 
         RevisedSimplexPhaseOneSolutionDto revisedSimplexPhaseOneSolutionDto = new RevisedSimplexPhaseOneSolutionDto();
 
@@ -82,12 +83,12 @@ public class RevisedSimplexSolverService {
         revisedSimplexPhaseOneSolutionDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
 
         List<String> currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
-        visitedBaseCount.put(currentBasis.hashCode(), 1);
+        baseCycleTracker.visited(currentBasis);
 
         //Revised simplex iterations solving phase one
         while (iterationCount.value < configurationService.getConfig(RS_MAX_ITER, solverConfigurationInput)) {
 
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
+            if (baseCycleTracker.limitReached(currentBasis)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
                 return false;
@@ -163,11 +164,7 @@ public class RevisedSimplexSolverService {
             iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
 
             //Updated visited base count
-            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
-                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(currentBasis.hashCode(), 1);
-            }
+            baseCycleTracker.visited(currentBasis);
 
             revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
             iterationCount.value ++;
@@ -178,7 +175,7 @@ public class RevisedSimplexSolverService {
         return false;
     }
 
-    private void solveRevisedSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
+    private void solveRevisedSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpRevisedSimlexResponseDto responseDto, BaseCycleTracker baseCycleTracker, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
         RevisedSimplexPhaseTwoSolutionDto revisedSimplexPhaseTwoSolutionDto = new RevisedSimplexPhaseTwoSolutionDto();
 
         twoPhaseSimplexSolverService.removeArtificialVariablesAfterPhaseOne(originalSimplexTable, originalObjectiveRow);
@@ -196,7 +193,7 @@ public class RevisedSimplexSolverService {
         revisedSimplexPhaseTwoSolutionDto.setInitialFeasibleBase(new ArrayList<>(currentBasis));
 
         while (iterationCount.value < configurationService.getConfig(RS_MAX_ITER, solverConfigurationInput)) {
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
+            if (baseCycleTracker.limitReached(currentBasis)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setRevisedSimplexPhaseTwoSolutionDto(revisedSimplexPhaseTwoSolutionDto);
                 return;
@@ -281,11 +278,7 @@ public class RevisedSimplexSolverService {
             iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
 
             //Updated visited base count
-            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
-                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(currentBasis.hashCode(), 1);
-            }
+            baseCycleTracker.visited(currentBasis);
 
             revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
             iterationCount.value ++;

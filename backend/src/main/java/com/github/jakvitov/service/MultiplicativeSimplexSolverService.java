@@ -14,6 +14,7 @@ import com.github.jakvitov.math.IntWrapper;
 import com.github.jakvitov.math.LinearAlgebraService;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
+import com.github.jakvitov.simplex.BaseCycleTracker;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
 import com.github.jakvitov.utils.MemoryUtils;
@@ -61,21 +62,21 @@ public class MultiplicativeSimplexSolverService {
 
         List<BigFraction> originalObjectiveRow = new ArrayList<>(simplexTable.objectiveFunctionRow);
         IntWrapper iterations = IntWrapper.of(0);
-        Map<Integer, Integer> visitedBaseCount = new HashMap<>();
+        BaseCycleTracker baseCycleTracker = new BaseCycleTracker(configurationService.getConfig(RS_MAX_CYCLE, solveLpRequestDto.solverConfiguration()));
 
         if (simplexTable.containsArtificialVariables) {
-            boolean continueToPhaseTwo = solveMultiplicativeSimplexPhaseOne(simplexTable,responseDto, visitedBaseCount, iterations, solveLpRequestDto.solverConfiguration());
+            boolean continueToPhaseTwo = solveMultiplicativeSimplexPhaseOne(simplexTable,responseDto, baseCycleTracker, iterations, solveLpRequestDto.solverConfiguration());
             if (continueToPhaseTwo) {
-                solveMultiplicativeSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
+                solveMultiplicativeSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, baseCycleTracker, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
             }
         } else {
-            solveMultiplicativeSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, visitedBaseCount, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
+            solveMultiplicativeSimplexPhaseTwo(simplexTable, solveLpRequestDto.optimisationTarget(), responseDto, baseCycleTracker, iterations, originalObjectiveRow, solveLpRequestDto.solverConfiguration());
         }
 
         return responseDto;
     }
 
-    private boolean solveMultiplicativeSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpMultiplicativeSimplexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
+    private boolean solveMultiplicativeSimplexPhaseOne(SimplexTable originalSimplexTable, SolveLpMultiplicativeSimplexResponseDto responseDto, BaseCycleTracker baseCycleTracker, IntWrapper iterationCount, @Nullable SolverConfigurationDto solverConfigurationInput) {
         MultiplicativeSimplexPhaseOneSolutionDto multiplicativeSimplexPhaseOneSolutionDto = new MultiplicativeSimplexPhaseOneSolutionDto();
 
         twoPhaseSimplexSolverService.setupObjectiveRowBeforePhaseOne(originalSimplexTable);
@@ -86,13 +87,13 @@ public class MultiplicativeSimplexSolverService {
         multiplicativeSimplexPhaseOneSolutionDto.setArtificialVariablesNormalization(artificialVariablesNormalization);
 
         List<String> currentBasis = new ArrayList<>(originalSimplexTable.baseVariables);
-        visitedBaseCount.put(currentBasis.hashCode(), 1);
+        baseCycleTracker.visited(currentBasis);
 
         List<List<BigFraction>> inverseBasisMatrix = linearAlgebraService.createIdentityMatrix(originalSimplexTable.baseVariables.size());
 
         while (iterationCount.value < configurationService.getConfig(MS_MAX_ITER, solverConfigurationInput)) {
 
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
+            if (baseCycleTracker.limitReached(currentBasis)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setMultiplicativeSimplexPhaseOneSolutionDto(multiplicativeSimplexPhaseOneSolutionDto);
             }
@@ -166,11 +167,7 @@ public class MultiplicativeSimplexSolverService {
             iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
 
             //Updated visited base count
-            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
-                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(currentBasis.hashCode(), 1);
-            }
+            baseCycleTracker.visited(currentBasis);
 
             //Create E for given iteration
             List<List<BigFraction>> elementaryMatrix = createElementaryMatrix(d, leavingVariableIndex);
@@ -194,7 +191,7 @@ public class MultiplicativeSimplexSolverService {
         return false;
     }
 
-    private void solveMultiplicativeSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpMultiplicativeSimplexResponseDto responseDto, Map<Integer, Integer> visitedBaseCount, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
+    private void solveMultiplicativeSimplexPhaseTwo(SimplexTable originalSimplexTable, OptimisationTarget optimisationTarget, SolveLpMultiplicativeSimplexResponseDto responseDto, BaseCycleTracker baseCycleTracker, IntWrapper iterationCount, List<BigFraction> originalObjectiveRow, @Nullable SolverConfigurationDto solverConfigurationInput) {
         MultiplicativeSimplexPhaseTwoSolutionDto multiplicativeSimplexPhaseTwoSolutionDto = new MultiplicativeSimplexPhaseTwoSolutionDto();
 
         twoPhaseSimplexSolverService.removeArtificialVariablesAfterPhaseOne(originalSimplexTable, originalObjectiveRow);
@@ -216,7 +213,7 @@ public class MultiplicativeSimplexSolverService {
         multiplicativeSimplexPhaseTwoSolutionDto.setInitialFeasibleBase(new ArrayList<>(currentBasis));
 
         while (iterationCount.value < configurationService.getConfig(MS_MAX_ITER, solverConfigurationInput)) {
-            if (visitedBaseCount.containsKey(currentBasis.hashCode()) && visitedBaseCount.get(currentBasis.hashCode()) > configurationService.getConfig(RS_MAX_CYCLE, solverConfigurationInput)) {
+            if (baseCycleTracker.limitReached(currentBasis)) {
                 responseDto.setSolutionStatus(SolutionStatus.CYCLE);
                 responseDto.setMultiplicativeSimplexPhaseTwoSolutionDto(multiplicativeSimplexPhaseTwoSolutionDto);
                 return;
@@ -300,11 +297,7 @@ public class MultiplicativeSimplexSolverService {
             iterationDto.setUpdatedBasis(new ArrayList<>(currentBasis));
 
             //Updated visited base count
-            if (visitedBaseCount.containsKey(currentBasis.hashCode())) {
-                visitedBaseCount.put(currentBasis.hashCode(), visitedBaseCount.get(currentBasis.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(currentBasis.hashCode(), 1);
-            }
+            baseCycleTracker.visited(currentBasis);
 
             //Create E for given iteration
             List<List<BigFraction>> elementaryMatrix = createElementaryMatrix(d, leavingVariableIndex);
