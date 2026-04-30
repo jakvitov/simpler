@@ -52,7 +52,7 @@ graalvmNative {
             jvmArgs.add("-Djava.io.tmpdir=${project.buildDir}/tmp")
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(21)
-                buildArgs.add('-Ob')
+                buildArgs.add("-O3")
             }
         }
     }
