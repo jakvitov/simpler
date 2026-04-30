@@ -44,8 +44,8 @@ function SolveLpResultsTwoPhaseSimplex() {
                     <MainHeader />
                     <MainNavBar />
                     <PageContentHeader value={pageHeaderText}></PageContentHeader>
-                    <Container>
-                        <Container style={{ backgroundColor: '#F5F5F5'}}>
+                    <Container style={{ overflowX: "auto" }}>
+                        <Container style={{ backgroundColor: '#F5F5F5', minWidth: "max-content"}}>
                             <CommonErrorBoundary>
                                 <SolveLpTwoPhaseSimplexResponseElement solveLpTwoPhaseSimplexResponseDto={solverResults} />
                             </CommonErrorBoundary>
