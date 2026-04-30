@@ -7,6 +7,7 @@ import com.github.jakvitov.dto.solver.basic.*;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
 import com.github.jakvitov.mps.MpsData;
 import com.github.jakvitov.mps.MpsDataTransformedBounds;
+import com.github.jakvitov.simplex.BaseCycleTracker;
 import com.github.jakvitov.simplex.OptimisationTarget;
 import com.github.jakvitov.simplex.SimplexTable;
 import com.github.jakvitov.simplex.SimplexTableTransformationError;
@@ -49,12 +50,12 @@ public class BasicSimplexSolverService {
         result.setInitialSimplexTable(new SimplexTableDto(simplexTable));
 
         //Visited base hash -> number of visits
-        HashMap<Integer, Integer> visitedBaseCount = new HashMap<>();
-        visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
+        BaseCycleTracker cycleTracker = new BaseCycleTracker(configurationService.getConfig(BS_MAX_CYCLE, solverConfigurationInput));
+        cycleTracker.visited(simplexTable.baseVariables);
 
         for (int iteration = 1; ((iteration-1) < configurationService.getConfig(BS_MAX_ITER, solverConfigurationInput)) && (!isSimplexTableSolved(simplexTable)); iteration ++) {
 
-            if (visitedBaseCount.get(simplexTable.baseVariables.hashCode()) > configurationService.getConfig(BS_MAX_CYCLE, solverConfigurationInput)) {
+            if (cycleTracker.limitReached(simplexTable.baseVariables)) {
                 result.setSolutionStatus(SolutionStatus.CYCLE);
                 result.setFinalSimplexTable(new SimplexTableDto(simplexTable));
                 return result;
@@ -106,11 +107,7 @@ public class BasicSimplexSolverService {
 
             basicSimplexIterationDto.setSimplexTableAfterVariableSwitch(new SimplexTableDto(simplexTable));
 
-            if (visitedBaseCount.containsKey(simplexTable.baseVariables.hashCode())) {
-                visitedBaseCount.put(simplexTable.baseVariables.hashCode(), visitedBaseCount.get(simplexTable.baseVariables.hashCode()) + 1);
-            } else {
-                visitedBaseCount.put(simplexTable.baseVariables.hashCode(), 1);
-            }
+            cycleTracker.visited(simplexTable.baseVariables);
             result.getIterations().add(basicSimplexIterationDto);
         }
 
