@@ -27,9 +27,7 @@ function SolveLpResultsRevisedSimplex() {
         get(SOLVE_LP_SOLUTION_REVISED_SIMPLEX_PREFIX + key).then(i => JSON.parse(i) as SolveLpRevisedSimlexResponseDto).then(setSolverRestults)
     }, [])
 
-    if (solverInput === null || solverResults === null) {
-
-    } else {
+    if (solverInput == null || solverResults == null) { /* empty */ } else {
         let pageHeaderText;
         switch (solverResults.solutionStatus) {
             case "SOLVED": pageHeaderText = "LP solved ✅"; break;
@@ -42,8 +40,8 @@ function SolveLpResultsRevisedSimplex() {
                     <MainHeader />
                     <MainNavBar />
                     <PageContentHeader value={pageHeaderText}></PageContentHeader>
-                    <Container>
-                        <Container style={{ backgroundColor: '#F5F5F5'}}>
+                    <Container style={{ overflowX: "auto" }}>
+                        <Container style={{ backgroundColor: '#F5F5F5', minWidth: "max-content"}}>
                             <CommonErrorBoundary>
                                 <SolveLpRevisedSimlexResponseElement solveLpRevisedSimlexResponseDto={solverResults} />
                             </CommonErrorBoundary>
