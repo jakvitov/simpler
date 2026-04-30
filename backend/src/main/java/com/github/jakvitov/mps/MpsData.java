@@ -328,8 +328,7 @@ public class MpsData {
         if (endIndex == -1) {
             throw new MpsParsingException(section, section + " section is not properly ended with another sections beginning!", prefilteredLines.subList(startIndex, prefilteredLines.size()));
         } else if (endIndex == startIndex + 1) {
-            //Sublist at endIndex + 1 is safe, since it was previously found in the lines as existing index
-            throw new MpsParsingException(section, section + " section appears to be empty!", prefilteredLines.subList(startIndex, endIndex + 1));
+            return List.of();
         }
         return prefilteredLines.subList(startIndex + 1, endIndex);
     }
