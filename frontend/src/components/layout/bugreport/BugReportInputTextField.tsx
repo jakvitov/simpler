@@ -43,7 +43,7 @@ export default function BugReportInputTextField(props: BugReportTextInputFieldPr
         } else {
             setText(prepareBugReportTextFromLastError(props.lastErrorResponseDto));
         }
-    }, [text]);
+    }, [props.lastErrorResponseDto]);
 
     if (text == null) {
         return <></>
