@@ -2,7 +2,6 @@ package com.github.jakvitov.controller;
 
 import com.github.jakvitov.dto.solver.SolveLpErrorResponse;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
-import com.github.jakvitov.dto.solver.basic.SolveLpBasicSimplexResponseDto;
 import com.github.jakvitov.dto.solver.twophase.SolveLpTwoPhaseSimplexResponseDto;
 import com.github.jakvitov.mps.MpsParsingException;
 import com.github.jakvitov.service.ErrorManagementService;

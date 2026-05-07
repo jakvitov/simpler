@@ -20,7 +20,7 @@ public class SimplexTableDto {
     private List<BigFraction> objectiveFunctionRow;
     private BigFraction objectiveValue;
 
-    // Copy constructor
+    // Copy constructor (Does deep copy)
     public SimplexTableDto(SimplexTable other) {
 
         // Deep copy simple lists

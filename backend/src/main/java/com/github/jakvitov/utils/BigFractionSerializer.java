@@ -20,7 +20,6 @@ public class BigFractionSerializer implements Serializer<BigFraction>, Deseriali
             encoder.encodeNull();
             return;
         }
-        // Serialize as object (recommended)
         encoder.encodeObject(type);
         encoder.encodeKey("numerator");
         encoder.encodeString(value.getNumerator().abs().toString());

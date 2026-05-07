@@ -28,32 +28,30 @@ public class LinearAlgebraService {
     public Optional<List<List<BigFraction>>> getMatrixInversion(List<List<BigFraction>> inputMatrix) {
         int n = inputMatrix.size();
 
-        // Validate square matrix
+        // Validate input is square matrix
         for (List<BigFraction> row : inputMatrix) {
             if (row.size() != n) {
                 return Optional.empty();
             }
         }
 
-        // Build augmented matrix [A | I]
+        // Build augmented matrix (A|E)
         List<List<BigFraction>> augmented = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             List<BigFraction> row = new ArrayList<>();
-            // Copy original matrix
             for (int j = 0; j < n; j++) {
                 row.add(inputMatrix.get(i).get(j));
             }
-            // Append identity matrix
+            //apend identity
             for (int j = 0; j < n; j++) {
                 row.add(i == j ? BigFraction.ONE : BigFraction.ZERO);
             }
             augmented.add(row);
         }
 
-        // Gauss-Jordan elimination
+        // G-J elimination
         for (int col = 0; col < n; col++) {
 
-            // Find pivot row (partial pivoting — find first non-zero in column)
             int pivotRow = -1;
             for (int row = col; row < n; row++) {
                 if (augmented.get(row).get(col).compareTo(BigFraction.ZERO) != 0) {
@@ -62,19 +60,18 @@ public class LinearAlgebraService {
                 }
             }
 
-            // If no pivot found, matrix is singular — not invertible
+            //Singular
             if (pivotRow == -1) {
                 return Optional.empty();
             }
 
-            // Swap current row with pivot row
+            // Swap row with pivot row
             if (pivotRow != col) {
                 List<BigFraction> temp = augmented.get(col);
                 augmented.set(col, augmented.get(pivotRow));
                 augmented.set(pivotRow, temp);
             }
 
-            // Scale pivot row so that pivot element becomes 1
             BigFraction pivotVal = augmented.get(col).get(col);
             for (int j = 0; j < 2 * n; j++) {
                 augmented.get(col).set(j, augmented.get(col).get(j).divide(pivotVal));
@@ -93,7 +90,7 @@ public class LinearAlgebraService {
             }
         }
 
-        // Extract the right half of the augmented matrix (the inverse)
+        //Get inverse from the right side
         List<List<BigFraction>> inverse = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             List<BigFraction> row = new ArrayList<>();
@@ -128,7 +125,6 @@ public class LinearAlgebraService {
         int bRows = b.size();
         int bCols = b.getFirst().size();
 
-        // Validate that all rows are consistent within each matrix
         for (List<BigFraction> row : a) {
             if (row.size() != aCols) return Optional.empty();
         }
@@ -136,12 +132,10 @@ public class LinearAlgebraService {
             if (row.size() != bCols) return Optional.empty();
         }
 
-        // Core compatibility check: A's columns must equal B's rows
         if (aCols != bRows) {
             return Optional.empty();
         }
 
-        // Multiply: result is (aRows x bCols)
         List<List<BigFraction>> result = new ArrayList<>();
         for (int i = 0; i < aRows; i++) {
             List<BigFraction> row = new ArrayList<>();
@@ -174,12 +168,10 @@ public class LinearAlgebraService {
         int rows = inputMatrix.size();
         int cols = inputMatrix.get(0).size();
 
-        // Validate that all rows have consistent length
         for (List<BigFraction> row : inputMatrix) {
             if (row.size() != cols) return Optional.empty();
         }
 
-        // Build transposed matrix (cols x rows)
         List<List<BigFraction>> transposed = new ArrayList<>();
         for (int j = 0; j < cols; j++) {
             List<BigFraction> row = new ArrayList<>();
