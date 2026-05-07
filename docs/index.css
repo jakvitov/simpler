@@ -4,6 +4,14 @@ body,h1, h2, h3, h4, .btn, .form-control, .nav, .navbar, .navbar-text, .section-
     font-weight: 350;
 }
 
+h1 {
+    font-size: 50px !important;
+}
+
+body {
+  font-size: 14px !important;
+}
+
 h2 {
     font-size: 25px;
 }
