@@ -12,7 +12,7 @@ function StorageUsageEstimate() {
 
 
     const handleCleanSorage = () => {
-        console.log("Cleaning all persisted data. ")
+        console.log("Cleaning all persisted data.")
         clear().then(() => console.log("Persisted data cleaned."))
         navigator.storage.estimate().then(setStorageEstimate)
     }
@@ -21,9 +21,9 @@ function StorageUsageEstimate() {
     } else {
         return <Container className={"mt-2"}>
             <h3>Storage</h3>
-            <p>Simpler uses storage in order to persist problem data and solutions for later displays. This data does not usually get
-            cleaned up automatically. You can manually inspect all the data in your browsers <a href={"https://en.wikipedia.org/wiki/IndexedDB"}>Indexed DB</a>.
-            Note that the usage will never drop to 0 since other data than this are always persisted in the browser.
+            <p>Simpler uses storage in order to persist problem data and solutions for later display. This data does not usually get
+                cleaned up automatically. You can manually inspect all the data in your browser's <a href={"https://en.wikipedia.org/wiki/IndexedDB"}>IndexedDB</a>.
+                Note that the usage will never drop to 0 since data other than this is always persisted in the browser.
             </p>
             <Table bordered className={"mt-2"}>
                 <thead>
@@ -36,8 +36,8 @@ function StorageUsageEstimate() {
                 <tbody>
                 <tr>
                     <td><a onClick={handleCleanSorage} href={"#"}> Clean storage</a></td>
-                    <td>{storageEstimate.usage === undefined ? "Could not obtain.": storageEstimate.usage/1000} KB</td>
-                    <td>{storageEstimate.quota === undefined ? "Could not obtain. ": storageEstimate.quota/1000} KB</td>
+                    <td>{storageEstimate.usage === undefined ? "Could not obtain." : storageEstimate.usage/1000} KB</td>
+                    <td>{storageEstimate.quota === undefined ? "Could not obtain." : storageEstimate.quota/1000} KB</td>
                 </tr>
                 </tbody>
             </Table>
