@@ -41,7 +41,15 @@ function SolveLpRevisedSimplexResponseElement(props: SolveLpRevisedSimlexRespons
             <RevisedSimplexPhaseOneSolutionElement revisedSimplexPhaseOneSolutionDto={props.solveLpRevisedSimlexResponseDto.revisedSimplexPhaseOneSolution} />
             <RevisedSimplexPhaseTwoSolutionElement revisedSimplexPhaseTwoSolutionDto={props.solveLpRevisedSimlexResponseDto.revisedSimplexPhaseTwoSolutionDto} />
         </div>
-    } else if (props.solveLpRevisedSimlexResponseDto.solutionStatus === "CYCLE") {
+    }
+    else if (props.solveLpRevisedSimlexResponseDto.solutionStatus === "INFEASIBLE") {
+        return <div className="revisedSimplexSolution">
+            <h3 className={"pt-2"}>Initial simplex table:</h3>
+            <PlainSimplexTableElement simplexTable={props.solveLpRevisedSimlexResponseDto.initialSimplexTable} />
+            <RevisedSimplexPhaseOneSolutionElement revisedSimplexPhaseOneSolutionDto={props.solveLpRevisedSimlexResponseDto.revisedSimplexPhaseOneSolution} />
+        </div>
+    }
+    else if (props.solveLpRevisedSimlexResponseDto.solutionStatus === "CYCLE") {
         return <div className="revisedSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpRevisedSimlexResponseDto.initialSimplexTable} />
