@@ -3,7 +3,7 @@
 ![Backend Build](https://github.com/jakvitov/simpler/actions/workflows/backend_build.yml/badge.svg)
 ![Frontend Build](https://github.com/jakvitov/simpler/actions/workflows/frontend_build.yml/badge.svg)
 
-Student friendly linear optimisations solver supporting different algorithmic variants. 
+Student friendly linear optimisations solver supporting different algorithmic variants. For more info visit [this webpage](https://simplersolver.com).
 
 ## How to setup Simpler?
 1. Download release based on your OS. Offered distributions are Windows, Mac and Linux. Java (.jar) support is under construction.
