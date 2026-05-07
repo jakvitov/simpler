@@ -169,6 +169,13 @@ public class TwoPhaseSimplexSolverService {
             return false;
         }
 
+        if (!this.areArtificialVariablesRemoved(simplexTable)) {
+            simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
+            result.setSolutionStatus(SolutionStatus.INFEASIBLE);
+            result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
+            return false;
+        }
+
         simplexPhaseOneSolutionDto.setFinalSimplexTable(new SimplexTableDto(simplexTable, computeArtificialObjectiveFunctionRowValue(simplexTable)));
         result.setPhaseOneSolutionDto(simplexPhaseOneSolutionDto);
         return true;
@@ -277,6 +284,15 @@ public class TwoPhaseSimplexSolverService {
             }
         }
         return res;
+    }
+
+    /**
+     * Given simplex table, decide if all artificial variables were returned
+     * @param simplexTable
+     * @return
+     */
+    protected boolean areArtificialVariablesRemoved(SimplexTable simplexTable) {
+        return simplexTable.baseVariables.stream().noneMatch(i -> i.startsWith("A_"));
     }
 
     /**

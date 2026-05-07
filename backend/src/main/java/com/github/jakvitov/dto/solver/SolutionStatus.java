@@ -5,6 +5,7 @@ public enum SolutionStatus {
     SOLVED,
     MAX_ITERATIONS,
     CYCLE,
-    UNBOUNDED
+    UNBOUNDED,
+    INFEASIBLE
 
 }
