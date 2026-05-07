@@ -132,6 +132,16 @@ public class MultiplicativeSimplexSolverService {
 
             //Optimal solution found
             if (enteringVariableIndex.isEmpty()) {
+
+                //Infeasible
+                if (currentBasis.stream().anyMatch(i -> i.startsWith("A_"))) {
+                    multiplicativeSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+                    multiplicativeSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
+                    responseDto.setMultiplicativeSimplexPhaseOneSolutionDto(multiplicativeSimplexPhaseOneSolutionDto);
+                    responseDto.setSolutionStatus(SolutionStatus.INFEASIBLE);
+                    return false;
+                }
+
                 multiplicativeSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
                 multiplicativeSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
                 responseDto.setMultiplicativeSimplexPhaseOneSolutionDto(multiplicativeSimplexPhaseOneSolutionDto);
