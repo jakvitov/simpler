@@ -129,6 +129,16 @@ public class RevisedSimplexSolverService {
 
             //Optimal solution found
             if (enteringVariableIndex.isEmpty()) {
+
+                //Infeasible
+                if (currentBasis.stream().anyMatch(i -> i.startsWith("A_"))) {
+                    revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
+                    revisedSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
+                    responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);
+                    responseDto.setSolutionStatus(SolutionStatus.INFEASIBLE);
+                    return false;
+                }
+
                 revisedSimplexPhaseOneSolutionDto.getIterations().add(iterationDto);
                 revisedSimplexPhaseOneSolutionDto.setResultBase(new ArrayList<>(currentBasis));
                 responseDto.setRevisedSimplexPhaseOneSolution(revisedSimplexPhaseOneSolutionDto);

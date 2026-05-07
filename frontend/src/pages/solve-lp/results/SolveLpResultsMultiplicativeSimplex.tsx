@@ -36,6 +36,8 @@ function SolveLpResultsMultiplicativeSimplex() {
             case "UNBOUNDED": pageHeaderText = "LP solution unbounded ♾️";break;
             case "CYCLE": pageHeaderText = "LP solution includes possible cycle 🔄️"; break;
             case "MAX_ITERATIONS": pageHeaderText = "LP sol️ution exceeded max iterations ⚠️";break;
+            case "INFEASIBLE": pageHeaderText = "LP infeasible ⚠️";break;
+
         }
         return (<>
                 <div className={"page-content"}>

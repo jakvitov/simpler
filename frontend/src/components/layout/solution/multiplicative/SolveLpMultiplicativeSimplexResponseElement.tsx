@@ -43,7 +43,15 @@ function SolveLpMultiplicativeSimplexResponseElement(props: SolveLpMultiplicativ
             <MultiplicativeSimplexPhaseOneSolutionElement multiplicativeSimplexPhaseOneSolutionDto={props.solveLpMultiplicativeSimplexResponseElementProps.multiplicativeSimplexPhaseOneSolutionDto} />
             <MultiplicativeSimplexPhaseTwoSolutionElement multiplicativeSimplexPhaseTwoSolutionDto={props.solveLpMultiplicativeSimplexResponseElementProps.multiplicativeSimplexPhaseTwoSolutionDto} />
         </div>
-    } else if (props.solveLpMultiplicativeSimplexResponseElementProps.solutionStatus === "CYCLE") {
+    }
+    else if (props.solveLpMultiplicativeSimplexResponseElementProps.solutionStatus === "INFEASIBLE") {
+        return <div className="revisedSimplexSolution">
+            <h3 className={"pt-2"}>Initial simplex table:</h3>
+            <PlainSimplexTableElement simplexTable={props.solveLpMultiplicativeSimplexResponseElementProps.initialSimplexTable} />
+            <MultiplicativeSimplexPhaseOneSolutionElement multiplicativeSimplexPhaseOneSolutionDto={props.solveLpMultiplicativeSimplexResponseElementProps.multiplicativeSimplexPhaseOneSolutionDto} />
+        </div>
+    }
+    else if (props.solveLpMultiplicativeSimplexResponseElementProps.solutionStatus === "CYCLE") {
         return <div className="revisedSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpMultiplicativeSimplexResponseElementProps.initialSimplexTable} />

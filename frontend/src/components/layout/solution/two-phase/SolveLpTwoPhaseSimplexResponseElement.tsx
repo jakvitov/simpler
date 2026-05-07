@@ -36,19 +36,29 @@ function SolveLpTwoPhaseSimplexResponseElement(props: SolveLpTwoPhaseSimplexResp
         </div>)
     }
     else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "MAX_ITERATIONS") {
-        <div className="twoPhaseSimplexSolution">
+        return (<div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
             <TwoPhaseSimplexPhaseTwoSolutionElement twoPhaseSimplexPhaseTwoSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseTwoSolutionDto} />
-        </div>
-    } else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "CYCLE") {
-        <div className="twoPhaseSimplexSolution">
+        </div>)
+    }
+    else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "INFEASIBLE") {
+        return (<div className="twoPhaseSimplexSolution">
+            <h3 className={"pt-2"}>Initial simplex table:</h3>
+            <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
+            <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
+        </div>)
+    }
+    else if (props.solveLpTwoPhaseSimplexResponseDto.solutionStatus === "CYCLE") {
+        return (<div className="twoPhaseSimplexSolution">
             <h3 className={"pt-2"}>Initial simplex table:</h3>
             <PlainSimplexTableElement simplexTable={props.solveLpTwoPhaseSimplexResponseDto.initialSimplexTable} />
             <TwoPhaseSimplexPhaseOneSolutionElement twoPhaseSimplexPhaseOneSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseOneSolutionDto} />
             <TwoPhaseSimplexPhaseTwoSolutionElement twoPhaseSimplexPhaseTwoSolutionDto={props.solveLpTwoPhaseSimplexResponseDto.phaseTwoSolutionDto} />
-        </div>
+        </div>)
+    } else {
+        throw "Unknown solution status encountered " + props.solveLpTwoPhaseSimplexResponseDto.solutionStatus
     }
 }
 
