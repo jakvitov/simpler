@@ -6,6 +6,7 @@ function IntroManual() {
     return (
         <Container className={"pt-5 pb-5"}>
             <h2>How to use Simpler?</h2>
+            <p>Something missing here? Visit <Link to={"https://simplersolver.com"}>complete manual</Link>.</p>
             <p>Simpler <i>(Simplex solver)</i> offers two main functionalities:</p>
             <ul>
                 <li>Verification of MPS input and its parsing to LP equations</li>
@@ -13,12 +14,11 @@ function IntroManual() {
             </ul>
             <p>Based on your use case, choose either <Link to={"/verify-mps"}>Verify MPS</Link> or <Link to={"solve-lp"}>Solve LP</Link>, enter your problem, and hit submit. You can tweak all solver configurations in the <Link to={"/settings"}>Settings</Link> section.</p>
 
-
             <h3 className={"mt-4"}>Input formats</h3>
             <h4 className={"mt-4"}>Interactive input</h4>
             <p><Link to={"/solve-lp/interactive"} >Interactive input</Link> offers a simplified and user-friendly way of entering linear optimization problems. Just enter variable coefficients into the given table and hit the submit button. Resizing the input table can be achieved by clicking the <i>+ Variable</i>, <i>+ Constraint</i> and <i>-</i> buttons. Accepted number formats are the same in both MPS and interactive input.</p>
             <h4 className={"mt-4"}>MPS</h4>
-            <p>The main input format for Simpler is <a href={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</a>. The original MPS format is quite restrictive; therefore, for the convenience of users, Simpler ignores all row/column character restrictions and relies solely on keywords. Unknown keywords and sections are skipped and mostly do not trigger an error.</p>
+            <p>The main input format for Simpler is <Link to={"https://lpsolve.sourceforge.net/5.5/mps-format.htm"}>MPS</Link>. The original MPS format is quite restrictive; therefore, for the convenience of users, Simpler ignores all row/column character restrictions and relies solely on keywords. Unknown keywords and sections are skipped and mostly do not trigger an error.</p>
             <h4 className={"mt-4"}>Numbers</h4>
             <p>Simpler works mainly with rational numbers and displays the results as whole numbers or fractions. In all input forms, numbers can be entered as:</p>
             <ul>
