@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;350;400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false }
+        ]
+      });
+    });
+  </script>
+
+  <title>Simpler manual</title>
+</head>
+<body>
+
+<!--header-->
+<div style="background-color: #EBEBEB; font-size: 50px;"><div class="container pt-3 ps-4 pb-2" ><h1>Simpler solver</h1></div></div>
+
+<!--content-->
+<div class="container pt-4">
+  <!--  main description-->
+  <p>Simpler <i>(Simplex solver)</i> is an educational application that was created to facilitate the learning of linear programming as part of a bachelor's thesis focusing on the field of operations research.</p>
+
+  <p>The application offers two main functionalities:</p>
+  <ul>
+    <li>Verification of MPS input and its parsing to LP equations</li>
+    <li>Interactive solving of linear optimization problems with different algorithmic variants</li>
+  </ul>
+
+  <!--  setup manual-->
+  <h2 class="pt-2">Setup manual</h2>
+  <!--  download instructions-->
+  <details>
+    <summary class="section-title">Download</summary>
+    <p>All versions of Simpler can be obtained from the GitHub releases page under the following <a href="https://github.com/jakvitov/simpler/releases">link</a>. Using the latest available release is strongly recommended.</p>
+  </details>
+  <!--running binary-->
+  <details>
+    <summary class="section-title">Running the binary</summary>
+    <p>Setup begins after downloading the executable binary for your operating system described in the previous section.</p>
+    <p>Note that successful launch of the application is conditioned on having port 8080 free before running the binary.</p>
+
+    <details>
+      <summary class="section-subtitle">Windows</summary>
+      <p>The Windows executable binary is downloaded with the <code>.exe</code> suffix.</p>
+      <ol>
+        <li>Move the downloaded file into your preferred location.</li>
+        <li>Double-click the downloaded file to boot it up.</li>
+        <li>If the following alert appears, select <b>More info</b> and <b>Run anyway</b></li>
+        <img src="img/windows-setup/startup-warning.png" width="30%">
+        <li>Allowing access to private or public networks, as shown in the alert below, is generally not required.</li>
+        <img src="img/windows-setup/startup-warining-firewall.png" width="30%">
+        <li>A terminal window will open and you can verify successful startup of the application in the provided logs.</li>
+        <img src="img/windows-setup/startup-terminal-window.png" width="50%">
+        <li>Open your browser and go to the following URL: <code>http://localhost:8080</code>.</li>
+        <li>In order to stop the application, return to the terminal window and press <code>CTRL + C</code>.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary class="section-subtitle">macOS</summary>
+      <p>The macOS executable binary is downloaded without any suffix.</p>
+      <ol>
+        <li>Move the downloaded file into your preferred location.</li>
+        <li>Open the terminal and <code>cd</code> into the directory containing the downloaded binary.</li>
+        <img src="img/mac-setup/mac-cd-terminal.png" width="50%">
+
+        <li>Make your binary executable by running <code>chmod +x ./your-binary-name</code>.</li>
+        <img src="img/mac-setup/mac-chmod-terminal.png" width="50%">
+
+        <li>Run your binary file by entering <code>./your-binary-name</code>.</li>
+        <img src="img/mac-setup/mac-running-terminal.png" width="50%">
+
+        <li>If the following alert appears, choose <b>Done</b>.</li>
+        <img src="img/mac-setup/mac-run-prevented.png" width="50%">
+
+        <li>Do not close the terminal and open System Settings, then go to Privacy & Security. In the following window, click <b>Allow Anyway</b>.</li>
+        <img src="img/mac-setup/mac-run-anyway.png" width="50%">
+
+        <li>Return to the terminal and repeat Step 4.</li>
+        <li>If the following alert appears, click <b>Open Anyway</b></li>
+        <img src="img/mac-setup/mac-run-warning.png" width="50%">
+
+        <li>A terminal window will open and you can verify successful startup of the application in the provided logs.</li>
+        <img src="img/mac-setup/mac-running-successfully.png" width="50%">
+        <li>Open your browser and go to the following URL: <code>http://localhost:8080</code>.</li>
+        <li>In order to stop the application, return to the terminal window and press <code>Control + C</code>.</li>
+      </ol>
+    </details>
+  </details>
+
+  <!--  input formats-->
+  <h2 class="pt-2">Input formats</h2>
+  <!--    number formats-->
+  <details>
+    <summary class="section-title">Number formats</summary>
+    <p>Simpler works mainly with rational numbers and displays the results as whole numbers or fractions. In all input forms (including MPS), numbers can be entered as:</p>
+    <ul>
+      <li>Plain whole numbers like: <code>1</code> or <code>-4</code></li>
+      <li>Rational numbers like: <code>1/50</code> or <code>-5/99</code></li>
+      <li>Floating-point numbers with the delimiter <code>.</code>, like: <code>1.5</code></li>
+    </ul>
+    <p>No other number input formats are supported. For example, <code>-0,55746</code> will trigger an error.</p>
+    <p>Floating-point numbers are transformed into rationals using their binary representation, which may result in precision loss. Usage of whole numbers or rationals is recommended.</p>
+  </details>
+
+  <!--    mps support-->
+  <details>
+    <summary class="section-title">MPS</summary>
+    <p>The main input format for Simpler is MPS. The original MPS format is quite restrictive; therefore, for the convenience of users, Simpler ignores all row/column character restrictions and relies solely on keywords. Unknown keywords and sections are skipped and mostly do not trigger an error.</p>
+    <p>The encounter order of the sections is not strictly enforced.</p>
+    <p>The application supports only some of the original MPS-defined sections:</p>
+    <ul>
+      <li><code>NAME</code> must be defined and supports whitespace characters inside the problem name.</li>
+      <li><code>ROWS</code> must be defined and contain problem rows.</li>
+      <li><code>COLUMNS</code> must be defined and contain problem columns.</li>
+      <li><code>BOUNDS</code> are optional. Only one bounds set definition is allowed.</li>
+      <li><code>RHS</code> must be defined and only one RHS per problem is allowed.</li>
+    </ul>
+
+    <h4>Comments</h4>
+    <p>Comments in MPS inputs are supported and start with the <code>#</code> character. Everything between the first <code>#</code> character encountered and the end of the line is ignored. For example, the line: <code>x_1        OBJ   #  1
+    </code> will be processed as <code>x_1        OBJ</code>.</p>
+
+    <h4>Example MPS</h4>
+    <pre
+            style="width: 100%; backgroundColor: #F5F5F5; color: black;
+      fontSize: 1rem;
+      fontFamily: monospace;
+      lineHeight: 1.5;
+      border: 0px;
+      padding: 0.375rem 0.75rem;
+      whiteSpace: pre-wrap;
+      overflowY: auto;
+      "
+    >
+        #Simple LP example
+        #Simpler compatible MPS
+        NAME          ExampleMps
+        ROWS
+        N  OBJ
+        L  C1
+        L  C2
+        COLUMNS
+        x_1        OBJ     1
+        x_1        C1      1
+        x_1        C2      0
+        x_2        OBJ     1
+        x_2        C1      0
+        x_2        C2      1
+        RHS
+        RHS1      C1      2
+        RHS1      C2      2
+        ENDATA</pre>
+  </details>
+  </details>
+
+  <!--  interactive input-->
+  <details>
+    <summary class="section-title">Interactive input</summary>
+    <p>Interactive input offers a simplified and user-friendly way of entering linear optimization problems. Just enter variable coefficients into the given table and hit the submit button. Resizing the input table can be achieved by clicking the + Variable, + Constraint, and - buttons. Accepted number formats are the same in both MPS and interactive input.</p>
+    <img src="img/input-formats/interactive-input-preview.png" width="70%">
+  </details>
+
+  <!--  latex support-->
+  <details>
+    <summary class="section-title">LaTeX support</summary>
+    <p>Simpler uses LaTeX formatting in all non-error outputs. This means that entering a variable name like <code>x_1</code> will result in it being rendered as: $x_1$. Note that this applies to all nameable components of the MPS input format (for example, RHS names as well).</p>
+  </details>
+
+  <!--  solver-->
+  <h2 class="pt-2">Solver</h2>
+
+  <!--  settings-->
+  <details>
+    <summary class="section-title">Settings</summary>
+
+    <h4>Solver parameters</h4>
+    <p>All solver-related parameters can be tweaked in the Settings section.</p>
+    <p>Each solver variant has two basic parameters. These include:</p>
+    <ul>
+      <li><b>Max iterations</b>: maximum number of iterations that will be performed during computation. If a solution cannot be reached within this limit, a status indicating that the maximum number of iterations was exceeded will be returned. A description of all performed steps up until that point will be part of the output.</li>
+      <li><b>Max base cycles</b>: maximum number of occurrences of the same basis. Basis occurrences are compared regardless of variable order. If a solution cannot be reached within this limit, a status indicating that the maximum number of basis cycles was exceeded will be returned. A description of all performed steps up until that point will be part of the output.</li>
+    </ul>
+
+    <h4>Clear storage</h4>
+    <p>In order to store solution data, Simpler uses local IndexedDB in the browser. Such storage is not periodically cleaned by the browser and manual clearing is required in order to invalidate it.</p>
+    <p>This can be achieved through clicking the <b>Clean storage</b> button. Note that this might cause problems with reloading previously solved LPs.</p>
+  </details>
+
+  <!--  algorithmic variants-->
+  <details >
+    <summary class="section-title">Algorithmic variants</summary>
+    <p>Simpler offers detailed solution output for different algorithmic variants of the Simplex algorithm. You can choose your desired solver variant in the Solve LP section. Currently supported variants are:</p>
+
+    <ul>
+      <li><b>Basic simplex</b> (primary simplex algorithm, with tableau solution)</li>
+      <li><b>Two-phase simplex</b> (two-phase simplex algorithm, with tableau solution)</li>
+      <li><b>Revised simplex algorithm</b> (two-phase simplex algorithm, solved using the revised method)</li>
+      <li><b>Multiplicative simplex algorithm</b> (two-phase simplex algorithm, edited version of the revised method with basis matrix inverse calculation optimizations)</li>
+    </ul>
+  </details>
+
+  <!--  troubleshooting-->
+  <details>
+    <summary class="section-title">Troubleshooting</summary>
+    <p>Simpler caches backend inputs and outputs in the frontend IndexedDB. This may occasionally cause minor problems. The first step in troubleshooting is clicking the "Clean storage" button at the
+      bottom of your screen. If that doesn't help and the problem persists, try restarting Simpler, opening it in a different browser, or opening it in private mode. Try to keep your application updated by downloading the newest version when it comes out on <a href="https://github.com/jakvitov/simpler/releases">GitHub</a>.</p>
+  </details>
+
+  <details>
+    <summary class="section-title">Bug reporting</summary>
+    <p>Reporting bugs helps Simpler advance and provide a better user experience. If any error occurs while using the application, a bug report link will appear. If you click it, it will either contain prefilled
+      information about an application-caught error, or ask you to describe your problem if none was caught. In case of a prefilled bug report, you get a full overview of what is being sent, so that you can personally check for sensitive information.</p>
+    <p>Try to always include your Simpler version and the input that triggered the bug, so that it can be tracked down and repaired swiftly.</p>
+  </details>
+
+</div>
+
+</body>
+</html>
