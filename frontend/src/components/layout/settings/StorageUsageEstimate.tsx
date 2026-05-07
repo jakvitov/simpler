@@ -17,8 +17,7 @@ function StorageUsageEstimate() {
         navigator.storage.estimate().then(setStorageEstimate)
     }
 
-    if (storageEstimate === null) {
-    } else {
+    if (storageEstimate == null) { /* empty */ } else {
         return <Container className={"mt-2"}>
             <h3>Storage</h3>
             <p>Simpler uses storage in order to persist problem data and solutions for later display. This data does not usually get
