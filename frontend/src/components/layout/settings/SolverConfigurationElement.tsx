@@ -47,7 +47,6 @@ function SolverConfigurationElement() {
         try {
             validateConfiguration(configuration);
             localStorage.setItem(SOLVER_CONFIGURATION_KEY, JSON.stringify(configuration));
-            console.log("Updated config:", configuration);
         } catch (err: any) {
             alert(err.message);
         }

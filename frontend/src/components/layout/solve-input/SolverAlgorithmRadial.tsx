@@ -16,7 +16,6 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
         <div style={{ backgroundColor: '#D9D9D9'}}>
             <Navbar className="pt-3 pb-3 d-flex justify-content-between align-items-center">
 
-                {/* Left group: Solver algorithms */}
                 <div className="d-flex align-items-center">
                     <NavbarText className="ms-3 me-4">Solver algorithm</NavbarText>
 
@@ -81,7 +80,6 @@ function SolverAlgorithmRadial(props: SolverAlgorithmRadialProps) {
                     </label>
                 </div>
 
-                {/* Right group: MIN / MAX */}
                 <div className="d-flex align-items-center">
                     <input
                         checked={props.currentSelectedOptimisationTarget === "MIN"}

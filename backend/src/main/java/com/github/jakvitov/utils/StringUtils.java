@@ -3,7 +3,6 @@ package com.github.jakvitov.utils;
 import jakarta.annotation.Nonnull;
 import org.hipparchus.fraction.BigFraction;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
