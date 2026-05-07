@@ -36,7 +36,6 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Arrow */
 .tooltip::after {
     content: "";
     position: absolute;
@@ -48,7 +47,6 @@
     border-color: #111827 transparent transparent transparent;
 }
 
-/* Hover behavior */
 .info-tooltip:hover .tooltip {
     opacity: 1;
     visibility: visible;

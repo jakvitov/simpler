@@ -18,9 +18,7 @@ function ReportBug() {
         fetchLastErrorData().then(i => setLastErrorDto(i));
     })
 
-    if (lastErrorDto === undefined) {
-
-    } else {
+    if (lastErrorDto === undefined) { /* empty */ } else {
         return (<>
             <div className={"page-content"}>
                 <MainHeader />

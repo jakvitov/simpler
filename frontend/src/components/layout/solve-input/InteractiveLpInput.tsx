@@ -203,7 +203,7 @@ const LPInteractiveInputForm = forwardRef<LPInteractiveInputHandle>((_props: any
                         </tr>
                     ))}
 
-                    {/* Objective row (BOTTOM) */}
+                    {/* Objective row */}
                     <tr>
                         {state.objective.map((val, i) => (
                             <td key={i} className="border p-2">

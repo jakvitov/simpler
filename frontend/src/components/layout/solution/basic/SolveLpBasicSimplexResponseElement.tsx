@@ -58,7 +58,7 @@ function SolveLpBasicSimplexResponseElement(props: SolveLpBasicSimplexResponseEl
         </div>)
     }
     else {
-        let text = "LP solution status " + props.solveLpBasicSimplexResponseDto.solutionStatus + " not implemented yet."
+        const text = "LP solution status " + props.solveLpBasicSimplexResponseDto.solutionStatus + " not implemented yet."
         return (
             <div className="basicSimplexSolution">
                 <PageContentHeader value={text}></PageContentHeader>
