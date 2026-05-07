@@ -17,6 +17,7 @@ export type SolutionStatus =
     | "MAX_ITERATIONS"
     | "CYCLE"
     | "UNBOUNDED"
+    | "INFEASIBLE"
 
 export interface SolverConfiguration {
     basicSimplexMaxIterations: number;
