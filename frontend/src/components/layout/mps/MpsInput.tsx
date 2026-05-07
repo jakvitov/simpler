@@ -71,6 +71,8 @@ export default function MPSInput({
         }
     };
 
+    const computedRows = Math.max(rows, text.split('\n').length);
+
     useEffect(() => {
         setText(value);
     }, [value]);
@@ -108,14 +110,14 @@ export default function MPSInput({
                 dangerouslySetInnerHTML={{ __html: highlightSyntax(text) }}
             />
 
-            {/* Transparent textarea */}
+            {/* Transparent textarea — rows drives the height for both layers */}
             <textarea
                 ref={textareaRef}
                 value={text}
                 onChange={handleChange}
                 onScroll={handleScroll}
                 placeholder={placeholder}
-                rows={rows}
+                rows={computedRows}
                 wrap="off"
                 spellCheck={false}
                 style={{
