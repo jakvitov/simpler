@@ -46,7 +46,7 @@ function lPInteractiveInputStateToMps(interactiveLpInputData: LPInteractiveInput
 
     interactiveLpInputData.variables.forEach((variableName, columnIndex) => {
         for (let rowIndex = 0; rowIndex < interactiveLpInputData.operators.length; rowIndex++) {
-            let dataValueForVariable = interactiveLpInputData.rows[rowIndex][columnIndex].length == 0 ? "0" : interactiveLpInputData.rows[rowIndex][columnIndex]
+            const dataValueForVariable = interactiveLpInputData.rows[rowIndex][columnIndex].length == 0 ? "0" : interactiveLpInputData.rows[rowIndex][columnIndex]
 
             res += variableName + " ROW_" + rowIndex + " " + dataValueForVariable + "\n"
         }
