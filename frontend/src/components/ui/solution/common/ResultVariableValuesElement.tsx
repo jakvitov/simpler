@@ -1,39 +1,49 @@
 import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
+import type {ResultVariableValues} from "../../../../api/solver/solveLpTypes.ts";
 
 type ResultVariableValuesElementProps = {
-    resultVariableValues: Record<string, Rational>|undefined
+    resultVariableValues: ResultVariableValues|undefined
 }
 
-function getResultVariableValuesArrayType(resultVariableValues: Map<string, Rational>): string {
+type VariableType =
+    | "PROBLEM"
+    | "SLACK_SURPLUS"
+
+function getResultVariableValuesArrayType(size: number): string {
     let res = "{c"
-    for (let i = 1; i < resultVariableValues.size; i++) {
+    for (let i = 1; i < size; i++) {
         res += ":c"
     }
     res += "}"
     return res;
 }
 
-function renderResultVariableValuesElement(resultVariableValues: Map<string, Rational>): string {
+function renderResultVariableValuesElement(resultVariableValues: Map<string, Rational>, variablesType: VariableType): string {
+    const sortedVariableNames: string[] = [...resultVariableValues.keys()].sort();
     if (resultVariableValues.size == 0) {
         return ""
     }
 
-    let res = "\\def\\arraystretch{2}";
-    res += ("\\begin{array}" + getResultVariableValuesArrayType(resultVariableValues) + "\n")
-    let variableNames: string[] = []
-    resultVariableValues.forEach((_value, key) => variableNames.push(key) )
+    let res = "";
 
-    res += variableNames[0];
+    switch (variablesType) {
+        case "PROBLEM": res += "\\text{Problem variables:} \\ \\ \\ "; break;
+        case "SLACK_SURPLUS": res += "\\text{Slack/surplus variables:} \\ \\ \\ "; break;
+    }
+
+    res += "\\def\\arraystretch{2}";
+    res += ("\\begin{array}" + getResultVariableValuesArrayType(sortedVariableNames.length) + "\n")
+    res += sortedVariableNames[0];
 
     for (let i = 1; i < resultVariableValues.size; i++) {
-        res += `& ${variableNames[i]}`;
+        res += `& ${sortedVariableNames[i]}`;
     }
     res += "\\\\ \\hline \n";
-    res += renderRationalWithNegativeSignOnly(resultVariableValues.get(variableNames[0]));
+    res += renderRationalWithNegativeSignOnly(resultVariableValues.get(sortedVariableNames[0]));
 
     for (let i = 1; i < resultVariableValues.size; i++) {
-        res += `& ${renderRationalWithNegativeSignOnly(resultVariableValues.get(variableNames[i]))}`;
+        res += `& ${renderRationalWithNegativeSignOnly(resultVariableValues.get(sortedVariableNames[i]))}`;
     }
     res += "\\\\ \n \\end{array}"
     return res;
@@ -47,10 +57,18 @@ function renderResultVariableValuesElement(resultVariableValues: Map<string, Rat
  */
 function ResultVariableValuesElement(props: ResultVariableValuesElementProps) {
     if (props.resultVariableValues != null) {
-        const resultVariableValuesMap = new Map<string, Rational>(
-            Object.entries(props.resultVariableValues).map(([k, v]) => [(k), v])
+        const problemVariables = new Map<string, Rational>(
+            Object.entries(props.resultVariableValues.problemVariables).map(([k, v]) => [(k), v])
         );
-        return <BlockMath math={renderResultVariableValuesElement(resultVariableValuesMap)} />
+        const slackSurplusVariables = new Map<string, Rational>(
+            Object.entries(props.resultVariableValues.slackSurplusVariables).map(([k, v]) => [(k), v])
+        );
+        return (
+            <>
+            <BlockMath math={renderResultVariableValuesElement(problemVariables, "PROBLEM")} />
+            <BlockMath math={renderResultVariableValuesElement(slackSurplusVariables, "SLACK_SURPLUS")} />
+            </>
+        )
     }
     return <BlockMath math={"EMPTY"}></BlockMath>
 }
