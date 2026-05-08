@@ -1,6 +1,7 @@
 package com.github.jakvitov.service;
 
 import com.github.jakvitov.dto.SimplexTableDto;
+import com.github.jakvitov.dto.solver.ResultVariableValues;
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.config.SolverConfigurationDto;
@@ -246,7 +247,7 @@ public class RevisedSimplexSolverService {
             if (enteringVariableIndex.isEmpty()) {
                 revisedSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
                 responseDto.setSolutionStatus(SolutionStatus.SOLVED);
-                responseDto.setResultVariableValues(getResultVariableValues(xB, currentBasis));
+                responseDto.setResultVariableValues(getResultVariableValues(originalSimplexTable, xB, currentBasis));
                 // 1x1 matrix with the objective function value
                 List<List<BigFraction>> objectiveFunctionValueMatrixNegated = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
 
@@ -304,12 +305,31 @@ public class RevisedSimplexSolverService {
      * @param currentBasis
      * @return
      */
-    protected Map<String, BigFraction> getResultVariableValues(List<List<BigFraction>> xB, List<String> currentBasis) {
-        Map<String, BigFraction> result = new HashMap<>(currentBasis.size());
-        IntStream.range(0, currentBasis.size()).boxed().forEach((i) -> {
-            result.put(currentBasis.get(i), xB.get(i).getFirst());
+    protected ResultVariableValues getResultVariableValues(SimplexTable simplexTable, List<List<BigFraction>> xB, List<String> currentBasis) {
+        ResultVariableValues res = new ResultVariableValues();
+
+        //Base variable name -> its index in base
+        HashMap<String, Integer> baseVariablesLookup = new HashMap<>();
+        IntStream.range(0, currentBasis.size()).boxed().forEach((baseIndex) -> {
+            baseVariablesLookup.put(currentBasis.get(baseIndex), baseIndex);
         });
-        return result;
+
+        for (int i = 0; i < simplexTable.variables.size(); i ++) {
+            String variableName = simplexTable.variables.get(i);
+            BigFraction variableValue = BigFraction.ZERO;
+
+            if (baseVariablesLookup.containsKey(variableName)) {
+                variableValue = xB.get(baseVariablesLookup.get(variableName)).getFirst();
+            }
+
+            if (variableName.startsWith("S_")) {
+                res.getSlackSurplusVariables().put(variableName, variableValue);
+            } else {
+                res.getProblemVariables().put(variableName, variableValue);
+            }
+        }
+
+        return res;
     }
 
     /**

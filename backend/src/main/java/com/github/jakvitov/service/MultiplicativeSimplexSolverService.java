@@ -265,7 +265,7 @@ public class MultiplicativeSimplexSolverService {
             if (enteringVariableIndex.isEmpty()) {
                 multiplicativeSimplexPhaseTwoSolutionDto.getIterations().add(iterationDto);
                 responseDto.setSolutionStatus(SolutionStatus.SOLVED);
-                responseDto.setResultVariableValues(revisedSimplexSolverService.getResultVariableValues(xB, currentBasis));
+                responseDto.setResultVariableValues(revisedSimplexSolverService.getResultVariableValues(originalSimplexTable, xB, currentBasis));
                 // 1x1 matrix with the objective function value
                 List<List<BigFraction>> objectiveFunctionValueMatrixNegated = linearAlgebraService.multiplyMatricesOrExc(originalSimplexTableReducedCosts, xB);
 

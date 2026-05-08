@@ -1,6 +1,7 @@
 package com.github.jakvitov.service;
 
 import com.github.jakvitov.dto.SimplexTableDto;
+import com.github.jakvitov.dto.solver.ResultVariableValues;
 import com.github.jakvitov.dto.solver.SolutionStatus;
 import com.github.jakvitov.dto.solver.SolveLpRequestDto;
 import com.github.jakvitov.dto.solver.basic.*;
@@ -18,6 +19,7 @@ import org.hipparchus.fraction.BigFraction;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.BS_MAX_CYCLE;
 import static com.github.jakvitov.service.SolverConfigurationService.SolverConfigurationConstants.BS_MAX_ITER;
@@ -161,18 +163,35 @@ public class BasicSimplexSolverService {
     }
 
     /**
-     * Given solved Simplex table, return values of all non-zero original variables
+     * Given solved Simplex table, return values of all result variable values
      * @param simplexTable
      * @return
      */
-    protected Map<String, BigFraction> getSolutionVariableValues(SimplexTable simplexTable) {
-        Map<String, BigFraction> result = new HashMap<>();
-        for (int i = 0; i < simplexTable.baseVariables.size(); i ++) {
-            String variableName = simplexTable.baseVariables.get(i);
-            result.put(variableName, simplexTable.rhs.get(i));
+    protected ResultVariableValues getSolutionVariableValues(SimplexTable simplexTable) {
+        ResultVariableValues res = new ResultVariableValues();
 
+        //Base variable name -> its index in base
+        HashMap<String, Integer> baseVariablesLookup = new HashMap<>();
+        IntStream.range(0, simplexTable.baseVariables.size()).boxed().forEach((baseIndex) -> {
+            baseVariablesLookup.put(simplexTable.baseVariables.get(baseIndex), baseIndex);
+        });
+
+        for (int i = 0; i < simplexTable.variables.size(); i ++) {
+            String variableName = simplexTable.variables.get(i);
+            BigFraction variableValue = BigFraction.ZERO;
+
+            if (baseVariablesLookup.containsKey(variableName)) {
+                variableValue = simplexTable.rhs.get(baseVariablesLookup.get(variableName));
+            }
+
+            if (variableName.startsWith("S_")) {
+                res.getSlackSurplusVariables().put(variableName, variableValue);
+            } else {
+                res.getProblemVariables().put(variableName, variableValue);
+            }
         }
-        return result;
+
+        return res;
     }
 
     protected void switchLeavingEnteringVariables(int leavingVariableRow, int enteringVariableRow, SimplexTable simplexTable) {
