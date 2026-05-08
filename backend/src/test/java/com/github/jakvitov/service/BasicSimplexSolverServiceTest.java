@@ -1,5 +1,6 @@
 package com.github.jakvitov.service;
 
+import com.github.jakvitov.dto.solver.ResultVariableValues;
 import com.github.jakvitov.dto.solver.basic.SimplexTableRowsNormalizationDto;
 import com.github.jakvitov.simplex.SimplexTable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -61,14 +62,18 @@ public class BasicSimplexSolverServiceTest {
         SimplexTable simplexTable = new SimplexTable();
         for (int i = 0; i < 5; i ++) {
             simplexTable.baseVariables.add("X" + i);
+            simplexTable.variables.add("X" + i);
             simplexTable.rhs.add(new BigFraction(i));
         }
 
-        Map<String, BigFraction> res = basicSimplexSolverService.getSolutionVariableValues(simplexTable);
+        simplexTable.variables.add("S_1");
+
+        ResultVariableValues res = basicSimplexSolverService.getSolutionVariableValues(simplexTable);
 
         for (int i = 0; i < 5; i ++) {
-            assert res.get("X" + i).equals(new BigFraction(i));
+            assert res.getProblemVariables().get("X" + i).equals(new BigFraction(i));
         }
+        assert res.getSlackSurplusVariables().get("S_1").equals(BigFraction.ZERO);
     }
 
     @Test

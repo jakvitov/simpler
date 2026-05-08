@@ -76,9 +76,9 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(BigFraction.ZERO);
-        assert response.getResultVariableValues().get("S_1").equals(new BigFraction(4));
-        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(5));
-        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(7));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_1").equals(new BigFraction(4));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_2").equals(new BigFraction(5));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_3").equals(new BigFraction(7));
     }
 
     @Test
@@ -108,8 +108,8 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(4));
-        assert response.getResultVariableValues().get("X1").equals(new BigFraction(2));
-        assert response.getResultVariableValues().get("X2").equals(new BigFraction(2));
+        assert response.getResultVariableValues().getProblemVariables().get("X1").equals(new BigFraction(2));
+        assert response.getResultVariableValues().getProblemVariables().get("X2").equals(new BigFraction(2));
     }
 
     @Test
@@ -170,9 +170,9 @@ public class SolveTwoPhaseSimplexIntegrationTest {
                 twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(35, 2));
-        assert response.getResultVariableValues().get("X1").equals(new BigFraction(15, 2));
-        assert response.getResultVariableValues().get("X2").equals(new BigFraction(5, 2));
-        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(105));
+        assert response.getResultVariableValues().getProblemVariables().get("X1").equals(new BigFraction(15, 2));
+        assert response.getResultVariableValues().getProblemVariables().get("X2").equals(new BigFraction(5, 2));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_3").equals(new BigFraction(105));
     }
 
     @Test
@@ -203,9 +203,9 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(19, 12));
-        assert response.getResultVariableValues().get("X2").equals(new BigFraction(11, 3));
-        assert response.getResultVariableValues().get("X3").equals(new BigFraction(13, 3));
-        assert response.getResultVariableValues().get("S_1").equals(new BigFraction(47, 6));
+        assert response.getResultVariableValues().getProblemVariables().get("X2").equals(new BigFraction(11, 3));
+        assert response.getResultVariableValues().getProblemVariables().get("X3").equals(new BigFraction(13, 3));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_1").equals(new BigFraction(47, 6));
     }
 
     @Test
@@ -232,8 +232,8 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
-        assert response.getResultVariableValues().get("X1").equals(new BigFraction(7));
-        assert response.getResultVariableValues().get("X2").equals(new BigFraction(3));
+        assert response.getResultVariableValues().getProblemVariables().get("X1").equals(new BigFraction(7));
+        assert response.getResultVariableValues().getProblemVariables().get("X2").equals(new BigFraction(3));
     }
 
     @Test
@@ -359,9 +359,9 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(10));
-        assert response.getResultVariableValues().get("X1").equals(new BigFraction(10));
-        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
-        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(90));
+        assert response.getResultVariableValues().getProblemVariables().get("X1").equals(new BigFraction(10));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_2").equals(new BigFraction(60));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_3").equals(new BigFraction(90));
     }
 
     @Test
@@ -392,11 +392,11 @@ public class SolveTwoPhaseSimplexIntegrationTest {
         SolveLpTwoPhaseSimplexResponseDto response = twoPhaseSimplexSolverService.handleSolveTwoPhaseSimplexRequest(solveLpRequestDto);
         assert response.getSolutionStatus().equals(SolutionStatus.SOLVED);
         assert response.getSolutionObjectiveFunctionValue().equals(new BigFraction(8));
-        assert response.getResultVariableValues().get("X1").equals(new BigFraction(9));
-        assert response.getResultVariableValues().get("X2").equals(BigFraction.ONE);
-        assert response.getResultVariableValues().get("S_2").equals(new BigFraction(60));
-        assert response.getResultVariableValues().get("S_3").equals(new BigFraction(91));
-        assert response.getResultVariableValues().get("S_4").equals(new BigFraction(8));
+        assert response.getResultVariableValues().getProblemVariables().get("X1").equals(new BigFraction(9));
+        assert response.getResultVariableValues().getProblemVariables().get("X2").equals(BigFraction.ONE);
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_2").equals(new BigFraction(60));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_3").equals(new BigFraction(91));
+        assert response.getResultVariableValues().getSlackSurplusVariables().get("S_4").equals(new BigFraction(8));
     }
 
 

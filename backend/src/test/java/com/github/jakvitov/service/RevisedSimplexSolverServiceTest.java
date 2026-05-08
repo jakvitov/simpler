@@ -1,5 +1,6 @@
 package com.github.jakvitov.service;
 
+import com.github.jakvitov.dto.solver.ResultVariableValues;
 import com.github.jakvitov.dto.solver.revised.NonBasicVariableCurrentReducedCostCalculationDto;
 import com.github.jakvitov.simplex.SimplexTable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -7,10 +8,7 @@ import jakarta.inject.Inject;
 import org.hipparchus.fraction.BigFraction;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @MicronautTest
 public class RevisedSimplexSolverServiceTest {
@@ -20,13 +18,22 @@ public class RevisedSimplexSolverServiceTest {
 
     @Test
     public void get_result_variable_values_succeeds() {
+
+        SimplexTable simplexTable = new SimplexTable();
+        for (int i = 1; i < 3; i ++) {
+            simplexTable.baseVariables.add("X_" + i);
+            simplexTable.variables.add("X_" + i);
+            simplexTable.rhs.add(new BigFraction(i));
+        }
+
+        simplexTable.variables.add("S_1");
         List<List<BigFraction>> xB = List.of(List.of(BigFraction.ONE), List.of(BigFraction.TWO));
         List<String> currentBasis = List.of("X_1", "X_2");
 
-        Map<String, BigFraction> res = revisedSimplexSolverService.getResultVariableValues(xB, currentBasis);
-        assert res.size() == 2;
-        assert res.get("X_1").equals(BigFraction.ONE);
-        assert res.get("X_2").equals(BigFraction.TWO);
+        ResultVariableValues res = revisedSimplexSolverService.getResultVariableValues(simplexTable, xB, currentBasis);
+        assert res.getProblemVariables().get("X_1").equals(BigFraction.ONE);
+        assert res.getProblemVariables().get("X_2").equals(BigFraction.TWO);
+        assert res.getSlackSurplusVariables().get("S_1").equals(BigFraction.ZERO);
     }
 
     @Test
