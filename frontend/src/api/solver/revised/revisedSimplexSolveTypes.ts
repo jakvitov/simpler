@@ -6,7 +6,7 @@ import type {Rational} from "../../common/math.ts";
 export interface NonBasicVariableCurrentReducedCostCalculationDto {
     CJ: Rational,
     AJ: Rational[][],
-    variableName: String
+    variableName: string
     nonBasicVariableReducedCost: Rational,
     result: Rational
 }
@@ -24,7 +24,7 @@ export interface RevisedSimplexIterationDto {
     enteringVariableName: string|undefined,
     enteringVariableColumnInOriginalSimplexTable: Rational[][]|undefined
     directionVector: Rational[][]|undefined,
-    ratioVector: Rational[]|undefined,
+    ratioVector: (Rational|null)[]|undefined,
     leavingVariableName: string|undefined,
     leavingVariableIndex: number|undefined,
     updatedBasis: string[]|undefined
