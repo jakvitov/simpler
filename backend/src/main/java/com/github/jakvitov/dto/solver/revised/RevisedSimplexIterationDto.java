@@ -46,7 +46,7 @@ public class RevisedSimplexIterationDto {
     private List<List<BigFraction>> directionVector;
 
     @Nullable
-    private List<BigFraction> ratioVector;
+    private List<@Nullable BigFraction> ratioVector;
 
     @Nullable
     private String leavingVariableName;

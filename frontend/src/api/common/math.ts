@@ -9,9 +9,9 @@ export interface Rational {
     sign: RationalSign;
 }
 
-export function renderRationalWithSign(r: Rational|undefined): string {
-    if (r == undefined) {
-        return "ERROR_UNDEFINED"
+export function renderRationalWithSign(r: Rational|null|undefined): string {
+    if (r == null) {
+        return "\\phantom{+}\\times"
     }
     if (r.denominator == 1) {
         return (r.sign === "P" ? "+" : "-") + r.numerator;
@@ -19,9 +19,9 @@ export function renderRationalWithSign(r: Rational|undefined): string {
     return (r.sign === "P" ? "+" : "-") + "\\dfrac{" + r.numerator + "}{" + r.denominator + "}";
 }
 
-export function renderRationalWithNegativeSignOnly(r: Rational|undefined): string {
-    if (r == undefined) {
-        return "ERROR_UNDEFINED"
+export function renderRationalWithNegativeSignOnly(r: Rational|undefined|null): string {
+    if (r == null) {
+        return "\\phantom{+}\\times"
     }
     if (r.sign === "P") {
         if (r.denominator == 1) {
@@ -44,9 +44,9 @@ export function renderRationalWithNegativeSignOnly(r: Rational|undefined): strin
  * Used in matrix rendering
  * @param r
  */
-export function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefined): string {
-    if (r == undefined) {
-        return "ERROR_UNDEFINED"
+export function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|null|undefined): string {
+    if (r == null) {
+        return "\\times"
     }
     if (r.sign === "P") {
         if (r.denominator == 1) {
@@ -64,11 +64,11 @@ export function renderRationalWithNegativeSignOnlyNoPhantom(r: Rational|undefine
     }
 }
 
-export function renderMatrixWithName(name: string, matrix: Rational[][]): string {
+export function renderMatrixWithName(name: string, matrix: (Rational|null)[][]): string {
     return name + " = " + renderMatrix(matrix)
 }
 
-export function renderMatrix(matrix: Rational[][]): string {
+export function renderMatrix(matrix: (Rational|null)[][]): string {
     if (matrix.length == 0) {
         return "";
     }

@@ -18,7 +18,7 @@ public class SimplexTableLeavingEnteringVariableDto {
 
     private SimplexTableDto simplexTableDto;
     @Nullable
-    private List<BigFraction> tVector;
+    private List<@Nullable BigFraction> tVector;
     @Nullable
     private Integer leavingVariableIndex;
     private Integer enteringVariableIndex;

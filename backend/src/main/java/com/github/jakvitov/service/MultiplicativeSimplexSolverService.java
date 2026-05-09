@@ -166,7 +166,7 @@ public class MultiplicativeSimplexSolverService {
 
             //Compute ratio vector test
             List<Optional<BigFraction>> ratioVector = revisedSimplexSolverService.computeRatioVector(d, xB);
-            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(null)).toList());
 
             int leavingVariableIndex = twoPhaseSimplexSolverService.getLeavingVariableIndexForPhaseOne(ratioVector);
             iterationDto.setLeavingVariableIndex(leavingVariableIndex);
@@ -296,7 +296,7 @@ public class MultiplicativeSimplexSolverService {
 
             //Compute ratio vector test
             List<Optional<BigFraction>> ratioVector = revisedSimplexSolverService.computeRatioVector(d, xB);
-            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+            iterationDto.setRatioVector(ratioVector.stream().map(i -> i.orElse(null)).toList());
 
             int leavingVariableIndex = twoPhaseSimplexSolverService.getLeavingVariableIndexForPhaseOne(ratioVector);
             iterationDto.setLeavingVariableIndex(leavingVariableIndex);

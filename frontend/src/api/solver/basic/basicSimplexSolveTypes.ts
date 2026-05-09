@@ -16,7 +16,7 @@ export interface BasicSimplexIterationDto {
 
 export interface SimplexTableLeavingEnteringVariableDto {
     simplexTableDto: SimplexTable
-    tVector: Rational[]
+    tVector: (Rational|null)[]
     leavingVariableIndex: number,
     enteringVariableIndex: number
 }
