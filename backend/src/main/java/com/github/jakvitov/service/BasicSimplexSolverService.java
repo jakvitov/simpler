@@ -87,7 +87,7 @@ public class BasicSimplexSolverService {
 
             SimplexTableLeavingEnteringVariableDto simplexTableLeavingEnteringVariableDto = new SimplexTableLeavingEnteringVariableDto();
             simplexTableLeavingEnteringVariableDto.setSimplexTableDto(new SimplexTableDto(simplexTable));
-            simplexTableLeavingEnteringVariableDto.setTVector(tVector.stream().map(i -> i.orElse(BigFraction.ZERO)).toList());
+            simplexTableLeavingEnteringVariableDto.setTVector(tVector.stream().map(i -> i.orElse(null)).toList());
             simplexTableLeavingEnteringVariableDto.setLeavingVariableIndex(leavingVariableIndex);
             simplexTableLeavingEnteringVariableDto.setEnteringVariableIndex(enteringVariableIndex);
 
