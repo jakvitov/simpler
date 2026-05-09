@@ -42,10 +42,15 @@ export interface SolveLpErrorResponse {
     success: boolean
 }
 
+export interface ResultVariableValues {
+    problemVariables: Record<string, Rational>,
+    slackSurplusVariables: Record<string, Rational>
+}
+
 export interface AbstractSolutionResponseDto {
     solutionStatus: SolutionStatus,
     initialSimplexTable: SimplexTable,
-    resultVariableValues: Record<string, Rational>|undefined,
+    resultVariableValues: ResultVariableValues|undefined,
     solutionObjectiveFunctionValue: Rational|undefined,
     success: boolean
 }

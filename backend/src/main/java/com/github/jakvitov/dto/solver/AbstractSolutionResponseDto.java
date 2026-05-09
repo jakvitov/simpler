@@ -18,7 +18,7 @@ public abstract class AbstractSolutionResponseDto {
 
     //Null when SolutionStatus is not SOLVED
     @Nullable
-    private Map<String, BigFraction> resultVariableValues;
+    private ResultVariableValues resultVariableValues;
 
     //Null when SolutionStatus is not SOLVED
     @Nullable
