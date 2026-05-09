@@ -4,7 +4,7 @@ import {
     renderValuesRow,
     renderVariableNamesRow
 } from "./PlainSimplexTableElement.tsx";
-import {renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
+import {type Rational, renderRationalWithNegativeSignOnly} from "../../../../api/common/math.ts";
 import {BlockMath} from "react-katex";
 
 type SimplexTableLeavingEnteringVariableElementProps = {
@@ -18,9 +18,11 @@ type SimplexTableLeavingEnteringVariableElementProps = {
 function renderTVecWithLeavingVariable(props: SimplexTableLeavingEnteringVariableElementProps): string {
     let res = "\\begin{pmatrix}\n"
     res += "\\begin{array}{cc}"
-    res += "t \\\\[10pt]\n"
-    props.simplexTableLeavingEnteringVariableDto.tVector.forEach((t_vec_item, index) => {
-        if (index === props.simplexTableLeavingEnteringVariableDto.leavingVariableIndex) {
+    res += "\\phantom{+}t \\\\[10pt]\n"
+    props.simplexTableLeavingEnteringVariableDto.tVector.forEach((t_vec_item:Rational|null, index) => {
+        if (t_vec_item == null) {
+            res += `\\phantom{+}\\times & \\\\[15pt]\n`
+        } else if (index === props.simplexTableLeavingEnteringVariableDto.leavingVariableIndex) {
             res += `${renderRationalWithNegativeSignOnly(t_vec_item)} & \\gets \\\\[15pt]\n`
         } else  {
             res += `${renderRationalWithNegativeSignOnly(t_vec_item)} & \\\\[15pt]\n`
